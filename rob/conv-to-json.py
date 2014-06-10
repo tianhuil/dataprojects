@@ -24,7 +24,7 @@ def parse(file, row, fields):
 j_lst = []
 with open('beeradvocate.txt', 'r') as file:
   row = file.next()
-  while row:
+  for row in file:
     # review begins w a beer/name
     if 'beer/name' in row:
       # build json format w two subcategories
@@ -34,10 +34,7 @@ with open('beeradvocate.txt', 'r') as file:
         "review": parse(file, row, rev_fields)
       }
       
-      ct += 1
-      
-    j_lst.append(d)
-    row = file.next()
+      j_lst.append(d)
       
 # write out json data file
 with open('beeradvocate.json', 'w') as wr:
