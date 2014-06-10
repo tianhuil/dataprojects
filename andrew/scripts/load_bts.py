@@ -58,36 +58,42 @@ if __name__ == "__main__":
             deststate varchar(5),
             deststatename varchar(255),
             crsdeptime varchar(4),
-            deptime varchar(4),
-            depdelay float,
-            taxiout float,
+            deptime varchar(4) not null default "9999",
+            depdelay float not null default -9999.,
+            taxiout float not null default -9999.,
             wheelsoff varchar(4),
             wheelson varchar(4),
-            taxiin float,
+            taxiin float not null default -9999,
             crsarrtime varchar(4),
-            arrtime varchar(4),
-            arrdelay float,
+            arrtime varchar(4) not null default "9999",
+            arrdelay float not null default -9999.,
             cancelled float,
             cancellationcode varchar(5),
             diverted float,
             distance float,
-            carrierdelay float not null default -1.,
-            weatherdelay float not null default -1.,
-            nasdelay float not null default -1.,
-            securitydelay float not null default -1.,
-            lateaircraftdelay float not null default -1.
-            )""")
+            carrierdelay float not null default 0.,
+            weatherdelay float not null default 0.,
+            nasdelay float not null default 0.,
+            securitydelay float not null default 0.,
+            lateaircraftdelay float not null default 0.
+            )""")#If a plane arrives less than 15 minutes late, it's not considered to be 'delayed' and therefore the different delay types are left blank - nobody needs to be blamed for the delay because it's so short. 
 
         for i,filename in enumerate(filelist):
             print filename
             cur.execute('''load data local infile "{0:s}" into table flightdelays fields terminated by "," optionally enclosed by """" ignore 1 lines(
-            year,quarter,month,dayofmonth,dayofweek,@datevar,uniquecarrier,airlineid,@dummy,tailnum,flightnum,originairportid,@dummy,origincitymarketid,origin,origincityname,originstate,@dummy,originstatename,@dummy,destairportid,@dummy,destcitymarketid,dest,destcityname,deststate,@dummy,deststatename,@dummy,crsdeptime,deptime,depdelay,@depdelayminutes,@depdel15,@departuredelaygroups,@deptimeblk,taxiout,wheelsoff,wheelson,taxiin,crsarrtime,arrtime,arrdelay,@arrdelayminutes,@arrdelay15,@arrivaldelaygroups,@arrtimeblk,cancelled,cancellationcode,diverted,@crselapsedtime,@actualelapsedtime,@airtime,@flights,distance,@distancegroup,@carrierdelay,@weatherdelay,@nasdelay,@securitydelay,@lateaircraftdelay,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy)
+            year,quarter,month,dayofmonth,dayofweek,@datevar,uniquecarrier,airlineid,@dummy,tailnum,flightnum,originairportid,@dummy,origincitymarketid,origin,origincityname,originstate,@dummy,originstatename,@dummy,destairportid,@dummy,destcitymarketid,dest,destcityname,deststate,@dummy,deststatename,@dummy,crsdeptime,@deptime,@depdelay,@depdelayminutes,@depdel15,@departuredelaygroups,@deptimeblk,@taxiout,wheelsoff,wheelson,@taxiin,crsarrtime,@arrtime,@arrdelay,@arrdelayminutes,@arrdelay15,@arrivaldelaygroups,@arrtimeblk,cancelled,cancellationcode,diverted,@crselapsedtime,@actualelapsedtime,@airtime,@flights,distance,@distancegroup,@carrierdelay,@weatherdelay,@nasdelay,@securitydelay,@lateaircraftdelay,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy)
             set flightdate=STR_TO_DATE(@datevar, '%Y-%m-%d'),
-            carrierdelay = ifnull(nullif(@carrierdelay,''),-1.),
-            weatherdelay = ifnull(nullif(@weatherdelay,''),-1),
-            nasdelay = ifnull(nullif(@nasdelay,''),-1),
-            securitydelay = ifnull(nullif(@securitydelay,''),-1),
-            lateaircraftdelay = ifnull(nullif(@lateaircraftdelay,''),-1)
+            deptime = ifnull(nullif(@deptime,''),"9999"),
+            arrtime = ifnull(nullif(@arrtime,''),"9999"),
+            depdelay = ifnull(nullif(@depdelay,''),-9999.),
+            arrdelay = ifnull(nullif(@arrdelay,''),-9999.),
+            taxiout = ifnull(nullif(@taxiout,''),-9999.),
+            taxiin = ifnull(nullif(@taxiin,''),-9999.),
+            carrierdelay = ifnull(nullif(@carrierdelay,''),0.),
+            weatherdelay = ifnull(nullif(@weatherdelay,''),0.),
+            nasdelay = ifnull(nullif(@nasdelay,''),0.),
+            securitydelay = ifnull(nullif(@securitydelay,''),0.),
+            lateaircraftdelay = ifnull(nullif(@lateaircraftdelay,''),0.)
             '''.format(filename))
             # cur.execute('''load data local infile "{0:s}" into table flightdelays fields terminated by "," optionally enclosed by """" ignore 1 lines(
             # year,quarter,month,dayofmonth,dayofweek,@datevar,uniquecarrier,airlineid,@dummy,tailnum,flightnum,originairportid,@dummy,origincitymarketid,origin,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy)
