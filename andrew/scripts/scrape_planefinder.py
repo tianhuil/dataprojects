@@ -12,14 +12,20 @@ def scrape_tail(tailnum,urlprefix = "http://planefinder.net/data/aircraft/"):
     datasections = tree.xpath('//td[@class = "stacked-stat"]')
     outdict = {}
     for section in datasections:
-        name,value = woo.getchildren()
-        outdict[name.strip()] = value.strip()
+        name,value = section.getchildren()
+        outdict[name.text.strip()] = value.text.strip()
 
     return outdict
 
+def scrape_tail_list(tailarr):
+    taillist = []
+    for i,tailnum in enumerate(tailarr):
+        taillist.append(scrape_tail(tailnum))
+        print i,tailnum,taillist[-1]
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        sys.exit("Syntax: [Tail #]")
+        sys.exit("Syntax: [List of Tail #s]")
 
-    print scrape_tail(sys.argv[1])
+    tailnums = np.loadtxt(sys.argv[1],dtype=np.str)
+    scrape_tail_list(tailnums)
