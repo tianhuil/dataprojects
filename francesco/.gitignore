@@ -1,0 +1,5 @@
+Data/*.gz
+Data/*.csv
+Data/*JSON
+.ipynb_checkpoints/*
+*.swp
