@@ -3,6 +3,9 @@ from bs4 import BeautifulSoup
 souptest = BeautifulSoup(testfile)    
 class Paper:
   def __init__(self, paperfile):
+    keyname = paperfile.select('authors author keyname')
+    forename = paperfile.select('authors author forenames')
+    namelist=[]
     for i in range(0,len(keyname)):
       namelist.append((keyname[i].text, forename[i].text))        
     self.title = paperfile.select('title')[0].text
