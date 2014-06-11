@@ -20,6 +20,7 @@ if __name__ == "__main__":
         filelist = np.loadtxt(sys.argv[1],dtype=np.str,usecols=(0,),ndmin=1)
     filelist = np.array(filelist)
 
+
     #Check that there is at least one file:
     if len(filelist) == 0:
         raise IOError("No files in list!")
@@ -56,17 +57,11 @@ if __name__ == "__main__":
             distance float not null default -1
             )""")
 
-            #Testing:
-            # zipname = 'bts_ontime_2014_1.zip'
-            # csvfile = 'On_Time_On_Time_Performance_2014_1.csv'
-            # zipf = zipfile.ZipFile(zipname)
-            # df = pd.read_csv(zipf.open(csvfile))
-            # sys.exit('ok')
-
         for i,filename in enumerate(filelist):
             deletefile_atend = False
             if os.path.splitext(filename)[1] == '.zip':
                 zipname = filename
+                print zipname,
                 zipf = zipfile.ZipFile(zipname)
                 for zipped_file in zipf.infolist():
                     if os.path.splitext(zipped_file.filename)[1] == '.csv':
