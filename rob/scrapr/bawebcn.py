@@ -4,7 +4,7 @@ from urllib2 import URLError
 from urllib2 import Request
 from lxml.html import fromstring
 
-class BACnt(object):
+class BACn(object):
   domain = 'http://www.beeradvocate.com'
   
   def __init__(self):
