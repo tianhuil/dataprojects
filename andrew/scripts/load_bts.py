@@ -35,12 +35,12 @@ if __name__ == "__main__":
         if op_type == 'reset':
             cur.execute('drop table if exists flightdelays')
             cur.execute("""create table flightdelays(fid int not null auto_increment primary key,
-            year smallint,
-            month tinyint,
-            dayofmonth tinyint,
-            dayofweek tinyint,
-            flightdate date,
-            uniquecarrier varchar(2),
+            year smallint not null default 0,
+            month tinyint not null default 0,
+            dayofmonth tinyint not null default 0,
+            dayofweek tinyint not null default 0,
+            flightdate date not null default '0000-00-00',
+            uniquecarrier varchar(2) not null default '-1',
             airlineid mediumint,
             tailnum varchar(6),
             flightnum varchar(10),
