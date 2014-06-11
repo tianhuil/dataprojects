@@ -24,18 +24,6 @@ field_map = {
   "text": "review"
 }
 
-# map data to field
-#def parse(raw, row, fields):
-#  d = { }
-#  for f in fields:
-#    r = row.split(":")
-#    d[f] = clean(f, r[1])
-#    row = raw.next()
-#    print row
-    
-#  return d
-                  
-
 # build json format w two subcategories
 # one for beer info and other for the review
 def def_container():
