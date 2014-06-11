@@ -11,7 +11,7 @@
 #     table->tbody->tr-> second td is table of meta info
 
 import re
-from bawebcnt import BACn
+from bawebcn import BACn
 from lxml.html import fromstring
 from collections import namedtuple
 
