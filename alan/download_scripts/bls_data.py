@@ -24,7 +24,7 @@ quandel_start = '1999-01-01'
 quandel_end = '2010-12-31'
 
 step = 4 #years
-start = 2010
+start = 2005
 end = 2014
 
 
@@ -38,22 +38,22 @@ def main():
         p = requests.post('http://api.bls.gov/publicAPI/v1/timeseries/data/', data=data, headers=headers) 
         json_data = json.loads(p.text) 
         print p.text
-    for series in json_data['Results']['series']:
-        x=prettytable.PrettyTable(["series id","year","period","value","footnotes"])
-        seriesId = series['seriesID']
-        for item in series['data']:
-            print item
-            year = int(item['year'])
-            period = int(item['period'][1:])
-            value = float(item['value'])
-            footnotes=""
-            for footnote in item['footnotes']:
-                if footnote:
-                    footnotes = footnotes + footnote['text'] + ','
-            if period <= 12:
-                print period, year, is_leapyear(year)
-                day = months[is_leapyear(year)][period]
-                outfile.write('%d,%d,%d,%f\n' %(year, period, day,value))
+        for series in json_data['Results']['series']:
+            x=prettytable.PrettyTable(["series id","year","period","value","footnotes"])
+            seriesId = series['seriesID']
+            for item in series['data']:
+                print item
+                year = int(item['year'])
+                period = int(item['period'][1:])
+                value = float(item['value'])
+                footnotes=""
+                for footnote in item['footnotes']:
+                    if footnote:
+                        footnotes = footnotes + footnote['text'] + ','
+                if period <= 12:
+                    print period, year, is_leapyear(year)
+                    day = months[is_leapyear(year)][period]
+                    outfile.write('%d,%d,%d,%f\n' %(year, period, day,value))
 
 
     mydata = Quandl.get('WORLDBANK/USA_GFDD_OE_02', trim_start=quandel_start,
