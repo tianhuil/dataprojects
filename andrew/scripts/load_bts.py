@@ -33,7 +33,7 @@ if __name__ == "__main__":
     #Connect to the db:
     con = ''
     try:
-        con = mdb.connect(host=creds.host,user=creds.user,db=creds.database,passwd=creds.password)
+        con = mdb.connect(host=creds.host,user=creds.user,db=creds.database,passwd=creds.password,local_infile=1)
         cur = con.cursor()
         #If the user wants to restart, drop the db:
         if op_type == 'reset':
