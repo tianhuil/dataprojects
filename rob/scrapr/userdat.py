@@ -87,13 +87,11 @@ def retrieve_users(argv):
   # if access is forbidden write id to log
   # the log ids are actual users that weren't retrieved
   def get_users(s, f, o, l):
-    workers = Pool(1)  # 30 worker processes
-    
     for i in xrange(s,f+1):
       u, err = user_profile_parse(i, "")
 
       # record forbidden user
-      if isinstance(u.name, HTTPError) and err.name.code == 403:
+      if isinstance(err, HTTPError) and err.code == 403:
         with open(l, 'a') as log:
           log.write(str(u.id) + '\n')
       else:
