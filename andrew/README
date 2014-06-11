@@ -1,0 +1,3 @@
+Hi!
+
+My project is all about trying to estimate flight delays based on historical on-time departure and arrival data. I've got mounds and mounds of flight statistics from the Bureau of Transportation Statistics (500,000+ per month for ~10 years), and will attempt to predict the probability of a given flight being <N minutes delayed on arrival.
