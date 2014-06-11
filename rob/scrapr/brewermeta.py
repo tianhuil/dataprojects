@@ -15,7 +15,7 @@
     # find <a href http://www.beeradvocate.com/place/directory/
 
 
-from bawebcnt import BACn
+from bawebcn import BACn
 from lxml.html import fromstring
 from collections import namedtuple
 
