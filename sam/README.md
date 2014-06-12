@@ -63,6 +63,5 @@ Casual and competitive crossfit athletes
 
 ### Reports
 * How do you compare to other crossfit athletes
-* 
 ![14.1 histogram by gender](http://swift.pw/wp-content/uploads/2014/05/crossfit_14_1_annotated-1024x614.png)
 
