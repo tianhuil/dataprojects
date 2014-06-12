@@ -30,6 +30,7 @@ class time_coder:
 #Vectorize a set of predictors from a Pandas dataframe into a sparse matrix:
 def vectorize_data(data,vectorizer,fit_transform = False):
     datadict = data.T.to_dict().values()
+    print "  Finished converting the dataframe to a list of dicts"
     pred_vec = None
     if fit_transform:
         pred_vec = vectorizer.fit_transform(datadict)
