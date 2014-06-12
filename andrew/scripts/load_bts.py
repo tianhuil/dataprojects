@@ -35,12 +35,12 @@ if __name__ == "__main__":
     try:
         con = mdb.connect(host=creds.host,user=creds.user,db=creds.database,passwd=creds.password,local_infile=1)
         cur = con.cursor()
-        #If the user wants to restart, drop the db:
+        #If the user wants to restart, drop the dbs:
         if op_type == 'reset':
             cur.execute('drop table if exists flightdelays')
             cur.execute("""create table flightdelays(fid int not null auto_increment primary key,
             flightdate date not null default '0000-00-00',
-            uniquecarrier varchar(2) not null default '-1',
+            uniquecarrier varchar(7) not null default '-9999',
             tailnum varchar(6) not null default 'ZZZZZZ',
             origincitymarketid mediumint not null default -1,
             origin varchar(3) not null default '-1',
@@ -48,9 +48,9 @@ if __name__ == "__main__":
             destcitymarketid mediumint not null default -1,
             dest varchar(3) not null default '-1',
             deststate varchar(2) not null default '-1',
-            crsdeptime varchar(4) not null default '0000',
+            crsdeptime varchar(4) not null default '-999',
             depdelay float not null default -9999.,
-            crsarrtime varchar(4) not null default '0000',
+            crsarrtime varchar(4) not null default '-999',
             arrdelay float not null default -9999.,
             cancelled float not null default -1,
             diverted float not null default -1,
@@ -79,9 +79,6 @@ if __name__ == "__main__":
             depdelay = ifnull(nullif(@depdelay,''),-9999.),
             arrdelay = ifnull(nullif(@arrdelay,''),-9999.)
             '''.format(filename))
-            # cur.execute('''load data local infile "{0:s}" into table flightdelays fields terminated by "," optionally enclosed by """" ignore 1 lines(
-            # year,quarter,month,dayofmonth,dayofweek,@datevar,uniquecarrier,airlineid,@dummy,tailnum,flightnum,originairportid,@dummy,origincitymarketid,origin,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy)
-            # set flightdate=STR_TO_DATE(@datevar, '%Y-%m-%d')'''.format(filename))
             con.commit()
             if deletefile_atend:
                 os.remove(filename)
