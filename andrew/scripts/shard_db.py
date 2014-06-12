@@ -40,7 +40,7 @@ if __name__ == "__main__":
                 #Create the shard:
                 cur.execute('create table {shard_table} select * from flightdelays where month(flightdate) = {month} and crsdeptime >= {hourmin} and crsdeptime < {hourmax} and {bestairports_cond};'.format(shard_table=shard_table,month=months[monthkey],hourmin=hours[hourkey][0],hourmax=hours[hourkey][1],bestairports_cond=conditional_str))
                 #Make sure it knows it can still use the fid as the primary key:
-                cur.execute('alter table {shard_table} add primary key(fid);'.format(shard_table=shard_table)
+                cur.execute('alter table {shard_table} add primary key(fid);'.format(shard_table=shard_table))
                 print monthkey,hourkey, "Took {0:.2f}".format(time.time()-start)
                 
     except mdb.Error, e:
