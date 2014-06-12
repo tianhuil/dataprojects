@@ -37,12 +37,6 @@ if __name__ == "__main__":
         cur = con.cursor()
         #If the user wants to restart, drop the dbs:
         if op_type == 'reset':
-            cur.execute('drop table if exists airlinenames')
-            cur.execute("""create table airlinenames(
-            uniquecarrier varchar(7) not null primary key,
-            fullname varchar(255) not null default ''
-            )""")
-            
             cur.execute('drop table if exists flightdelays')
             cur.execute("""create table flightdelays(fid int not null auto_increment primary key,
             flightdate date not null default '0000-00-00',
@@ -85,9 +79,6 @@ if __name__ == "__main__":
             depdelay = ifnull(nullif(@depdelay,''),-9999.),
             arrdelay = ifnull(nullif(@arrdelay,''),-9999.)
             '''.format(filename))
-            # cur.execute('''load data local infile "{0:s}" into table flightdelays fields terminated by "," optionally enclosed by """" ignore 1 lines(
-            # year,quarter,month,dayofmonth,dayofweek,@datevar,uniquecarrier,airlineid,@dummy,tailnum,flightnum,originairportid,@dummy,origincitymarketid,origin,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy,@dummy)
-            # set flightdate=STR_TO_DATE(@datevar, '%Y-%m-%d')'''.format(filename))
             con.commit()
             if deletefile_atend:
                 os.remove(filename)
