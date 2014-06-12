@@ -1,25 +1,24 @@
 testfile=open("/home/tobias/BigHarvest/oai:arXiv.org:0704.0001.arXiv.xml","r")
 from bs4 import BeautifulSoup
-souptest = BeautifulSoup(testfile)    
+import re
 class Paper:
   def __init__(self, paperfile):
-    keyname = paperfile.select('authors author keyname')
-    forename = paperfile.select('authors author forenames')
-    namelist=[]
+    names= paperfile.select('authors author')
+    authors=[]
     for i in range(0,len(keyname)):
-      namelist.append((keyname[i].text, forename[i].text))        
-    self.title = paperfile.select('title')[0].text
+      key = re.match( r"<author><keyname>(.+)</keyname>", str(keyname[i]) )
+      fore = re.match(r"<author><keyname>.+</keyname><forenames>(.+)</forenames>", str(keyname[i]))
+      if (key and fore):
+        authors.append((key.group(1), fore.group(1)))
+      elif key:
+        authors.append(key.group(1))
+      else:
+        print 'ERROR- no authors'      
+    self.title = re.sub( '\n', ' ', paperfile.select('title')[0].text)
     self.ident = paperfile.select('id')[0].text
-    self.authors = namelist
-    self.abstract = paperfile.select('abstract')[0].text
-    self.categories = paperfile.select('categories')[0].text 
-    self.create = paperfile.select('created')[0].text
-    
-    
-x = Paper(souptest)
-#print x.title
-#print x.ident
-#print x.authors
-#print x.abstract
-print x.categories
-print x.create
+    self.authors = authors
+    self.abstract = re.sub('\n', ' ', paperfile.select('abstract')[0].text)
+    self.categories = paperfile.select('categories')[0].text.split() 
+    self.create = paperfile.select('created')[0].text 
+    self.mscclass = temp
+    self.summary = (self.ident, self.create, self.title) 
