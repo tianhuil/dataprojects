@@ -3,7 +3,29 @@ import MySQLdb as mdb
 import pandas as pd
 
 import load_credentials_nogit as creds
-#This file contains useful functions for doing querying, encoding, and modeling of my flight data.
+#This file contains useful classes and functions for doing querying, encoding, and modeling of my flight data.
+
+class time_coder:
+    def __init__(self,timebins):
+        self.timebins = timebins
+        self.bin_text_dict = {}
+    def time_encode(self,times,cancellations):
+        if self.timebins:
+            coded_array = np.zeros(len(times),dtype=np.int)
+            self.bin_text_dict[0] = '<{0:d}'.format(self.timebins[0])
+            currcode = 1
+            for i in range(1,len(self.timebins)):
+                coded_array[(times >= self.timebins[i-1]) & (times < self.timebins[i])] = currcode
+                self.bin_text_dict[currcode] = '{0:d}-{1:d}'.format(self.timebins[i-1],self.timebins[i])
+                currcode += 1
+            coded_array[(times >= self.timebins[-1])] = currcode
+            self.bin_text_dict[currcode] = '>={0:d}'.format(self.timebins[-1])
+            currcode += 1
+            coded_array[(cancellations > 1.e-5)] = currcode
+            self.bin_text_dict[currcode] = 'Cancelled'
+            return coded_array.astype(np.str)
+        else:
+            raise ValueError("time_coder.timebins is empty!")
 
 #Get selected columns and put them into a Pandas Dataframe:
 def query_into_pd(con,table,columnlist,subset=None):
