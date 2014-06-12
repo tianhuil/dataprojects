@@ -11,6 +11,7 @@ import load_credentials_nogit as creds
 
 #Train and fit a logarithmic regression classifier.
 def train_log(tablename,subset=None,timesplit = [15,45],filename = None):
+    start = time.time()
     #Connect to the database and download the data:
     con = mdb.connect(host=creds.host,user=creds.user,db=creds.database,passwd=creds.password,local_infile=1)
     data = ff.query_into_pd(con,tablename,['origin','dest','uniquecarrier','arrdelay','cancelled','diverted'],subset=subset)
