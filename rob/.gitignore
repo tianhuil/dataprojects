@@ -1,4 +1,5 @@
 creds.json
-beeradvocate.txt
-beeradvocate.json
+data/
+err_sep/
+user_sep/
 *.pyc
