@@ -27,6 +27,16 @@ class time_coder:
         else:
             raise ValueError("time_coder.timebins is empty!")
 
+#Vectorize a set of predictors from a Pandas dataframe into a sparse matrix:
+def vectorize_data(data,vectorizer,fit_transform = False):
+    datadict = data.T.to_dict().values()
+    pred_vec = None
+    if fit_transform:
+        pred_vec = vectorizer.fit_transform(datadict)
+    else:
+        pred_vec = vectorizer.transform(datadict)
+    return pred_vec,vectorizer
+        
 #Get selected columns and put them into a Pandas Dataframe:
 def query_into_pd(con,table,columnlist,subset=None):
     if columnlist:
@@ -34,7 +44,7 @@ def query_into_pd(con,table,columnlist,subset=None):
         df = pd.io.sql.frame_query(syntax,con)
         try:
             if int(subset) > 0:
-                df = df.ix[np.random.random_integers(0,len(df),subset)]
+                df = df.ix[np.random.choice(np.arange(len(df)),replace=False,size=subset)]
         except TypeError:
             pass
         return df
