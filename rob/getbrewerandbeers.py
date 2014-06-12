@@ -32,7 +32,7 @@ with open('data/beeradvocate.json', 'r') as revs, \
           # this beer id already assigned to another brewer
           # report br_id, be_id combo error
           with open('data/err_product_id.txt', 'a') as ert:
-            ert.write("{0},{1}".format(br_id, be_id))
+            ert.write("{0},{1}\n".format(br_id, be_id))
         else:
           meta = beer_meta_parse(br_id, be_id)
           prods[br_id].append(be_id)
@@ -40,7 +40,7 @@ with open('data/beeradvocate.json', 'r') as revs, \
           bes.write(json.dumps(meta.__dict__) + '\n')
     except:
       with open('data/err_product_scrap.txt', 'a') as ert:
-        ert.write("{0},{1}".format(br_id, be_id))
+        ert.write("{0},{1}\n".format(br_id, r["beer"]["id"]))
     
 # write out product code combos
 with open('data/products.json', 'w') as p:
