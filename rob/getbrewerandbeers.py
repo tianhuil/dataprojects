@@ -5,8 +5,8 @@
 # write out production dictionary { brewer: [beers] } to products.json
 
 import json
-from brewermeta import brewer_meta_parse
-from beermeta import beer_meta_parse
+from scrapr.brewermeta import brewer_meta_parse
+from scrapr.beermeta import beer_meta_parse
 
 prods = { }
 all_beers = []
