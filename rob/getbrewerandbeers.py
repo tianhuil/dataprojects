@@ -25,6 +25,7 @@ with open('data/beeradvocate.json', 'r') as revs, \
         brs.write(json.dumps(meta.__dict__) + '\n')
         
         
+        
       be_id = r["beer"]["id"]
       if be_id not in prods[br_id]:
         if be_id in all_beers:
@@ -40,8 +41,9 @@ with open('data/beeradvocate.json', 'r') as revs, \
     except:
       with open('data/err_product_scrap.txt', 'a') as ert:
         ert.write("{0},{1}".format(br_id, be_id))
-
+    
 # write out product code combos
 with open('data/products.json', 'w') as p:
   p.write(json.dumps(prods))
     
+print 'DONE'
