@@ -104,7 +104,7 @@ def retrieve_users(argv):
   # retrieve and store users in id range
   get_users(*opt)
 
-# python scrapr/userdat.py -s 2 -f 5 -o u.json -l err_id.txt
+
 
 # test parser
 # runs when no cli opts are provided
@@ -130,7 +130,7 @@ def run_dummy_test():
   print_u_prof(fake)
   
   
-  
+# python scrapr/userdat.py -s 2 -f 5 -o u.json -l err_id.txt
 if __name__ == '__main__':
   if len(sys.argv) > 1:
     retrieve_users(sys.argv[1:])
