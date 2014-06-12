@@ -69,7 +69,7 @@ def clean(field, value):
   return value
   
                   
-with open('beeradvocate.txt', 'r') as raw, open('beeradvocate.json', 'w') as j:
+with open('data/beeradvocate.txt', 'r') as raw, open('data/beeradvocate.json', 'w') as j:
   d = None
   for row in raw:
     if row not in ['','\n']:
