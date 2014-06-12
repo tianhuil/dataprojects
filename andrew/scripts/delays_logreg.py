@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import pandas as pd
 import MySQLdb as mdb
@@ -26,9 +27,14 @@ def train_log(tablename,subset=None,timesplit = [15,45],filename = None):
     vectorizer = sklearn.feature_extraction.DictVectorizer()
     pred_vec,vectorizer = ff.vectorize_data(data[['origin','dest','uniquecarrier']],vectorizer,fit_transform=True)
 
+    #Free up memory by chucking the data
+    data = None
+
+    #Train the logistic regression model:
     logreg = sklearn.linear_model.LogisticRegression(C=1.e5)
     logreg.fit(pred_vec,coded_delays)
 
+    #This is just some testing stuff to make sure I can get out probabilities that make sense. It'll go away soon, when I fully separate out the training from the testing.
     sampledict = {'origin': pd.Series(['MSN','DEN','LAX']),
                   'dest': pd.Series(['ORD','JFK','ORD']),
                   'uniquecarrier': pd.Series(['UA','UA','UA']),
@@ -39,11 +45,15 @@ def train_log(tablename,subset=None,timesplit = [15,45],filename = None):
     sample_probabilities = logreg.predict_proba(sample_vec)
     print sample_probabilities
     
-    # print tc.bin_text_dict
-    # for i in range(20):
-    #     print data.arrdelay.values[i],coded_delays[i]
-    
     
 if __name__ == "__main__":
     #np.random.seed(1)
-    train_log('flightdelays_jan_evening',subset=None)
+    if len(sys.argv) != 3:
+        sys.exit("Syntax: [Shard name] [subset (integer or 'none')]")
+    tablename = sys.argv[1]
+    subset = None
+    try:
+        subset = int(sys.argv[2])
+    except ValueError:
+        subset = None
+    train_log(tablename,subset=subset)

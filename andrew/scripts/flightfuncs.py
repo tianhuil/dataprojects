@@ -41,7 +41,7 @@ def vectorize_data(data,vectorizer,fit_transform = False):
 def query_into_pd(con,table,columnlist,subset=None):
     if columnlist:
         syntax = "Select {table}.{cols} from {table}".format(table=table,cols=', {table}.'.format(table=table).join(columnlist))
-        df = pd.io.sql.frame_query(syntax,con)
+        df = pd.io.sql.read_sql(syntax,con)
         try:
             if int(subset) > 0:
                 df = df.ix[np.random.choice(np.arange(len(df)),replace=False,size=subset)]
