@@ -24,21 +24,22 @@ def train_log(tablename,subset=None,timesplit = [15,45],filename = None):
     #Code up the delay times:
     tc = ff.time_coder(timesplit)
     coded_delays = tc.time_encode(data.arrdelay.values,data.cancelled.values)
-    print "Finished coding the targets ({0:.2f}s)".format(time.time()-start)
+    print "Finished coding the target ({0:.2f}s)".format(time.time()-start)
 
-    #Code up the predictors. All of the ones I'm currently dealing with are categorical and strings, so I think Dictvectorizer will just work
-    test = data[['origin','dest','uniquecarrier']]
-    vectorizer = sklearn.feature_extraction.DictVectorizer()
-    hasher = sklearn.feature_extraction.FeatureHasher(input_type = 'string')
-    pred_vec,vectorizer = ff.vectorize_data(data[['origin','dest','uniquecarrier']],vectorizer,fit_transform=True)
-    print "Finished vectorizing the predictor ({0:.2f}s)".format(time.time()-start)
+    #Code up the predictors. All of the ones I'm currently dealing with are categorical and strings, so I tried a DictVectorizer to save space, but it was super slow and didn't really seem to be saving that many GB. So I wrote my own (non-sparse) encoder that's designed to deal in an efficient manner with how I'm piping in my data.
+    # vectorizer = sklearn.feature_extraction.DictVectorizer()
+    # pred_vec,vectorizer = ff.vectorize_data(data[['origin','dest','uniquecarrier']],vectorizer,fit_transform=True)
+    # print "Finished vectorizing the predictor ({0:.2f}s)".format(time.time()-start)
+    coder = ff.predictor_coder()
+    pred_code = coder.train(data,[],['origin','dest','uniquecarrier'])
+    print "Finished coding the predictors ({0:.2f}s)".format(time.time()-start)
 
     #Free up memory by chucking the data
     data = None
 
     #Train the logistic regression model:
     logreg = sklearn.linear_model.LogisticRegression(C=1.e5)
-    logreg.fit(pred_vec,coded_delays)
+    logreg.fit(pred_code,coded_delays)
     print "Finished training the model ({0:.2f}s)".format(time.time()-start)
 
     #This is just some testing stuff to make sure I can get out probabilities that make sense. It'll go away soon, when I fully separate out the training from the testing.
@@ -48,8 +49,9 @@ def train_log(tablename,subset=None,timesplit = [15,45],filename = None):
                   'label': pd.Series(['United - MSN->ORD','United - DEN->JFK','United - LAX->ORD'])
                   }
     sampledf = pd.DataFrame(sampledict)
-    sample_vec,crap = ff.vectorize_data(sampledf[['origin','dest','uniquecarrier']],vectorizer,fit_transform=False)
-    sample_probabilities = logreg.predict_proba(sample_vec)
+    # sample_vec,crap = ff.vectorize_data(sampledf[['origin','dest','uniquecarrier']],vectorizer,fit_transform=False)
+    sample_code = coder.code_data(sampledf)
+    sample_probabilities = logreg.predict_proba(sample_code)
     print sample_probabilities
     
     
