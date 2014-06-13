@@ -4,6 +4,7 @@ import pandas as pd
 import MySQLdb as mdb
 import sklearn.feature_extraction
 import sklearn.linear_model
+import sklearn.grid_search
 import time
 import cPickle as pickle
 
@@ -11,11 +12,11 @@ import flightfuncs as ff
 import load_credentials_nogit as creds
 
 #Train and fit a logarithmic regression classifier.
-def train_log(tablename,subset=None,timesplit = [15,45],filename = None):
+def train_log(tablename,continuous_predictors = [],discrete_predictors = ['origin','dest','uniquecarrier','dayofweek(flightdate)'],targetname = 'arrdelay',subset=None,timesplit = [15,45],filename = None):
     start = time.time()
     #Connect to the database and download the data:
     con = mdb.connect(host=creds.host,user=creds.user,db=creds.database,passwd=creds.password,local_infile=1)
-    data = ff.query_into_pd(con,tablename,['origin','dest','uniquecarrier','arrdelay','cancelled','diverted'],subset=subset)
+    data = ff.query_into_pd(con,tablename,continuous_predictors+discrete_predictors+[targetname] + ['cancelled','diverted'],subset=subset)
     print "Finished querying data ({0:.2f}s)".format(time.time()-start)
     
     #Select only flights that weren't diverted:
@@ -24,20 +25,28 @@ def train_log(tablename,subset=None,timesplit = [15,45],filename = None):
 
     #Code up the delay times:
     tc = ff.time_coder(timesplit)
-    coded_delays = tc.time_encode(data.arrdelay.values,data.cancelled.values)
+    coded_delays = tc.time_encode(data[targetname].values,data.cancelled.values)
     print "Finished coding the target ({0:.2f}s)".format(time.time()-start)
 
     #Code up the predictors. All of the ones I'm currently dealing with are categorical and strings, so I tried a DictVectorizer to save space, but it was super slow and didn't really seem to be saving that many GB. So I wrote my own (non-sparse) encoder that's designed to deal in an efficient manner with how I'm piping in my data.
     coder = ff.predictor_coder()
-    pred_code = coder.train(data,[],['origin','dest','uniquecarrier'])
+    pred_code = coder.train(data,continuous_predictors,discrete_predictors)
     print "Finished coding the predictors ({0:.2f}s)".format(time.time()-start)
 
     #Free up memory by chucking the data
     data = None
 
     #Train the logistic regression model:
-    logreg = sklearn.linear_model.LogisticRegression(penalty='l2',C=1.e5)
+    # def test_scoring(estimator,X,y):
+    #     inty = y.astype(np.int16)
+    #     probs = estimator.predict_proba(X)[:,inty]
+        
+    #     #print inty[:4],probs[:4]
+    #     return np.sum(probs)
+    logreg = sklearn.grid_search.GridSearchCV(sklearn.linear_model.LogisticRegression(),param_grid={'C':[0.1,1000.,100000]},scoring=ff.pdf_scoring,cv=2)
+    #logreg = sklearn.linear_model.LogisticRegression(penalty='l2',C=1.e5)
     logreg.fit(pred_code,coded_delays)
+    print "Best C = {C}".format(**logreg.best_params_)
     print "Finished training the model ({0:.2f}s)".format(time.time()-start)
 
     #Output a pickled file containing the model and the necessary supporting information:
@@ -66,12 +75,15 @@ def test_run(model_file):
     sampledict = {'origin': pd.Series(['MSN','DEN','LAX']),
                   'dest': pd.Series(['ORD','JFK','ORD']),
                   'uniquecarrier': pd.Series(['UA','UA','UA']),
+                  'dayofweek(flightdate)' : pd.Series([2,2,2]),
                   'label': pd.Series(['United - MSN->ORD','United - DEN->JFK','United - LAX->ORD'])
                   }
     sampledf = pd.DataFrame(sampledict)
     sample_code = model_dict['predictor_coder'].code_data(sampledf)
     sample_probabilities = model_dict['model'].predict_proba(sample_code)
-    print sample_probabilities
+    timecodes = [model_dict['target_coder'].bin_text_dict[key] for key in range(sample_probabilities.shape[1])]
+    output_df = pd.DataFrame(sample_probabilities,columns=timecodes)
+    print output_df
     
     
 if __name__ == "__main__":
@@ -84,4 +96,4 @@ if __name__ == "__main__":
         subset = int(sys.argv[2])
     except ValueError:
         subset = None
-    train_log(tablename,subset=subset,filename='../saved_models/test_logreg.pkl')
+    train_log(tablename,discrete_predictors = ['origin','dest','uniquecarrier'],subset=subset,filename='../saved_models/test_logreg.pkl')

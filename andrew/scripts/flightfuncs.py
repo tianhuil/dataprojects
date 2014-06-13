@@ -2,6 +2,7 @@ import numpy as np
 import MySQLdb as mdb
 import pandas as pd
 import sklearn.feature_extraction
+import sys
 
 import load_credentials_nogit as creds
 #This file contains useful classes and functions for doing querying, encoding, and modeling of my flight data.
@@ -81,8 +82,6 @@ class predictor_coder:
         code_arr[codes,range(len(values))] = 1.
 
         return code_arr
-
-        
     
     #Raise an exception if the predictors aren't in the dataframe:
     def check_predictors(self,data,predictors):
@@ -110,10 +109,16 @@ class predictor_coder:
 #         pred_vec = hasher.transform(datagenerator)
 #     return pred_vec,hasher
 
+#A cross-validation estimator based on the probability of the label being the correct one, normal goodness-of-model measurements like accuracy aren't relevant here:
+def pdf_scoring(estimator, X, y):
+    integer_y = y.astype(np.int16)
+    probs = estimator.predict_proba(X)[range(len(integer_y)),integer_y]
+    return np.sum(probs**2)
+
 #Get selected columns and put them into a Pandas Dataframe:
 def query_into_pd(con,table,columnlist,subset=None):
     if columnlist:
-        syntax = "Select {table}.{cols} from {table}".format(table=table,cols=', {table}.'.format(table=table).join(columnlist))
+        syntax = "Select {cols} from {table}".format(table=table,cols=', '.format(table=table).join(columnlist))
         df = pd.io.sql.read_sql(syntax,con)
         try:
             if int(subset) > 0:
