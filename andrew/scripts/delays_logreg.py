@@ -29,6 +29,7 @@ def train_log(tablename,subset=None,timesplit = [15,45],filename = None):
     #Code up the predictors. All of the ones I'm currently dealing with are categorical and strings, so I think Dictvectorizer will just work
     test = data[['origin','dest','uniquecarrier']]
     vectorizer = sklearn.feature_extraction.DictVectorizer()
+    hasher = sklearn.feature_extraction.FeatureHasher(input_type = 'string')
     pred_vec,vectorizer = ff.vectorize_data(data[['origin','dest','uniquecarrier']],vectorizer,fit_transform=True)
     print "Finished vectorizing the predictor ({0:.2f}s)".format(time.time()-start)
 
