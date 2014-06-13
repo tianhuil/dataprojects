@@ -27,9 +27,6 @@ def train_log(tablename,subset=None,timesplit = [15,45],filename = None):
     print "Finished coding the target ({0:.2f}s)".format(time.time()-start)
 
     #Code up the predictors. All of the ones I'm currently dealing with are categorical and strings, so I tried a DictVectorizer to save space, but it was super slow and didn't really seem to be saving that many GB. So I wrote my own (non-sparse) encoder that's designed to deal in an efficient manner with how I'm piping in my data.
-    # vectorizer = sklearn.feature_extraction.DictVectorizer()
-    # pred_vec,vectorizer = ff.vectorize_data(data[['origin','dest','uniquecarrier']],vectorizer,fit_transform=True)
-    # print "Finished vectorizing the predictor ({0:.2f}s)".format(time.time()-start)
     coder = ff.predictor_coder()
     pred_code = coder.train(data,[],['origin','dest','uniquecarrier'])
     print "Finished coding the predictors ({0:.2f}s)".format(time.time()-start)
@@ -38,7 +35,7 @@ def train_log(tablename,subset=None,timesplit = [15,45],filename = None):
     data = None
 
     #Train the logistic regression model:
-    logreg = sklearn.linear_model.LogisticRegression(C=1.e5)
+    logreg = sklearn.linear_model.LogisticRegression(penalty='l1',C=1.e5)
     logreg.fit(pred_code,coded_delays)
     print "Finished training the model ({0:.2f}s)".format(time.time()-start)
 
@@ -49,7 +46,6 @@ def train_log(tablename,subset=None,timesplit = [15,45],filename = None):
                   'label': pd.Series(['United - MSN->ORD','United - DEN->JFK','United - LAX->ORD'])
                   }
     sampledf = pd.DataFrame(sampledict)
-    # sample_vec,crap = ff.vectorize_data(sampledf[['origin','dest','uniquecarrier']],vectorizer,fit_transform=False)
     sample_code = coder.code_data(sampledf)
     sample_probabilities = logreg.predict_proba(sample_code)
     print sample_probabilities
