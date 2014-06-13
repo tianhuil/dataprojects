@@ -5,6 +5,7 @@ import MySQLdb as mdb
 import sklearn.feature_extraction
 import sklearn.linear_model
 import time
+import cPickle as pickle
 
 import flightfuncs as ff
 import load_credentials_nogit as creds
@@ -24,32 +25,52 @@ def train_log(tablename,subset=None,timesplit = [15,45],filename = None):
     #Code up the delay times:
     tc = ff.time_coder(timesplit)
     coded_delays = tc.time_encode(data.arrdelay.values,data.cancelled.values)
-    print "Finished coding the targets ({0:.2f}s)".format(time.time()-start)
+    print "Finished coding the target ({0:.2f}s)".format(time.time()-start)
 
-    #Code up the predictors. All of the ones I'm currently dealing with are categorical and strings, so I think Dictvectorizer will just work
-    test = data[['origin','dest','uniquecarrier']]
-    vectorizer = sklearn.feature_extraction.DictVectorizer()
-    hasher = sklearn.feature_extraction.FeatureHasher(input_type = 'string')
-    pred_vec,vectorizer = ff.vectorize_data(data[['origin','dest','uniquecarrier']],vectorizer,fit_transform=True)
-    print "Finished vectorizing the predictor ({0:.2f}s)".format(time.time()-start)
+    #Code up the predictors. All of the ones I'm currently dealing with are categorical and strings, so I tried a DictVectorizer to save space, but it was super slow and didn't really seem to be saving that many GB. So I wrote my own (non-sparse) encoder that's designed to deal in an efficient manner with how I'm piping in my data.
+    coder = ff.predictor_coder()
+    pred_code = coder.train(data,[],['origin','dest','uniquecarrier'])
+    print "Finished coding the predictors ({0:.2f}s)".format(time.time()-start)
 
     #Free up memory by chucking the data
     data = None
 
     #Train the logistic regression model:
-    logreg = sklearn.linear_model.LogisticRegression(C=1.e5)
-    logreg.fit(pred_vec,coded_delays)
+    logreg = sklearn.linear_model.LogisticRegression(penalty='l2',C=1.e5)
+    logreg.fit(pred_code,coded_delays)
     print "Finished training the model ({0:.2f}s)".format(time.time()-start)
 
-    #This is just some testing stuff to make sure I can get out probabilities that make sense. It'll go away soon, when I fully separate out the training from the testing.
+    #Output a pickled file containing the model and the necessary supporting information:
+    if filename != None:
+        pklfile = open(filename,'wb')
+        regression_dict = {'model':logreg,'target_coder':tc,'predictor_coder':coder,'table_name':tablename,'subset':subset}
+        pickle.dump(regression_dict,pklfile)
+        pklfile.close()
+        test_run(filename)
+        
+    # #This is just some testing stuff to make sure I can get out probabilities that make sense. It'll go away soon, when I fully separate out the training from the testing.
+    # sampledict = {'origin': pd.Series(['MSN','DEN','LAX']),
+    #               'dest': pd.Series(['ORD','JFK','ORD']),
+    #               'uniquecarrier': pd.Series(['UA','UA','UA']),
+    #               'label': pd.Series(['United - MSN->ORD','United - DEN->JFK','United - LAX->ORD'])
+    #               }
+    # sampledf = pd.DataFrame(sampledict)
+    # sample_code = coder.code_data(sampledf)
+    # sample_probabilities = logreg.predict_proba(sample_code)
+    # print sample_probabilities
+
+def test_run(model_file):
+    f = open(model_file,'rb')
+    model_dict = pickle.load(f)
+    f.close()
     sampledict = {'origin': pd.Series(['MSN','DEN','LAX']),
                   'dest': pd.Series(['ORD','JFK','ORD']),
                   'uniquecarrier': pd.Series(['UA','UA','UA']),
                   'label': pd.Series(['United - MSN->ORD','United - DEN->JFK','United - LAX->ORD'])
                   }
     sampledf = pd.DataFrame(sampledict)
-    sample_vec,crap = ff.vectorize_data(sampledf[['origin','dest','uniquecarrier']],vectorizer,fit_transform=False)
-    sample_probabilities = logreg.predict_proba(sample_vec)
+    sample_code = model_dict['predictor_coder'].code_data(sampledf)
+    sample_probabilities = model_dict['model'].predict_proba(sample_code)
     print sample_probabilities
     
     
@@ -63,4 +84,4 @@ if __name__ == "__main__":
         subset = int(sys.argv[2])
     except ValueError:
         subset = None
-    train_log(tablename,subset=subset)
+    train_log(tablename,subset=subset,filename='../saved_models/test_logreg.pkl')
