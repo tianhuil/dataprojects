@@ -113,7 +113,7 @@ class predictor_coder:
 def pdf_scoring(estimator, X, y):
     integer_y = y.astype(np.int16)
     probs = estimator.predict_proba(X)[range(len(integer_y)),integer_y]
-    return np.sum(probs)
+    return np.sum(probs**2)
 
 #Get selected columns and put them into a Pandas Dataframe:
 def query_into_pd(con,table,columnlist,subset=None):
