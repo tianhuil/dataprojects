@@ -43,20 +43,22 @@ with open(pth('brewers.json'), 'w') as brs, \
     try:
       # json keys are strings
       brewer = int(brewer)
-
       meta = brewer_meta_parse(brewer)
       brs.write(cl_d(meta) + '\n')
 
       for beer in beers:
-        meta = beer_meta_parse(brewer, beer)
-        bes.write(cl_d(meta) + '\n')
+        try:
+          meta = beer_meta_parse(brewer, beer)
+          bes.write(cl_d(meta) + '\n')
+        except:
+          print "{0}:{1}:{2}\n".format(brewer, beer, e)
+          with open(pth('err_product_scrap.txt'), 'a') as ert:
+            ert.write("{0}:{1}:{2}\n".format(brewer, beer, e))
         
     except Exception as e:
-      print "{0}:{1}:{2}\n".format(brewer, beers, e)
+      print "{0}:{1}:{2}\n".format(brewer, -1, e)
       with open(pth('err_product_scrap.txt'), 'a') as ert:
-        ert.write("{0}:{1}:{2}\n".format(brewer, beers, e))
+        ert.write("{0}:{1}:{2}\n".format(brewer, -1, e))
       
-        
 
-    
 print 'DONE'
