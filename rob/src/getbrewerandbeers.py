@@ -50,7 +50,7 @@ with open(pth('brewers.json'), 'w') as brs, \
         try:
           meta = beer_meta_parse(brewer, beer)
           bes.write(cl_d(meta) + '\n')
-        except:
+        except Exception as e:
           print "{0}:{1}:{2}\n".format(brewer, beer, e)
           with open(pth('err_product_scrap.txt'), 'a') as ert:
             ert.write("{0}:{1}:{2}\n".format(brewer, beer, e))

@@ -23,6 +23,7 @@ def ct_prod_data(file, label):
       "beers": beers
     }
 
+ct_lines('data/users.json', 'users')
 ct_lines('data/beeradvocate.json', 'reviews')
 ct_lines('data/styles.json', 'styles')
 ct_lines('data/brewers.json', 'brewers')
