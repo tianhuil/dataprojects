@@ -32,7 +32,7 @@ cur.execute("""
     primary key (id)
   )""")
   
-cur.execute("""drop table if exists users""")
+cur.execute("drop table if exists users")
 cur.execute("""
   create table users (
     id int not null,
@@ -43,7 +43,7 @@ cur.execute("""
     primary key (id)
   )""")
   
-cur.execute("""drop table if exists styles""")
+cur.execute("drop table if exists styles")
 cur.execute("""
   create table styles (
     id int not null,
@@ -51,7 +51,7 @@ cur.execute("""
     primary key (id)
   )""")
   
-cur.execute("""drop table if exists beers""")
+cur.execute("drop table if exists beers")
 cur.execute("""
   create table beers (
     id int not null,
@@ -86,7 +86,7 @@ cur.execute("""
       on delete cascade
   )""")
     
-cur.execute("""drop table if exists reviews""")
+cur.execute("drop table if exists reviews")
 cur.execute("""create table reviews (
   brewer_id int not null,
   beer_id int not null,
