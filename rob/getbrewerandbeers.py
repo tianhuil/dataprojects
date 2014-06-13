@@ -23,8 +23,7 @@ with open('data/beeradvocate.json', 'r') as revs, \
         prods[br_id] = []
         
         brs.write(json.dumps(meta.__dict__) + '\n')
-        
-        
+    
         
       be_id = r["beer"]["id"]
       if be_id not in prods[br_id]:

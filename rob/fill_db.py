@@ -1,42 +1,57 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import json
 import MySQLdb as mdb
 
-with open(creds.json) as c:
+with open('creds.json') as c:
   creds = json.load(c)
   
-con = mdb.connect(host=localhost, user=creds["uname"], passwd=creds["pwd"], 'beerad')
+con = mdb.connect(host='localhost', user=creds["uname"], passwd=creds["pwd"], db='beerad')
 cur = con.cursor()
 
-with open('data/brewers.json') as brs:
-  for br in brs:
-    ins = """
-      insert into brewers (id, name, location)
-      values ({0}, '{1}', '{2}')""".format(
-      br["id"], br["name"], br["location"]
-    
+# check for encoding errors in foreign beer names
+# brute force appears to be all that's working
+def enc(s):
+  return ''.join([x for x in br["name"] if ord(x) < 128])
+
+with open('data/brewers.json', 'r') as brs:
+  for br_j in brs:
     try:
-      cur.execute(ins_u)
-    except Exception as e:
-      print e, br
+      br = json.loads(br_j)
+      
+      ins = """
+        insert into brewers (id, name, location)
+        values (%s, %s, %s)"""
+        
+      try:
+        cur.execute(ins, (br["id"], enc(br["name"]), br["location"]))
+      except Exception as e:
+        print e, br
+    except:
+      print "Failed to load: ", br
 
 styles = { }
 with open('data/beers.json') as bes:
-  for be in bes:
-    # extract styles while parsing
-    styles[be["style_num"]] = be["style"]
-    
-    ins = """
-      insert into brewers (brewer_id, id, name, style_id, date_add, ba_score, bros_score, abv, ibu, notes)
-      values ({0}, '{1}', '{2}')""".format(
-      be["brewer_id"], be["id"], be["name"], be["style_num"], be["date_add"],
-      be["ba_score"], be["bros_score"], be["abv"], be["ibu"], be["notes"]
-    
+  for be_j in bes:
     try:
-      cur.execute(ins_u)
-    except Exception as e:
-      print e, br
+      be = json.loads(be_j)
+  
+      # extract styles while parsing
+      styles[be["style_num"]] = be["style"]
       
+      ins = """
+        insert into beers (brewer_id, id, name, style_id, ba_score, bros_score, abv, ibu, notes)
+        values (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+      
+      try:
+        cur.execute(ins, (be["brewer_id"], be["beer_id"], enc(be["name"]), be["style_num"],
+           be["ba_score"], be["bros_score"], be["abv"], be["ibu"], be["notes"]))
+      except Exception as e:
+        print e, be
+    except:
+      print "Failed to load: ", be
+    
 with open('data/styles.json', 'w') as st:
   # save local json copy
   st.write(json.dumps(styles))
@@ -44,25 +59,25 @@ with open('data/styles.json', 'w') as st:
   # fill style table
   for k,v in styles.iteritems():
     ins = """
-      insert into brewers (id, style)
-      values ({0}, '{1}')""".format(k,v)
+      insert into styles (id, style)
+      values (%s, %s)"""
     
     try:
-      cur.execute(ins)
+      cur.execute(ins, (k,v))
     except Exception as e:
-      print e, br
+      print e, k, v
       
 
 with open('data/users.json') as user_f:
 
-  for u in user_f:
+  for u_j in user_f:
+    u = json.loads(u_j)
     ins = '''
       insert into users (id, name, title, location, sex)
-      values ( {0}, {1}, {2}, {3}, {4} )'''.format(
-        u["id"], u["name"], u["title"], u["location"], u["sex"]
-
+      values ( %s, %s, %s, %s, %s )'''
+        
     try:
-      cur.execute(ins)
+      cur.execute(ins, (u["id"], u["name"], u["title"], u["location"], u["sex"])))
     except Exception as e:
       print e
 
