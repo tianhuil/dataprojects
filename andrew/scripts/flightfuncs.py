@@ -1,6 +1,7 @@
 import numpy as np
 import MySQLdb as mdb
 import pandas as pd
+import sklearn.feature_extraction
 
 import load_credentials_nogit as creds
 #This file contains useful classes and functions for doing querying, encoding, and modeling of my flight data.
@@ -37,6 +38,17 @@ def vectorize_data(data,vectorizer,fit_transform = False):
     else:
         pred_vec = vectorizer.transform(datadict)
     return pred_vec,vectorizer
+
+# def hash_data(data,hasher,fit_transform = False):
+#     datagenerator = ("{0:s},{1:s},{2:s}".format(data.irow(i).origin,data.irow(i).dest,data.irow(i).uniquecarrier) for i in range(len(data.index)))
+#     pred_vec = None
+#     if fit_transform:
+#         pred_vec = hasher.fit_transform(datagenerator)
+#     else:
+#         pred_vec = hasher.transform(datagenerator)
+#     return pred_vec,hasher
+    
+
         
 #Get selected columns and put them into a Pandas Dataframe:
 def query_into_pd(con,table,columnlist,subset=None):
