@@ -117,7 +117,10 @@ def query_into_pd(con,table,columnlist,subset=None):
         df = pd.io.sql.read_sql(syntax,con)
         try:
             if int(subset) > 0:
-                df = df.ix[np.random.choice(np.arange(len(df)),replace=False,size=subset)]
+                if int(subset) >= len(df):
+                    print "Warning: Requested subset larger than queried data. Using full dataset..."
+                else:
+                    df = df.ix[np.random.choice(np.arange(len(df)),replace=False,size=int(subset))]
         except TypeError:
             pass
         return df
