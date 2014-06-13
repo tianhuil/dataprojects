@@ -87,32 +87,32 @@ cur.execute("""
   )""")
     
 cur.execute("drop table if exists reviews")
-cur.execute("""create table reviews (
-  brewer_id int not null,
-  beer_id int not null,
-  user_id int not null,
-  rev_date date,
-  palate double(3,2),
-  taste double(3,2),
-  aroma double(3,2),
-  appearance double(3,2),
-  overall double(3,2),
-  review text,
-  primary key (user_id, brewer_id, beer_id),
-  foreign key (user_id)
-    references users(id)
-    on update cascade
-    on delete cascade,
-  foreign key (brewer_id, beer_id)
-    references product_ids (brewer_id, id)
-    on update cascade
-    on delete cascade
+cur.execute("""
+  create table reviews (
+    brewer_id int not null,
+    beer_id int not null,
+    user_id int not null,
+    rev_date date,
+    palate double(3,2),
+    taste double(3,2),
+    aroma double(3,2),
+    appearance double(3,2),
+    overall double(3,2),
+    review text,
+    primary key (user_id, brewer_id, beer_id),
+    foreign key (user_id)
+      references users(id)
+      on update cascade
+      on delete cascade,
+    foreign key (brewer_id, beer_id)
+      references product_ids (brewer_id, beer_id)
+      on update cascade
+      on delete cascade
   )""")
 
-cur.close()
     
-con.commit()
-  
-con.close()
+con.commit()  # save to db
+cur.close()   # close cursor
+con.close()   # close db connection
 
 resetwarnings()

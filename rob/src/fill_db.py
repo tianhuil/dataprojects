@@ -4,7 +4,7 @@
 import json
 import MySQLdb as mdb
 
-with open('../creds.json') as c:
+with open('creds.json') as c:
   creds = json.load(c)
   
 con = mdb.connect(host='localhost', user=creds["uname"], passwd=creds["pwd"], db='beerad')
