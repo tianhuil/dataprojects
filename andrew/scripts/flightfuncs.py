@@ -116,7 +116,7 @@ def pdf_scoring(estimator, X, y):
     return np.sum(probs**2)
 
 #Get selected columns and put them into a Pandas Dataframe:
-def query_into_pd(con,table,columnlist,subset=None):
+def query_into_pd(con,table,columnlist,subset=None,randomize=False):
     if columnlist:
         syntax = "Select {cols} from {table}".format(table=table,cols=', '.format(table=table).join(columnlist))
         df = pd.io.sql.read_sql(syntax,con)
@@ -128,6 +128,10 @@ def query_into_pd(con,table,columnlist,subset=None):
                     df = df.ix[np.random.choice(np.arange(len(df)),replace=False,size=int(subset))]
         except TypeError:
             pass
+        if randomize:
+            indices = df.index.values.copy()
+            np.random.shuffle(indices)
+            df.reindex(indices)
         return df
     else:
         raise IndexError("No columns to be selected!")

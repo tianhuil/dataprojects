@@ -12,11 +12,11 @@ import flightfuncs as ff
 import load_credentials_nogit as creds
 
 #Train and fit a logarithmic regression classifier.
-def train_log(tablename,continuous_predictors = [],discrete_predictors = ['origin','dest','uniquecarrier','dayofweek(flightdate)'],targetname = 'arrdelay',subset=None,timesplit = [15,45],filename = None):
+def train_log(tablename,continuous_predictors = [],discrete_predictors = ['origin','dest','uniquecarrier','dayofweek(flightdate)'],targetname = 'arrdelay',subset=None,timesplit = [15,45],filename = None, C_vals = [0.1,10,1000,100000]):
     start = time.time()
     #Connect to the database and download the data:
     con = mdb.connect(host=creds.host,user=creds.user,db=creds.database,passwd=creds.password,local_infile=1)
-    data = ff.query_into_pd(con,tablename,continuous_predictors+discrete_predictors+[targetname] + ['cancelled','diverted'],subset=subset)
+    data = ff.query_into_pd(con,tablename,continuous_predictors+discrete_predictors+[targetname] + ['cancelled','diverted'],subset=subset,randomize=True)
     print "Finished querying data ({0:.2f}s)".format(time.time()-start)
     
     #Select only flights that weren't diverted:
@@ -43,7 +43,7 @@ def train_log(tablename,continuous_predictors = [],discrete_predictors = ['origi
         
     #     #print inty[:4],probs[:4]
     #     return np.sum(probs)
-    logreg = sklearn.grid_search.GridSearchCV(sklearn.linear_model.LogisticRegression(),param_grid={'C':[0.1,1000.,100000]},scoring=ff.pdf_scoring,cv=2)
+    logreg = sklearn.grid_search.GridSearchCV(sklearn.linear_model.LogisticRegression(),param_grid={'C':C_vals},scoring=ff.pdf_scoring,cv=2)
     #logreg = sklearn.linear_model.LogisticRegression(penalty='l2',C=1.e5)
     logreg.fit(pred_code,coded_delays)
     print "Best C = {C}".format(**logreg.best_params_)
