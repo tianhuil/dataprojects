@@ -51,5 +51,22 @@ if update_complete:
 
 
 
+# now grab the webpages with the codes
 
+urlstem = 'http://cameocodes.wikispaces.com/'
 
+raw_page = urllib2.urlopen(urlstem).read()
+
+soup = BeautifulSoup(raw_page)
+
+divs = soup.find_all('a',attrs={'class': 'wiki_link'})
+print divs
+for currfile in divs:
+    print currfile
+    filename = currfile.attrs['href'][1:]
+    raw_page = urllib2.urlopen(urlstem+filename).read()
+    newsoup = BeautifulSoup(raw_page)
+    print newsoup
+    outfile = open('./'+filename, 'w')
+    outfile.write(raw_page)
+    outfile.close()

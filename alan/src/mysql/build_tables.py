@@ -2,6 +2,8 @@ import os
 import zipfile
 import MySQLdb as mysql
 import time
+import warnings
+warnings.filterwarnings('ignore', category=mysql.Warning)
 
 Conn = mysql.connect(host = "localhost",
                      user = "incubator",
@@ -18,10 +20,10 @@ infile.close()
 def insert_row(Conn, row, table, altabs):
     row = ['"'+a[0]+'"' if "varchar" in a[1][1] else a[0] for a in zip(row, altabs[table]) ] 
     
-    cmd = 'insert ignore into %s values (%s);' %(table, ','.join(row))
+    #cmd = 'insert ignore into %s values (%s);' %(table, ','.join(row))
     #print cmd
-    Conn.cursor().execute(cmd)
-    return
+    #Conn.cursor().execute(cmd)
+    return '('+','.join(row)+')'
 
 
 
@@ -30,6 +32,7 @@ cols = [(b,a) for a,b in enumerate(data.strip().split('\t'))]
 coldict = dict(cols)
 
 print coldict
+loadstep = 10000
 
 tables={
     'EVENTS':[('GLOBALEVENTID','int primary key'), 
@@ -38,13 +41,9 @@ tables={
               ('Actor2Code', 'varchar'),
               ('IsRootEvent', 'bool'), 
               ('EventCode', 'varchar(4)'), 
-              ('QuadClass','int'),
               ('GoldsteinScale', 'float'), 
               ('NumMentions', 'smallint'), 
-              ('NumSources', 'smallint'), 
-              ('NumArticles', 'smallint'), 
-              ('AvgTone', 'float'),
-              ('DATEADDED','int')],
+              ('AvgTone', 'float')],
 
     'ACTORS':[('ActorCode','varchar() primary key'),
               ('ActorName','varchar()'),
@@ -74,23 +73,35 @@ actor_reg_cols = ['Actor{num}Code', 'Actor{num}Religion{regnum}Code']
 actor_type_cols = ['Actor{num}Code','Actor{num}Type{typenum}Code' ]
 
 
-os.system('ls /home/ameert/git_projects/dataprojects/alan/data/gdelt_files/2*.zip> zipfiles.txt')
+os.system('ls /home/ameert/git_projects/dataprojects/alan/data/gdelt_files/201[1,2]*.zip> zipfiles.txt')
 
 zipfiles = open('zipfiles.txt').readlines()
-#zipfiles = ['/home/ameert/git_projects/dataprojects/alan/data/gdelt_files/test.zip',]
+#zipfiles = ['/home/ameert/git_projects/dataprojects/alan/data/gdelt_files/2005.zip',]
 for inzip in zipfiles:
+    print "Loading %s" %inzip
     inzip = inzip.strip()
     infile = zipfile.ZipFile(inzip, "r")
     csvfile = inzip.split('/')[-1].replace('.zip','.csv')
-
+    
+    cmd = 'insert ignore into EVENTS values '
+    count = 0
+    tot_load =0
     for line in infile.read(csvfile).split("\n"):
+        if count > loadstep:
+            tot_load+=loadstep
+            cmd = cmd[:-1]+';'
+            Conn.cursor().execute(cmd)
+            Conn.commit()
+            count = 0
+            cmd = 'insert ignore into EVENTS values '
+            print tot_load, ' loaded'
+        count +=1
         try:
             row =line.strip().split('\t')
             row = ['-99' if a=='' else a for a in row] 
-
             event_row = [row[coldict[a]] for a in event_cols]
-            insert_row(Conn, event_row, 'EVENTS', tables)
-
+            cmd += insert_row(Conn, event_row, 'EVENTS', tables)+','
+            continue
             for count in [1,2]:
                 actor_row = [row[coldict[b]] for b in [a.format(num=count) for a in actor_cols]]
                 insert_row(Conn, actor_row, 'ACTORS', tables)
@@ -110,7 +121,10 @@ for inzip in zipfiles:
         except IndexError:
             pass
 
+    cmd = cmd[:-1]+';'
+    
     infile.close()
+    Conn.cursor().execute(cmd)
     Conn.commit()
 
     print inzip+ ' LOADED!!!'
