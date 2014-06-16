@@ -5,6 +5,7 @@ import sklearn.feature_extraction
 import sys
 
 import load_credentials_nogit as creds
+import global_vars as gv
 #This file contains useful classes and functions for doing querying, encoding, and modeling of my flight data.
 
 #Bin up delay times/cancellation. This is a class so you can instantiate it when you train your data, then pickle it with everything else, and then the encoding can be unpickled and applied later (unlike, say, a function).
@@ -88,27 +89,38 @@ class predictor_coder:
         datacols = data.columns.values
         if np.sum(np.in1d(predictors,datacols)) < len(predictors):
             raise ValueError("Not all predictors in dataframe!")
-        
-#Vectorize a set of predictors from a Pandas dataframe into a sparse matrix:
-# def vectorize_data(data,vectorizer,fit_transform = False):
-#     datadict = data.T.to_dict().values()
-#     print "  Finished converting the dataframe to a list of dicts"
-#     pred_vec = None
-#     if fit_transform:
-#         pred_vec = vectorizer.fit_transform(datadict)
-#     else:
-#         pred_vec = vectorizer.transform(datadict)
-#     return pred_vec,vectorizer
 
-# def hash_data(data,hasher,fit_transform = False):
-#     datagenerator = ("{0:s},{1:s},{2:s}".format(data.irow(i).origin,data.irow(i).dest,data.irow(i).uniquecarrier) for i in range(len(data.index)))
-#     pred_vec = None
-#     if fit_transform:
-#         pred_vec = hasher.fit_transform(datagenerator)
-#     else:
-#         pred_vec = hasher.transform(datagenerator)
-#     return pred_vec,hasher
+def make_model_pickle_filename(tablename,predlist,dir_structure="../saved_models/"):
+    return "{dir}{table}_{preds}.pkl".format(dir=dir_structure,table=tablename,preds='-'.join(np.sort(predlist)).replace('(','~').replace(')','~'))
 
+#A function to take in a date, time, and predictors and determine the proper model to use:
+def get_model_filename(datetime_obj,predictorlist,tableprefix='flightdelays',dir_structure="../saved_models/"):
+    #Convert the time into the proper format:
+    int_time = datetime_obj.hour*100 + datetime_obj.minute
+    time_name = None
+    for key in gv.hours.keys():
+        if int_time >= gv.hours[key][0] and int_time < gv.hours[key][1]:
+            time_name = key
+            break
+    if time_name == None:
+        raise ValueError("get_model_filename: Time {0:d} outside of allowed range!".format(int_time))
+
+    #Convert the month into the proper format:
+    month_name = None
+    for key in gv.months.keys():
+        if datetime_obj.month == gv.months[key]:
+            month_name = key
+            break
+    if month_name == None:
+        raise ValueError("get_model_filename: Month {0:d} outside of allowed range!".format(datetime_obj.month))
+
+    #Get the required filename:
+    filename = make_model_pickle_filename(tableprefix+"_"+month_name+"_"+time_name,predictorlist)
+    return filename
+    #print int_time,time_name,month_name
+    #print filename
+    
+    
 #A cross-validation estimator based on the probability of the label being the correct one, normal goodness-of-model measurements like accuracy aren't relevant here:
 def pdf_scoring(estimator, X, y):
     integer_y = y.astype(np.int16)
@@ -116,7 +128,7 @@ def pdf_scoring(estimator, X, y):
     return np.sum(probs**2)
 
 #Get selected columns and put them into a Pandas Dataframe:
-def query_into_pd(con,table,columnlist,subset=None):
+def query_into_pd(con,table,columnlist,subset=None,randomize=False):
     if columnlist:
         syntax = "Select {cols} from {table}".format(table=table,cols=', '.format(table=table).join(columnlist))
         df = pd.io.sql.read_sql(syntax,con)
@@ -128,6 +140,10 @@ def query_into_pd(con,table,columnlist,subset=None):
                     df = df.ix[np.random.choice(np.arange(len(df)),replace=False,size=int(subset))]
         except TypeError:
             pass
+        if randomize:
+            indices = df.index.values.copy()
+            np.random.shuffle(indices)
+            df.reindex(indices)
         return df
     else:
         raise IndexError("No columns to be selected!")
