@@ -18,3 +18,6 @@ class AirlineForm(forms.ModelForm):
     class Meta:
         model = Airlinenames
         fields = ('airlinename',)
+
+class DateTimeForm(forms.Form):
+    pass
