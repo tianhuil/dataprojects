@@ -55,7 +55,6 @@ def train_log(tablename,continuous_predictors = [],discrete_predictors = ['origi
         regression_dict = {'model':logreg,'target_coder':tc,'predictor_coder':coder,'table_name':tablename,'subset':subset}
         pickle.dump(regression_dict,pklfile)
         pklfile.close()
-        test_run(filename)
         
     # #This is just some testing stuff to make sure I can get out probabilities that make sense. It'll go away soon, when I fully separate out the training from the testing.
     # sampledict = {'origin': pd.Series(['MSN','DEN','LAX']),
@@ -96,4 +95,6 @@ if __name__ == "__main__":
         subset = int(sys.argv[2])
     except ValueError:
         subset = None
-    train_log(tablename,discrete_predictors = ['origin','dest','uniquecarrier'],subset=subset,filename='../saved_models/test_logreg.pkl')
+    filename = '../saved_models/test_logreg.pkl'
+    train_log(tablename,discrete_predictors = ['origin','dest','uniquecarrier'],subset=subset,filename=filename)
+    test_run(filename)
