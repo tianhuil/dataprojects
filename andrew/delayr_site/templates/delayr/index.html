@@ -1,0 +1,32 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+{% load static %}
+<html>
+<head>
+<title>Delayr</title>
+</head>
+
+<body>
+<h1>Welcome to Delayr!</h1>
+{% if airlines %}
+<u1>
+{% for airline in airlines %}
+<li>{{ airline.fullname }}</li>
+{% endfor %}
+</u1>
+{% else %}
+<strong>There are no airlines</strong><br>
+{% endif %}
+<br><br>
+{% if airports %}
+<u1>
+{% for airport in airports %}
+<li>{{ airport.origin }}</li>
+{% endfor %}
+</u1>
+{% else %}
+<strong>There are no airports</strong><br>
+{% endif %}
+
+<a href="/delayr/about/">About</a><br>
+</body>
+</html>
