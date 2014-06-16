@@ -3,6 +3,7 @@ import os
 import numpy as np
 import itertools
 
+import flightfuncs as ff
 import delays_logreg as dl
 import global_vars as gv
 
@@ -68,11 +69,13 @@ if __name__ == "__main__":
                 d_preds = predictors[predictor_types == 1]
 
                 #Create a pickle filename based on the predictors and month/hour:
-                filename = "../saved_models/{table}_{cpreds}_{dpreds}.pkl".format(table=tablename,cpreds='-'.join(np.sort(c_preds)).replace('(','~').replace(')','~'),dpreds='-'.join(np.sort(d_preds)).replace('(','~').replace(')','~'))
+                # filename = "../saved_models/{table}_{preds}.pkl".format(table=tablename,preds='-'.join(np.sort(predictors)).replace('(','~').replace(')','~'))
+                filename = ff.make_model_pickle_filename(tablename,predictors,dir_structure="../saved_models/")
 
                 #Test if pickle file exists already:
                 file_exists = os.path.isfile(filename)
-                print filename
+                print filename,file_exists
+                #sys.exit(1)
                 if overwrite == 'yes' or file_exists == False:
                     dl.train_log(tablename,continuous_predictors=list(c_preds),discrete_predictors=list(d_preds),targetname=target,subset=subset,timesplit=timesplit,filename=filename,C_vals=C_vals)
             #sys.exit(1)

@@ -90,6 +90,37 @@ class predictor_coder:
         if np.sum(np.in1d(predictors,datacols)) < len(predictors):
             raise ValueError("Not all predictors in dataframe!")
 
+def make_model_pickle_filename(tablename,predlist,dir_structure="../saved_models/"):
+    return "{dir}{table}_{preds}.pkl".format(dir=dir_structure,table=tablename,preds='-'.join(np.sort(predlist)).replace('(','~').replace(')','~'))
+
+#A function to take in a date, time, and predictors and determine the proper model to use:
+def get_model_filename(datetime_obj,predictorlist,tableprefix='flightdelays',dir_structure="../saved_models/"):
+    #Convert the time into the proper format:
+    int_time = datetime_obj.hour*100 + datetime_obj.minute
+    time_name = None
+    for key in gv.hours.keys():
+        if int_time >= gv.hours[key][0] and int_time < gv.hours[key][1]:
+            time_name = key
+            break
+    if time_name == None:
+        raise ValueError("get_model_filename: Time {0:d} outside of allowed range!".format(int_time))
+
+    #Convert the month into the proper format:
+    month_name = None
+    for key in gv.months.keys():
+        if datetime_obj.month == gv.months[key]:
+            month_name = key
+            break
+    if month_name == None:
+        raise ValueError("get_model_filename: Month {0:d} outside of allowed range!".format(datetime_obj.month))
+
+    #Get the required filename:
+    filename = make_model_pickle_filename(tableprefix+"_"+month_name+"_"+time_name,predictorlist)
+    return filename
+    #print int_time,time_name,month_name
+    #print filename
+    
+    
 #A cross-validation estimator based on the probability of the label being the correct one, normal goodness-of-model measurements like accuracy aren't relevant here:
 def pdf_scoring(estimator, X, y):
     integer_y = y.astype(np.int16)
