@@ -11,6 +11,13 @@ from __future__ import unicode_literals
 
 from django.db import models
 
+class Airports(models.Model):
+    origin = models.CharField(primary_key=True, max_length=3)
+    airportname = models.CharField(max_length=255)
+    class Meta:
+        managed = False
+        db_table = 'airports'
+
 class Airlinenames(models.Model):
     uniquecarrier = models.CharField(primary_key=True, max_length=7)
     fullname = models.CharField(max_length=255)

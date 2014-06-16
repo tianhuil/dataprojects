@@ -7,25 +7,31 @@
 
 <body>
 <h1>Welcome to Delayr!</h1>
-{% if airlines %}
-<u1>
-{% for airline in airlines %}
-<li>{{ airline.fullname }}</li>
+
+<form id="search_form" method="post" action="/delayr/">
+{% csrf_token %}
+{% for hidden in airlineform.hidden_fields %}
+    {{ hidden }}
 {% endfor %}
-</u1>
-{% else %}
-<strong>There are no airlines</strong><br>
-{% endif %}
-<br><br>
-{% if airports %}
-<u1>
-{% for airport in airports %}
-<li>{{ airport.origin }}</li>
+
+{% for field in airlineform.visible_fields %}
+    {{ field.errors }}
+    {{ field.help_text }}
+    {{ field }}
 {% endfor %}
-</u1>
-{% else %}
-<strong>There are no airports</strong><br>
-{% endif %}
+<br>
+{% for hidden in airportform.hidden_fields %}
+    {{ hidden }}
+{% endfor %}
+
+{% for field in airportform.visible_fields %}
+    {{ field.errors }}
+    {{ field.help_text }}
+    {{ field }}
+{% endfor %}
+<br>
+<input type="submit" name="submit" value="Predict Delay">
+</form>
 
 <a href="/delayr/about/">About</a><br>
 </body>
