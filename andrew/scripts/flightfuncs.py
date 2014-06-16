@@ -5,6 +5,7 @@ import sklearn.feature_extraction
 import sys
 
 import load_credentials_nogit as creds
+import global_vars as gv
 #This file contains useful classes and functions for doing querying, encoding, and modeling of my flight data.
 
 #Bin up delay times/cancellation. This is a class so you can instantiate it when you train your data, then pickle it with everything else, and then the encoding can be unpickled and applied later (unlike, say, a function).
@@ -88,26 +89,6 @@ class predictor_coder:
         datacols = data.columns.values
         if np.sum(np.in1d(predictors,datacols)) < len(predictors):
             raise ValueError("Not all predictors in dataframe!")
-        
-#Vectorize a set of predictors from a Pandas dataframe into a sparse matrix:
-# def vectorize_data(data,vectorizer,fit_transform = False):
-#     datadict = data.T.to_dict().values()
-#     print "  Finished converting the dataframe to a list of dicts"
-#     pred_vec = None
-#     if fit_transform:
-#         pred_vec = vectorizer.fit_transform(datadict)
-#     else:
-#         pred_vec = vectorizer.transform(datadict)
-#     return pred_vec,vectorizer
-
-# def hash_data(data,hasher,fit_transform = False):
-#     datagenerator = ("{0:s},{1:s},{2:s}".format(data.irow(i).origin,data.irow(i).dest,data.irow(i).uniquecarrier) for i in range(len(data.index)))
-#     pred_vec = None
-#     if fit_transform:
-#         pred_vec = hasher.fit_transform(datagenerator)
-#     else:
-#         pred_vec = hasher.transform(datagenerator)
-#     return pred_vec,hasher
 
 #A cross-validation estimator based on the probability of the label being the correct one, normal goodness-of-model measurements like accuracy aren't relevant here:
 def pdf_scoring(estimator, X, y):
