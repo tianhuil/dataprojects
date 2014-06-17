@@ -1,5 +1,15 @@
 from django import forms
 from delayr.models import Airports,Airlinenames
+from functools import partial
+import datetime
+
+def getcurrtime():
+    curr = datetime.datetime.now()
+    return curr.strftime('%H:%M %p')
+
+def getcurrdate():
+    curr = datetime.datetime.now()
+    return curr.strftime('%m/%d/%Y')
 
 class AirportForm(forms.ModelForm):
     airport_qset = Airports.objects.raw('''select distinct(airports.origin),airports.airportname from airports join flightdelays_apr_afternoon on flightdelays_apr_afternoon.origin = airports.origin where year(flightdelays_apr_afternoon.flightdate) >= 2013 order by airports.airportname''')
@@ -20,4 +30,10 @@ class AirlineForm(forms.ModelForm):
         fields = ('airlinename',)
 
 class DateTimeForm(forms.Form):
-    pass
+    DateInput = partial(forms.DateInput, {'class':'datepicker'})
+    TimeInput = partial(forms.TimeInput, {'class':'timepicker'})
+    valid_times = ['%I:%M %p']
+    date = forms.DateField(widget=DateInput(),help_text='Flight Date:',initial=getcurrdate)
+    time = forms.TimeField(widget=TimeInput(),help_text='Departure Time:',input_formats=valid_times,initial=getcurrtime)
+    #date = forms.DateField(widget=forms.TextInput(attrs={'class':'datepicker'}),help_text="Flight Date:")
+

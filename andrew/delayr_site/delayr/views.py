@@ -3,29 +3,30 @@ from django.template import RequestContext
 from django.http import HttpResponse
 
 from delayr.models import Airlinenames,FlightdelaysAprAfternoon,Airports
-from delayr.forms import AirportForm,AirlineForm
+from delayr.forms import AirportForm,AirlineForm,DateTimeForm
+
+def test(request):
+    context = RequestContext(request)
+    context_dict = {}
+    return render_to_response('delayr/test.html',context_dict,context)
 
 def index(request):
     context = RequestContext(request)
     context_dict = {}
 
     if request.method == 'POST':
-        airportform = AirportForm(request.POST)
-        airlineform = AirlineForm(request.POST)
-        if airportform.is_valid() and airlineform.is_valid():
-            #print "SUCCESS"
+        submittedform = AirportForm(request.POST)
+        if submittedform.is_valid():
+            print dict(submittedform.data)
             request.method = 'GET'
             return index(request)
         else:
-            print airportform.errors
-            print airlineform.errors
+            print submittedform.errors
     else:
         airportform = AirportForm()
         airlineform = AirlineForm()
-        #available_airlines = Airlinenames.objects.raw('''select distinct(airlinenames.uniquecarrier),airlinenames.fullname from airlinenames join flightdelays_apr_afternoon on flightdelays_apr_afternoon.uniquecarrier = airlinenames.uniquecarrier where year(flightdelays_apr_afternoon.flightdate) >= 2013 order by airlinenames.fullname''')
-        #available_airports = Airports.objects.raw('''select distinct(airports.origin),airports.airportname from airports join flightdelays_apr_afternoon on flightdelays_apr_afternoon.origin = airports.origin where year(flightdelays_apr_afternoon.flightdate) >= 2013 order by airports.airportname''')
-        #airportform.fields['airportname'].queryset = Airports.objects.all()
-        context_dict = {'airportform':airportform,'airlineform':airlineform}
+        datetimeform = DateTimeForm()
+        context_dict = {'airportform':airportform,'airlineform':airlineform,'datetimeform':datetimeform}
     
     return render_to_response('delayr/index.html',context_dict,context)
 

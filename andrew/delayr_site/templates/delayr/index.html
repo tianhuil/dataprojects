@@ -1,38 +1,39 @@
-<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
-{% load static %}
-<html>
-<head>
-<title>Delayr</title>
-</head>
+{% extends 'delayr/base.html' %}
 
-<body>
-<h1>Welcome to Delayr!</h1>
+{% block body_block %}
+<h2>Welcome to Delayr!</h2>
 
 <form id="search_form" method="post" action="/delayr/">
+<table>
 {% csrf_token %}
 {% for hidden in airlineform.hidden_fields %}
     {{ hidden }}
 {% endfor %}
 
 {% for field in airlineform.visible_fields %}
-    {{ field.errors }}
-    {{ field.help_text }}
-    {{ field }}
+    <tr><td align="right">{{ field.help_text }}</td><td>{{ field }}</th></tr>
 {% endfor %}
-<br>
+
 {% for hidden in airportform.hidden_fields %}
     {{ hidden }}
 {% endfor %}
 
 {% for field in airportform.visible_fields %}
-    {{ field.errors }}
-    {{ field.help_text }}
-    {{ field }}
+    <tr><td align="right">{{ field.help_text }}</td><td>{{ field }}</th></tr>
 {% endfor %}
-<br>
+
+{% for hidden in datetimeform.hidden_fields %}
+    {{ hidden }}
+{% endfor %}
+
+{% for field in datetimeform.visible_fields %}
+    <tr><td align="right">{{ field.help_text }}</td><td>{{ field }}</th></tr>
+{% endfor %}
+
+
+<!--<tr><td align="right">Date:</td><td><intput type="text" class="form-control" placeholder="date" id="dpd1"></td></tr>-->
+</table>
+
 <input type="submit" name="submit" value="Predict Delay">
 </form>
-
-<a href="/delayr/about/">About</a><br>
-</body>
-</html>
+{% endblock %}
