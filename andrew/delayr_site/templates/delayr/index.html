@@ -1,0 +1,51 @@
+{% extends 'delayr/base.html' %}
+
+{% block body_block %}
+{% if welcome_message %}
+<h2>{{ welcome_message }}</h2>
+{% endif %}
+{% if errmessage %}
+<h4>{{ errmessage }}</h4>
+{% endif %}
+
+{% if prediction %}
+{% for item in prediction %}
+   {{ item.0 }}
+   {{ item.1 }}
+   <br>
+{% endfor %}
+
+{% endif %}
+
+<form id="search_form" method="post" action="/delayr/">
+<table>
+{% csrf_token %}
+{% for hidden in airlineform.hidden_fields %}
+    {{ hidden }}
+{% endfor %}
+
+{% for field in airlineform.visible_fields %}
+    <tr><td align="right">{{ field.help_text }}</td><td>{{ field }}</th></tr>
+{% endfor %}
+
+{% for hidden in airportform.hidden_fields %}
+    {{ hidden }}
+{% endfor %}
+
+{% for field in airportform.visible_fields %}
+    <tr><td align="right">{{ field.help_text }}</td><td>{{ field }}</th></tr>
+{% endfor %}
+
+{% for hidden in datetimeform.hidden_fields %}
+    {{ hidden }}
+{% endfor %}
+
+{% for field in datetimeform.visible_fields %}
+    <tr><td align="right">{{ field.help_text }}</td><td>{{ field }}</th></tr>
+{% endfor %}
+
+</table>
+
+<input type="submit" name="submit" value="Predict Delay">
+</form>
+{% endblock %}
