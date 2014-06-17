@@ -59,8 +59,6 @@ for inzip in zipfiles:
     count = 0
     tot_load =0
     for line in infile.read(csvfile).split("\n"):
-#        if "42.1497" not in line:
-#            continue
         try:
             if count > loadstep:
                 tot_load+=loadstep
@@ -78,12 +76,8 @@ for inzip in zipfiles:
             row = ['NULL' if a=='X' else a for a in row] 
             event_row= [row[a[2]] for a in tables['EVENTS']]
             cmd += insert_row(Conn, event_row, 'EVENTS', tables)+','
-#        except IndexError:
-#            pass
         except:
             print "bad group ",tot_load
-            print cmd 
-            break
     
     infile.close()
     cmd = cmd.replace('---','NULL')
@@ -94,12 +88,3 @@ for inzip in zipfiles:
     print inzip+ ' LOADED!!!'
     print "sleeping for 10 seconds to allow graceful kill"
     time.sleep(10)
-    
-    
-
-
-"""
-"CREATE TABLE , 
-
-, 'Actor1Geo_Type', 'Actor1Geo_FullName', 'Actor1Geo_CountryCode', 'Actor1Geo_ADM1Code', 'Actor1Geo_Lat', 'Actor1Geo_Long', 'Actor1Geo_FeatureID', 'Actor2Geo_Type', 'Actor2Geo_FullName', 'Actor2Geo_CountryCode', 'Actor2Geo_ADM1Code', 'Actor2Geo_Lat', 'Actor2Geo_Long', 'Actor2Geo_FeatureID', 'ActionGeo_Type', 'ActionGeo_FullName', 'ActionGeo_CountryCode', 'ActionGeo_ADM1Code', 'ActionGeo_Lat', 'ActionGeo_Long', 'ActionGeo_FeatureID', 'DATEADDED'"
-"""

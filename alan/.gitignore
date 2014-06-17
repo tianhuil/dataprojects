@@ -1,5 +1,9 @@
-download_scripts/authtoken.p
-./mysql/*.txt
+src/download_scripts/authtoken.p
+src/download_scripts/*.txt
+src/download_scripts/*.pickle
+src/mysql/*.txt
+src/stocks/*.pickle
 *.pyc
 *~
 *\#
+data/gdelt_files
