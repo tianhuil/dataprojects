@@ -7,6 +7,7 @@ import cPickle as pickle
 
 import flightfuncs as ff    
 
+#Unpickle the model and compute the delay probability:
 def predict_delay(data,model_pickle_file):
     f = open(model_pickle_file,'rb')
     model_dict = pickle.load(f)

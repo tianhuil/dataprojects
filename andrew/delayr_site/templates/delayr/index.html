@@ -1,0 +1,38 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+{% load static %}
+<html>
+<head>
+<title>Delayr</title>
+</head>
+
+<body>
+<h1>Welcome to Delayr!</h1>
+
+<form id="search_form" method="post" action="/delayr/">
+{% csrf_token %}
+{% for hidden in airlineform.hidden_fields %}
+    {{ hidden }}
+{% endfor %}
+
+{% for field in airlineform.visible_fields %}
+    {{ field.errors }}
+    {{ field.help_text }}
+    {{ field }}
+{% endfor %}
+<br>
+{% for hidden in airportform.hidden_fields %}
+    {{ hidden }}
+{% endfor %}
+
+{% for field in airportform.visible_fields %}
+    {{ field.errors }}
+    {{ field.help_text }}
+    {{ field }}
+{% endfor %}
+<br>
+<input type="submit" name="submit" value="Predict Delay">
+</form>
+
+<a href="/delayr/about/">About</a><br>
+</body>
+</html>

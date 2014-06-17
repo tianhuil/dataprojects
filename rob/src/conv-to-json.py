@@ -21,7 +21,7 @@ field_map = {
   "overall": "overall",
   "time":"date",
   "profilename": "user_name",
-  "text": "review"
+  "review": "review"
 }
 
 # build json format w two subcategories
@@ -42,7 +42,7 @@ def def_container():
       "palate": 0,
       "taste": 0,
       "overall": 0,
-      "text": "review"
+      "review": ""
     }
   }
   
