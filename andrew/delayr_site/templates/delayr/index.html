@@ -8,14 +8,6 @@
 <h4>{{ errmessage }}</h4>
 {% endif %}
 
-{% if prediction %}
-{% for item in prediction %}
-   {{ item.0 }}
-   {{ item.1 }}
-   <br>
-{% endfor %}
-
-{% endif %}
 
 <form id="search_form" method="post" action="/delayr/">
 <table>
@@ -48,4 +40,15 @@
 
 <input type="submit" name="submit" value="Predict Delay">
 </form>
+
+{% endblock %}
+
+{% block result_block %}
+{% if string_prediction %}
+<div class="container">
+  <div class="jumbotron">
+    <img src="/delayr/user_prediction_{{ string_prediction }}.jpg" width="500px">
+  </div>
+</div>
+{% endif %}
 {% endblock %}
