@@ -10,13 +10,6 @@ Conn = mysql.connect(host = "localhost",
                      db = "Commodities")
 Conn.autocommit(False)
 
-infile = '../data/gdelt_files/CSV.header.historical.txt'
-
-infile = open(infile)
-data = infile.readline()
-infile.close()
-
-
 def insert_row(Conn, row, table, altabs):
     row = ['"'+a[0]+'"' if "varchar" in a[1][1] else a[0] for a in zip(row, altabs[table]) ] 
     
@@ -25,58 +18,37 @@ def insert_row(Conn, row, table, altabs):
     #Conn.cursor().execute(cmd)
     return '('+','.join(row)+')'
 
-
-
-cols = [(b,a) for a,b in enumerate(data.strip().split('\t'))]
-
-coldict = dict(cols)
-
-print coldict
 loadstep = 10000
 
 tables={
-    'EVENTS':[('GLOBALEVENTID','int primary key'), 
-              ('SQLDATE','int'),
-              ('Actor1Code', 'varchar'), 
-              ('Actor2Code', 'varchar'),
-              ('IsRootEvent', 'bool'), 
-              ('EventCode', 'varchar(4)'), 
-              ('GoldsteinScale', 'float'), 
-              ('NumMentions', 'smallint'), 
-              ('AvgTone', 'float')],
-
-    'ACTORS':[('ActorCode','varchar() primary key'),
-              ('ActorName','varchar()'),
-              ('ActorCountryCode','varchar(3)'),
-              ('ActorKnownGroupCode', 'varchar()'),
-              ('ActorEthnicCode', 'varchar()')],
-    'ACTOR_RELIGIONS':[('ActorCode','varchar() primary key()'),
-                       ('ActorReligionCode','varchar()')
-                       ],
-    'ACTOR_TYPES':[('ActorCode','varchar() primary key()'),
-                   ('ActorTypeCode','varchar()')],
-    'EVENT_ACTOR_GEO':[('GLOBALEVENTID','int'), #unique key pair with actor num
-                     ('ActorNum', 'tinyint'), #unique key pair 
-                     ('Geo_Type', 'int'),
-                     ('Geo_CountryCode', 'varchar(2)'),
-                     ('Geo_ADM1Code', 'varchar(4)'),
-                     ('Geo_Lat', 'float'),
-                     ('Geo_Long', 'float'),
-                     ('Geo_FeatureID', 'int')]
-                     }
+    'EVENTS':[('GLOBALEVENTID','int primary key',0), 
+              ('SQLDATE','int',1),
+              ('Actor1Code', 'varchar(13)',5), 
+              ('Actor2Code', 'varchar(13)',15),
+              ('IsRootEvent', 'bool',25), 
+              ('EventCode', 'int',26), 
+              ('GoldsteinScale', 'float',30), 
+              ('NumMentions', 'smallint',31), 
+              ('AvgTone', 'float',34),
+              ('Geo_Type_1', 'smallint',35),
+              ('Geo_CountryCode_1', 'varchar(3)',37),
+              ('Geo_ADM1Code_1', 'varchar(3)',38),
+              ('Geo_Lat_1', 'float',39),
+              ('Geo_Long_1', 'float',40),
+              ('Geo_Type_2', 'smallint',42),
+              ('Geo_CountryCode_2', 'varchar(3)',44),
+              ('Geo_ADM1Code_2', 'varchar(3)',45),
+              ('Geo_Lat_2', 'float',46),
+              ('Geo_Long_2', 'float',47)]
+    }
     
 event_cols = [a[0] for a in tables['EVENTS']]
-geo_cols = [a[0] for a in tables['EVENT_ACTOR_GEO']]
-actor_cols = ['Actor{num}Code','Actor{num}Name','Actor{num}CountryCode',
-              'Actor{num}KnownGroupCode', 'Actor{num}EthnicCode']
-actor_reg_cols = ['Actor{num}Code', 'Actor{num}Religion{regnum}Code']
-actor_type_cols = ['Actor{num}Code','Actor{num}Type{typenum}Code' ]
 
 
-os.system('ls /home/ameert/git_projects/dataprojects/alan/data/gdelt_files/201[1,2]*.zip> zipfiles.txt')
+os.system('ls /home/ameert/git_projects/dataprojects/alan/data/gdelt_files/201*.zip> zipfiles.txt')
 
 zipfiles = open('zipfiles.txt').readlines()
-#zipfiles = ['/home/ameert/git_projects/dataprojects/alan/data/gdelt_files/2005.zip',]
+#zipfiles = ['/home/ameert/git_projects/dataprojects/alan/data/gdelt_files/200601.zip',]
 for inzip in zipfiles:
     print "Loading %s" %inzip
     inzip = inzip.strip()
@@ -87,43 +59,35 @@ for inzip in zipfiles:
     count = 0
     tot_load =0
     for line in infile.read(csvfile).split("\n"):
-        if count > loadstep:
-            tot_load+=loadstep
-            cmd = cmd[:-1]+';'
-            Conn.cursor().execute(cmd)
-            Conn.commit()
-            count = 0
-            cmd = 'insert ignore into EVENTS values '
-            print tot_load, ' loaded'
-        count +=1
+#        if "42.1497" not in line:
+#            continue
         try:
+            if count > loadstep:
+                tot_load+=loadstep
+                cmd = cmd.replace('---','NULL')
+                cmd = cmd[:-1]+';'
+                Conn.cursor().execute(cmd)
+                Conn.commit()
+                count = 0
+                cmd = 'insert ignore into EVENTS values '
+                print tot_load, ' loaded'
+            count +=1
+            row = line.replace(r'/',' ')
             row =line.strip().split('\t')
-            row = ['-99' if a=='' else a for a in row] 
-            event_row = [row[coldict[a]] for a in event_cols]
+            row = ['NULL' if a=='' else a for a in row] 
+            row = ['NULL' if a=='X' else a for a in row] 
+            event_row= [row[a[2]] for a in tables['EVENTS']]
             cmd += insert_row(Conn, event_row, 'EVENTS', tables)+','
-            continue
-            for count in [1,2]:
-                actor_row = [row[coldict[b]] for b in [a.format(num=count) for a in actor_cols]]
-                insert_row(Conn, actor_row, 'ACTORS', tables)
-            
-                for reg_count in [1,2]:
-                    reg_row = [row[coldict[b]] for b in [a.format(num=count, regnum=reg_count) for a in actor_reg_cols]]
-                    insert_row(Conn, reg_row, 'ACTOR_RELIGIONS', tables)
-
-                for type_count in [1,2,3]:
-                    type_row = [row[coldict[b]] for b in [a.format(num=count, typenum=type_count) for a in actor_type_cols]]
-                    insert_row(Conn, type_row, 'ACTOR_TYPES', tables)
-
-            for count in [1,2]:
-                geo_row = [row[coldict[geo_cols[0]]], str(count)]+[row[coldict["Actor%d%s"%(count,b)]] for b in geo_cols[2:]]
-                insert_row(Conn, geo_row, 'EVENT_ACTOR_GEO', tables)
-                
-        except IndexError:
-            pass
-
-    cmd = cmd[:-1]+';'
+#        except IndexError:
+#            pass
+        except:
+            print "bad group ",tot_load
+            print cmd 
+            break
     
     infile.close()
+    cmd = cmd.replace('---','NULL')
+    cmd = cmd[:-1]+';'        
     Conn.cursor().execute(cmd)
     Conn.commit()
 

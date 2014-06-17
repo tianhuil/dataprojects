@@ -14,7 +14,6 @@ db = 'Commodities'
 
 to_use = ['oil','natural_gas', 'corn', 'wheat']#,'gold','silver']
 
-
 #Quandl info
 stockpath = 'quandl'
 
@@ -52,4 +51,10 @@ sql_info = {'usr':'incubator',
             'pwd':'',
             'dba':'Commodities'
             }
+
+####  Learner Info #####
+pred_list = ['time_remaining','CPI','GDP','stress_ind']
+maxdays=31
+comm_choice = 'corn'
+
 

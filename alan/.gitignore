@@ -1,4 +1,3 @@
-data/*
 download_scripts/authtoken.p
 ./mysql/*.txt
 *.pyc
