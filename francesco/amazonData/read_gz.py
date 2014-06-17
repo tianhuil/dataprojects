@@ -86,42 +86,6 @@ def parse(category, data_dir=""):
         entry[desc] = content.strip()
 
 
-def parse_old(category, log=False):
-    """
-    Ex: parse('Electronics')
-    if log is True display warning messages.
-    """
-    f = gzip.open('./Data/{0}.txt.gz'.format(category), 'r')
-    entry = {}
-    errs = 0
-    for l in f:
-        try:
-            l = l.strip().decode(encoding="utf8")
-        except:
-            errs += 1
-            if log:
-                print("Warning %d: Decoding failed - " % errs,
-                      l, file=sys.stderr)
-            entry = {}
-            continue
-        colon_pos = l.find(': ')
-        if colon_pos == -1:
-            try:
-                _set_type(entry)
-            except KeyError:
-                errs += 1
-                if log:
-                    print("Warning %d: Rating not found - " % errs,
-                          entry, file=sys.stderr)
-                continue
-            yield entry
-            entry = {}
-            continue
-        entry_name = clean(l[:colon_pos])
-        rest = l[colon_pos + 2:]
-        entry[entry_name] = rest
-
-
 if __name__ == "__main__":
     for y in categories:
         print(y)
