@@ -115,7 +115,7 @@ def get_model_filename(datetime_obj,predictorlist,tableprefix='flightdelays',dir
         raise ValueError("get_model_filename: Month {0:d} outside of allowed range!".format(datetime_obj.month))
 
     #Get the required filename:
-    filename = make_model_pickle_filename(tableprefix+"_"+month_name+"_"+time_name,predictorlist)
+    filename = make_model_pickle_filename(tableprefix+"_"+month_name+"_"+time_name,predictorlist,dir_structure=dir_structure)
     return filename
     #print int_time,time_name,month_name
     #print filename

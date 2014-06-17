@@ -15,7 +15,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 #BASE_DIR should be something like /Users/Rook/Incubator/dataprojects/andrew/delayr_site/
 
-TEMPLATE_PATH = os.path.join(BASE_DIR,'templates')
+TEMPLATE_PATH = os.path.abspath(os.path.join(BASE_DIR,'templates'))
 STATIC_PATH = os.path.join(BASE_DIR,'static')
 
 # Quick-start development settings - unsuitable for production
