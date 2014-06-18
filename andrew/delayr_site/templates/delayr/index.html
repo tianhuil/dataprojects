@@ -44,10 +44,19 @@
 {% endblock %}
 
 {% block result_block %}
-{% if string_prediction %}
+{% if string_prediction or all_time_prediction %}
 <div class="container">
   <div class="jumbotron">
-    <img src="/delayr/user_prediction_{{ string_prediction }}.jpg" width="500px">
+    <table>
+      <tr>
+	{% if string_prediction %}
+	<td><img src="/delayr/user_prediction_{{ string_prediction }}.jpg" width="500px"></td>
+	{% endif %}
+	{% if all_time_prediction %}
+	<td><img src="/delayr/all_time_prediction_{{ all_time_prediction }}.jpg" width=500px"></td>
+	{% endif %}
+      </tr>
+    </table>
   </div>
 </div>
 {% endif %}

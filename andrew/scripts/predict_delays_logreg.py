@@ -14,7 +14,9 @@ def predict_delay(data,model_pickle_file):
     f.close()
     data_coded = model_dict['predictor_coder'].code_data(data)
     probabilities = model_dict['model'].predict_proba(data_coded)
+    #print "debug: ",probabilities
     timecodes = [model_dict['target_coder'].bin_text_dict[key] for key in range(probabilities.shape[1])]
+    #timecodes = [model_dict['target_coder'].bin_text_name_list[i] for i in range(probabilities.shape[1])]
     output_df = pd.DataFrame(probabilities,columns=timecodes)
     return output_df
 
