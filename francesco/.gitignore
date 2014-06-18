@@ -1,5 +1,6 @@
-Data/*.gz
-Data/*.csv
-Data/*JSON
+*.nogit*
+*.idea/
 .ipynb_checkpoints/*
 *.swp
+*.pyc
+*.crdownload

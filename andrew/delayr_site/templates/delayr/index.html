@@ -1,0 +1,63 @@
+{% extends 'delayr/base.html' %}
+
+{% block body_block %}
+{% if welcome_message %}
+<h2>{{ welcome_message }}</h2>
+{% endif %}
+{% if errmessage %}
+<h4>{{ errmessage }}</h4>
+{% endif %}
+
+
+<form id="search_form" method="post" action="/delayr/">
+<table>
+{% csrf_token %}
+{% for hidden in airlineform.hidden_fields %}
+    {{ hidden }}
+{% endfor %}
+
+{% for field in airlineform.visible_fields %}
+    <tr><td align="right">{{ field.help_text }}</td><td>{{ field }}</th></tr>
+{% endfor %}
+
+{% for hidden in airportform.hidden_fields %}
+    {{ hidden }}
+{% endfor %}
+
+{% for field in airportform.visible_fields %}
+    <tr><td align="right">{{ field.help_text }}</td><td>{{ field }}</th></tr>
+{% endfor %}
+
+{% for hidden in datetimeform.hidden_fields %}
+    {{ hidden }}
+{% endfor %}
+
+{% for field in datetimeform.visible_fields %}
+    <tr><td align="right">{{ field.help_text }}</td><td>{{ field }}</th></tr>
+{% endfor %}
+
+</table>
+
+<input type="submit" name="submit" value="Predict Delay">
+</form>
+
+{% endblock %}
+
+{% block result_block %}
+{% if string_prediction or all_time_prediction %}
+<div class="container">
+  <div class="jumbotron">
+    <table>
+      <tr>
+	{% if string_prediction %}
+	<td><img src="/delayr/user_prediction_{{ string_prediction }}.jpg" width="500px"></td>
+	{% endif %}
+	{% if all_time_prediction %}
+	<td><img src="/delayr/all_time_prediction_{{ all_time_prediction }}.jpg" width=500px"></td>
+	{% endif %}
+      </tr>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
