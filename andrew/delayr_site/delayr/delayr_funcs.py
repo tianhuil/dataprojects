@@ -11,6 +11,7 @@ sys.path.append(scriptsdir)
 import flightfuncs as ff
 import predict_delays_logreg as pdl
 import global_vars as gv
+import login_credentials as creds
 
 #Reads a df passed as a json string (to pass info through urls):
 def prep_passed_df(input_string,row_order_column=None,column_order_row=None,remove_row_order_column=True,remove_column_order_row=True):
@@ -27,7 +28,14 @@ def prep_passed_df(input_string,row_order_column=None,column_order_row=None,remo
         if remove_column_order_row:
             df = df[df.index.values != column_order_row]
     return df
-            
+
+#Convert between datetime's notion of the day of the week and MySQL's:
+def fix_weekday(dayofweek,offset=2):
+    dayofweek += offset
+    if dayofweek > 7:
+        dayofweek -= 7
+    return dayofweek
+
 #Predict what the user wants, as well as some other interesting things:
 def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
     tableprefix = 'flightdelays'
@@ -39,7 +47,7 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
     predictorlist = ['origin','dest','dayofweek(flightdate)','uniquecarrier']
 
     #Get the delay time prediction the user asked for:
-    user_predictorvals = [inpdict['origin'],inpdict['dest'],date.weekday()+2,inpdict['uniquecarrier']]#The +2 is to put the day of the week in the right MySQL units.
+    user_predictorvals = [inpdict['origin'],inpdict['dest'],fix_weekday(date.weekday()),inpdict['uniquecarrier']]#The +2 is to put the day of the week in the right MySQL units.
     user_predictor_df = make_predictor_df(predictorlist,user_predictorvals)
     #Get the filename of the pickle we should be using:
     user_pkl_filename = ff.get_model_filename(date,predictorlist,tableprefix=tableprefix,dir_structure=pkl_directory)
@@ -67,10 +75,40 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
         all_time_df['order'] = range(all_time_df.shape[0])#Add column to order the rows
         return_dict['all_time_prediction'] = all_time_df
 
-        if date_range != None:
-            #Get predicted delay times for the days around the selected date:
-            for i in range(-date_range,date_range+1):
-                print i 
+    if date_range != None:
+        all_date_df_list = []
+        all_date_strings = []
+        #Get predicted delay times for the days around the selected date:
+        for i in range(-date_range,date_range+1):
+            offsetdate = date + dt.timedelta(days=i)
+            time_predictorvals = [inpdict['origin'],inpdict['dest'],fix_weekday(offsetdate.weekday()),inpdict['uniquecarrier']]#The +2 is to put the day of the week in the right MySQL units.
+            date_predictor_df = make_predictor_df(predictorlist,time_predictorvals)
+            date_pkl_filename = ff.get_model_filename(offsetdate,predictorlist,tableprefix=tableprefix,dir_structure=pkl_directory)
+
+            date_df = pdl.predict_delay(date_predictor_df,date_pkl_filename)
+            all_date_df_list.append(date_df)
+            #all_date_strings.append(offsetdate.strftime('%B'))
+            all_date_strings.append(offsetdate.strftime('%m-%d-%Y'))
+        all_date_df = combo_dfs(*all_date_df_list)
+        all_date_df = all_date_df.set_index(np.array(all_date_strings))
+        col_index_df = pd.DataFrame(np.arange(len(all_date_df.columns.values)).reshape(1,len(all_date_df.columns.values)),index=['col_order'],columns=all_date_df.columns.values)
+        all_date_df = all_date_df.append(col_index_df)
+        all_date_df['order'] = range(all_date_df.shape[0])
+        return_dict['all_date_prediction'] = all_date_df
+
+    if other_options != None:
+        #Query the db to find market ids for the two airports. Make sure both are found.
+        #Query the db to find all distinct flights with the same origin and destination market ids. if it returns zero (user could ask for hawaii air flights between newark and jfk, for instance, which is nonsensical but will output a prediction) exit.
+
+        #select distinct aorig.airportname,adest.airportname,aline.fullname from flightdelays_sep_early as fd join airports as aorig on fd.origin=aorig.origin join airports as adest on fd.dest=adest.origin join airlinenames as aline on fd.uniquecarrier=aline.uniquecarrier where origincitymarketid=31703 and destcitymarketid=30977 and year(fd.flightdate) > 2012;
+        
+        #cut out the flight that the user queried. if that was the one entry in the dataframe, exit.
+        
+        #Estimate the delay times for each of the remaining flights.
+
+        #Sort the delay times (probably based on on-time percentage) and report the top N alternatives. Perhaps a stacked bar chart, with your flight in there as well?
+        pass
+            
     return return_dict
 
 def combo_dfs(*args):

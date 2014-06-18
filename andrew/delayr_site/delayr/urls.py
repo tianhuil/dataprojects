@@ -7,4 +7,5 @@ urlpatterns = patterns('',
                        url(r'^test$',views.test,name='test'),
                        url(r'^user_prediction_(?P<string_prediction>.+).jpg$',views.show_user_prediction),
                        url(r'^all_time_prediction_(?P<prediction>.+).jpg$',views.show_all_time_prediction),
+                       url(r'^all_date_prediction_(?P<prediction>.+).jpg$',views.show_all_date_prediction),
                        )
