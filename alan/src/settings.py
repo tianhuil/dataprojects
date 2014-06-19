@@ -55,6 +55,6 @@ sql_info = {'usr':'incubator',
 ####  Learner Info #####
 pred_list = ['time_remaining','CPI','GDP','stress_ind']
 maxdays=31
-comm_choice = 'corn'
+comm_choice = 'oil'
 
 

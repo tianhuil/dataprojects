@@ -6,10 +6,20 @@ import scipy.signal as signal
 from sklearn import linear_model
 import statsmodels.api as sm
 import pickle
+import pandas.io.sql as psql
+import MySQLdb as mysql
 
 import sys
 sys.path.append('../')
 import settings
+
+from utils import *
+
+Conn = mysql.connect(host = settings.host,
+                     user = settings.user,
+                     db = settings.db)
+Conn.autocommit(True)
+cursor = Conn.cursor()
 
 def load_stock(comm_choice, start_date, end_date):
     stock_data = pd.read_pickle('%s.pickle' %comm_choice)
@@ -83,47 +93,91 @@ if __name__ == "__main__":
     #get the time to maturity in fraction of overall time
     date_contract(contract_dates, stock_data)
 
-    clf = sm.tsa.ARMA(stock_data['settle'], order=(1,1),exog=stock_data['CPI'])
-    model = clf.fit()
-    print model.params
-    print model.aic, model.bic, model.hqic
-    print model
-#    sm.stats.normaltest(model.resid)
-    r,q,p = sm.tsa.acf(model.resid.values.squeeze(), qstat=True)
-    data = np.c_[range(1,41), r[1:], q, p]
-    table = pd.DataFrame(data, columns=['lag', "AC", "Q", "Prob(>Q)"])
-    print table.set_index('lag')
+    stock_data['log_ret'] = np.log(stock_data['settle']/stock_data['settle'].shift(-1))
+    stock_data['log_ret'] = stock_data['log_ret'].fillna(value=0)
+    
+    events = psql.frame_query('select SQLDATE, GoldsteinScale from ev0405 order by rand();',  con=Conn)
+    events['orddate'] = SQLdate_to_ord(events['SQLDATE'])
+
+    to_fit = pd.merge(events,stock_data,how='inner', on='SQLDATE')
+    
+    data =np.array(to_fit['GoldsteinScale'][:,np.newaxis]) 
+    yval =np.array(to_fit['log_ret'])
+
+    print data
+    print yval
+    print data.shape, yval.shape
+    from sklearn import linear_model
+    clf = linear_model.LinearRegression()
+
+    clf.fit(data, yval)
+
+    x_vals = np.arange(-10.0, 10.0, 0.01)
+
+    pl.scatter(to_fit['GoldsteinScale'],to_fit['log_ret'])
+    pl.plot(x_vals, clf.predict(x_vals[:,np.newaxis]))
+    pl.show()
 
 
 
-    pl.subplot(2,2,1)
+
+
+
+
+
+
+
+    pl.subplot(3,3,1)
     stock_data['settle'].plot(c='k')
     pd.stats.moments.ewma(stock_data['settle'], span=30).plot()
     pl.title("price with ewma")
     pl.ylabel("dollars")
-    predict = model.predict('2004-01-12', '2005-02-01', dynamic=True)
-    print predict
-    predict.plot()
 
-    pl.subplot(2,2,2)
-    pl.plot(np.array([stock_data['settle'].corr(stock_data['settle'].shift(i) ) for i in range(1,200) ] ) )
-    pl.title("Lagged autocorrelation")
+    pl.subplot(3,3,2)
+    pl.hist(stock_data['log_ret'], range=(-0.1,0.1),bins=100)
+    pl.title("Daily Change")
+    pl.ylabel("daily change")
+
+    pl.subplot(3,3,3)
+    stock_data['log_ret'].plot()
+    pl.title("Daily Change")
+    pl.ylabel("daily change")
+
+    pl.subplot(3,3,4)
+    stock_data['time_remaining'].plot()
+    pl.title("time in contract")
+    pl.ylabel("time")
+    pl.xlabel("days")
+
+    pl.subplot(3,3,5)
+    stock_data['volume'].plot()
+    pl.title("Volume")
+    pl.ylabel("Volume")
+    
+    pl.subplot(3,3,6)
+    stock_data['open_interest'].plot()
+    pl.title("Interest")
+    pl.ylabel("Interest")
+
+    pl.subplot(3,3,7)
+    pl.plot(np.array([stock_data['log_ret'].corr(stock_data['time_remaining'].shift(i) ) for i in range(1,200) ] ) )
+    pl.title("Lagged cross-correlation (return and time remaining)")
     pl.ylabel("Correlation")
     pl.xlabel("Lag (business days)")
 
-    pl.subplot(2,2,3)
-    pl.plot(sm.tsa.stattools.pacf(stock_data['settle'], nlags=40))
-    pl.title("partial autocorrelation")
+    pl.subplot(3,3,8)
+    pl.plot(np.array([stock_data['log_ret'].corr(stock_data['volume'].shift(i) ) for i in range(1,200) ] ) )
+    pl.title("Lagged cross-correlation (return and volume)")
     pl.ylabel("Correlation")
     pl.xlabel("Lag (business days)")
 
-    pl.subplot(2,2,4)
-    model.resid.plot()
-    pl.title("Residuals")
-    pl.ylabel("Residual")
+    pl.subplot(3,3,9)
+    pl.scatter(stock_data['time_remaining'],stock_data['log_ret'], s=2 )
+    pl.title(" folded return")
+    pl.ylabel("return")
+    pl.xlabel("contract cycle")
 
     pl.subplots_adjust(hspace=0.5, wspace=0.5)
     pl.figtext(0.5, 0.95, comm_choice)
     pl.show()
 
-    sm.iolib.smpickle.save_pickle(model, 'modeltmp.pickle')
