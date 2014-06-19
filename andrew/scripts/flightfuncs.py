@@ -13,17 +13,21 @@ class time_coder:
     def __init__(self,timebins):
         self.timebins = timebins
         self.bin_text_dict = {}
+        self.bin_text_name_list = []#Can't use this until I retrain the model
     def time_encode(self,times,cancellations):
         if self.timebins:
             coded_array = np.zeros(len(times),dtype=np.int)
             self.bin_text_dict[0] = '<{0:d}'.format(self.timebins[0])
+            self.bin_text_name_list.append('<{0:d}'.format(self.timebins[0]))
             currcode = 1
             for i in range(1,len(self.timebins)):
                 coded_array[(times >= self.timebins[i-1]) & (times < self.timebins[i])] = currcode
                 self.bin_text_dict[currcode] = '{0:d}-{1:d}'.format(self.timebins[i-1],self.timebins[i])
+                self.bin_text_name_list.append('{0:d}-{1:d}'.format(self.timebins[i-1],self.timebins[i]))
                 currcode += 1
             coded_array[(times >= self.timebins[-1])] = currcode
             self.bin_text_dict[currcode] = '>={0:d}'.format(self.timebins[-1])
+            self.bin_text_name_list.append('>={0:d}'.format(self.timebins[-1]))
             currcode += 1
             coded_array[(cancellations > 1.e-5)] = currcode
             self.bin_text_dict[currcode] = 'Cancelled'
@@ -106,6 +110,15 @@ def get_model_filename(datetime_obj,predictorlist,tableprefix='flightdelays',dir
         raise ValueError("get_model_filename: Time {0:d} outside of allowed range!".format(int_time))
 
     #Convert the month into the proper format:
+    month_name = get_month_name(datetime_obj)
+
+    #Get the required filename:
+    filename = make_model_pickle_filename(tableprefix+"_"+month_name+"_"+time_name,predictorlist,dir_structure=dir_structure)
+    return filename
+    #print int_time,time_name,month_name
+    #print filename
+    
+def get_month_name(datetime_obj):
     month_name = None
     for key in gv.months.keys():
         if datetime_obj.month == gv.months[key]:
@@ -114,11 +127,7 @@ def get_model_filename(datetime_obj,predictorlist,tableprefix='flightdelays',dir
     if month_name == None:
         raise ValueError("get_model_filename: Month {0:d} outside of allowed range!".format(datetime_obj.month))
 
-    #Get the required filename:
-    filename = make_model_pickle_filename(tableprefix+"_"+month_name+"_"+time_name,predictorlist)
-    return filename
-    #print int_time,time_name,month_name
-    #print filename
+    return month_name
     
     
 #A cross-validation estimator based on the probability of the label being the correct one, normal goodness-of-model measurements like accuracy aren't relevant here:

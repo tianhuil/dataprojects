@@ -1,6 +1,33 @@
-#----------------------------
+#-----------------------------------------------
 #        README
-#----------------------------
+#-----------------------------------------------
 
 The Data Incubator project for Alan Meert.
-More details to follow.
+
+
+#-----------------------------------------------
+#       INSTALL
+#-----------------------------------------------
+
+Just run the Makefile in this directory to build 
+the code.
+
+NOTE:
+	There is a 'make learn' command that 
+	allows you to download all the gdelt 
+	files for 2000-2013. It also bulds 
+	the database and other things. This 
+	is only useful for retraining. Don't 
+	do this unless you are prepared to 
+	wait through the long download process!
+
+#----------------------------------------------
+# DATA Sources
+#---------------------------------------------
+trademap.org - import/export data
+
+
+#----------------------------------------------
+#        OTHER INFO
+#----------------------------------------------
+Nothing here yet....

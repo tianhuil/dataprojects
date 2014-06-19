@@ -14,9 +14,11 @@ def predict_delay(data,model_pickle_file):
     f.close()
     data_coded = model_dict['predictor_coder'].code_data(data)
     probabilities = model_dict['model'].predict_proba(data_coded)
+    #print "debug: ",probabilities
     timecodes = [model_dict['target_coder'].bin_text_dict[key] for key in range(probabilities.shape[1])]
+    #timecodes = [model_dict['target_coder'].bin_text_name_list[i] for i in range(probabilities.shape[1])]
     output_df = pd.DataFrame(probabilities,columns=timecodes)
-    print output_df
+    return output_df
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:
@@ -47,4 +49,8 @@ if __name__ == "__main__":
     if not os.path.isfile(pkl_filename):
         sys.exit("Pickled model file {0:s} does not exist! Exiting...".format(pkl_filename))
 
-    predict_delay(predictor_df,pkl_filename)
+    predicted_df = predict_delay(predictor_df,pkl_filename)
+    print predicted_df
+
+    print list(predicted_df.columns)
+    print list(predicted_df.irow(0))

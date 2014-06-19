@@ -1,38 +1,66 @@
-<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
-{% load static %}
-<html>
-<head>
-<title>Delayr</title>
-</head>
+{% extends 'delayr/base.html' %}
 
-<body>
-<h1>Welcome to Delayr!</h1>
+{% block body_block %}
+{% if welcome_message %}
+<h2>{{ welcome_message }}</h2>
+{% endif %}
+{% if errmessage %}
+<h4>{{ errmessage }}</h4>
+{% endif %}
+
 
 <form id="search_form" method="post" action="/delayr/">
+<table>
 {% csrf_token %}
 {% for hidden in airlineform.hidden_fields %}
     {{ hidden }}
 {% endfor %}
 
 {% for field in airlineform.visible_fields %}
-    {{ field.errors }}
-    {{ field.help_text }}
-    {{ field }}
+    <tr><td align="right">{{ field.help_text }}</td><td>{{ field }}</th></tr>
 {% endfor %}
-<br>
+
 {% for hidden in airportform.hidden_fields %}
     {{ hidden }}
 {% endfor %}
 
 {% for field in airportform.visible_fields %}
-    {{ field.errors }}
-    {{ field.help_text }}
-    {{ field }}
+    <tr><td align="right">{{ field.help_text }}</td><td>{{ field }}</th></tr>
 {% endfor %}
-<br>
+
+{% for hidden in datetimeform.hidden_fields %}
+    {{ hidden }}
+{% endfor %}
+
+{% for field in datetimeform.visible_fields %}
+    <tr><td align="right">{{ field.help_text }}</td><td>{{ field }}</th></tr>
+{% endfor %}
+
+</table>
+
 <input type="submit" name="submit" value="Predict Delay">
 </form>
 
-<a href="/delayr/about/">About</a><br>
-</body>
-</html>
+{% endblock %}
+
+{% block result_block %}
+{% if string_prediction or all_time_prediction or all_date_prediction %}
+<div class="container">
+  <div class="jumbotron">
+    <table>
+      <tr>
+	{% if string_prediction %}
+	<td><img src="/delayr/user_prediction_{{ string_prediction }}.jpg" width="350px"></td>
+	{% endif %}
+	{% if all_time_prediction %}
+	<td><img src="/delayr/all_time_prediction_{{ all_time_prediction }}.jpg" width="350px"></td>
+	{% endif %}
+	{% if all_date_prediction %}
+	<td><img src="/delayr/all_date_prediction_{{ all_date_prediction }}.jpg" width="350px"></td>
+	{% endif %}
+      </tr>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
