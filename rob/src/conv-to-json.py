@@ -21,6 +21,7 @@ field_map = {
   "overall": "overall",
   "time":"date",
   "profilename": "user_name",
+  "text": "review",
   "review": "review"
 }
 
@@ -48,14 +49,22 @@ def def_container():
   
   
 def clean(field, value):
+  def enc(s):
+    return ''.join([x for x in s if ord(x) < 128])
+  
   ints = [ "id", "brewer_id" ]
   dec = [ "abv", "appearance", "aroma", "palate", "taste", "overall" ]
-  rem_nl = [ "name", "style", "user_name", "date" ]
+  chk_enc = [ "style", "text", "review" ]
+  rem_nl = [ "name", "user_name", "date" ]
   rem_nl.extend(ints)
   rem_nl.extend(dec)
+  rem_nl.extend(chk_enc)
 
   if field in rem_nl:
     value = value.strip().replace('\n','')
+  
+  if field in chk_enc:
+    value = enc(value.replace('\t',' '))
 
   if field in ints:
     value = int(value) if value.isdigit() else 0
@@ -69,7 +78,7 @@ def clean(field, value):
   return value
   
                   
-with open('../data/beeradvocate.txt', 'r') as raw, open('../data/beeradvocate.json', 'w') as j:
+with open('data/beeradvocate.txt', 'r') as raw, open('data/beeradvocate.json', 'w') as j:
   d = None
   for row in raw:
     if row not in ['','\n']:
@@ -84,8 +93,12 @@ with open('../data/beeradvocate.txt', 'r') as raw, open('../data/beeradvocate.js
       try:
         r = row.split(":")
         c, f = r[0].split('/')
-      
+        
+        # review text has ':' in it
+        if len(r) > 2:
+          r = [r[0], ': '.join(r[1:])]
+        
         new_f = field_map[f.lower()]
         d[c][new_f] = clean(new_f, r[1])
-      except:
+      except Exception as e:
         pass

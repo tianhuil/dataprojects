@@ -43,7 +43,7 @@ def fill_brewers(cur):
           insert into brewers (id, name, location)
           values (%s, %s, %s)"""
             
-        v = (br["id"], enc(br["name"]), br["location"])
+        v = (br["id"], enc(br["name"]), enc(br["location"]))
         ct_s += insert(cur, ins, v, err)
           
       except:
@@ -68,7 +68,7 @@ def fill_styles(cur):
         insert into styles (id, name)
         values (%s, %s)"""
       
-      v = (s["id"],s["name"])
+      v = (s["id"], enc(s["name"]))
       ct_s += insert(cur, ins, v, err)
       
   return ct_s, ct
@@ -106,28 +106,12 @@ def fill_beers(cur):
   return ct_s, ct
 
 
-#ct = 0
-#ct_s = 0
-#print 'FILL PRODUCT IDS'
-#with open(pth('product_ids.json'), 'r') as prods, \
-#    open(pth('dberr_prodid.txt'), 'w') as err:
-#  prs = json.loads(prods.read())
-  
-#  for brewer, beers in prs.iteritems():
-#    for beer in beers:
-#      ct += 1
-#      ins = """
-#        insert into product_ids (brewer_id, beer_id)
-#        values (%s, %s)"""
-      
-#      v = (brewer, beer)
-#      ct_s += insert(cur, ins, v, err)
 
-#print 'FILLED PRODUCT IDS: {0} of {1}\n'.format(ct_s, ct)
-
-
-
+have_u_ids = False
+u_ids = {}
+max_id = 0
 def fill_users(cur):
+  global max_id
   ct_s, ct = 0, 0
   with open(pth('users.json')) as user_f, \
       open(pth('dberr_prodid.txt'), 'w') as err:
@@ -138,50 +122,136 @@ def fill_users(cur):
       ins = '''
         insert into users (id, name, title, location, sex)
         values ( %s, %s, %s, %s, %s )'''
+      
+      u_ids[u["name"]] = u["id"]
+      max_id = max(max_id, u["id"])
           
-      v = (u["id"], u["name"], u["title"], u["location"], u["sex"])
+      v = (u["id"], u["name"], u["title"], enc(u["location"]), u["sex"])
       ct_s += insert(cur, ins, v, err)
 
+    have_u_ids = True
   return ct_s, ct
 
 
-
-
-# reviews only come with user_name
-# temp table to convert into proper review format
+  
+  
+  
 def fill_revs(cur):
   
   from datetime import datetime as dt
   
+  # reviews only come with user_name
+  def get_uids():
+    global max_id
+    with open(pth('users.json'), 'r') as users:
+      for u_j in users:
+        u = json.loads(u_j)
+        u_ids[u["name"]] = u["id"]
+        max_id = max(max_id, u["id"])
+  
+
+  def subrevs(v):
+    ins = """
+        insert into reviews ( brewer_id, beer_id, user_id, rev_date,
+                        palate, taste, aroma, appearance, overall, review )
+        select %s, %s, %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s
+        from beers
+        where brewer_id = %s and id = %s and
+        not exists (
+          select * from reviews
+          where brewer_id = %s
+            and beer_id = %s
+            and user_id = %s )"""
+            
+    print "Inserting {0} reviews".format(len(v))
+    print 'Starting batch insert'
+    start = dt.now()
+    cur.executemany(ins, v)
+    print 'Review batch insert time: %s' % (dt.now() - start)
+
+  if not have_u_ids:
+    get_uids()
+    
+  print "Have ids"
+  print "Building review set"
+  
   ct_s, ct = 0, 0
   with open(pth('beeradvocate.json'), 'r') as revs, \
-      open(pth('dberr_revs.txt'), 'w') as err:
+      open(pth('dberr_revs.txt'), 'w') as err, \
+      open(pth('users.json'), 'a') as users:
     
+    v = []
+    add_ids = []
+    e_ct = 0
+    e_uct = []
+    
+    itct = 0
+    # build query parameter lists
     for rev in revs:
-      ct += 1
       r = json.loads(rev)
       
       bd = r["beer"]
       rv = r["review"]
       
-      v = (-1)
-      try:
-        # first get user id
-        sel = """select id from users where name = %s"""
-        cur.execute(sel, (rv["user_name"],))
-        u_id = int(cur.fetchone()[0])
+      if rv["user_name"] in u_ids:
+        ct += 1
+      else:
+        e_ct += 1
+        if rv["user_name"] not in e_uct:
+          e_uct.append(rv["user_name"])
         
-        ins = """
-          insert into reviews ( brewer_id, beer_id, user_id, rev_date,
-                      palate, taste, aroma, appearance, overall, review )
-          values (%s, %s, %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s) """
+        name = rv["user_name"].strip()
+        u_ids[name] = max_id
         
-        v = ( bd["brewer_id"], bd["id"], u_id, int(rv["date"]), rv["palate"],
-              rv["taste"], rv["aroma"], rv["appearance"], rv["overall"], rv["review"] )
+        new_u = {
+          "id": max_id,
+          "name": name,
+          "title": "",
+          "location": "",
+          "sex": "Unspecified"
+        }
+        users.write(json.dumps(new_u) + "\n")
+        add_ids.append( (new_u["id"], new_u["name"], new_u["title"], new_u["location"], new_u["sex"]) )
+      
+      # first get user id
+      u_id = u_ids[rv["user_name"]]
+      v.append( ( bd["brewer_id"], bd["id"], u_id, int(rv["date"]), rv["palate"],
+            rv["taste"], rv["aroma"], rv["appearance"], rv["overall"], enc(rv["review"]),
+            # extra parameters for conditional insert
+            bd["brewer_id"], bd["id"], bd["brewer_id"], bd["id"], u_id ) )
               
-        ct_s += insert(cur, ins, v, err)
-      except Exception as e:
-        err.write("{0}:{1}\n".format(v, e))
+      itct += 1
+      if itct == 50000:
+        try:
+          subrevs(v)
+          v = []
+          itct = 0
+        except Exception as e:
+          print e
+          err.write("{0}\n".format(e))
+        
+    # end for indent
+      
+    print "Found {0} reviews from {1} valid users".format(ct, len(u_ids.keys()))
+    print "Backfilling users to include {0} reviews from {1} users".format(e_ct, len(e_uct))
+    
+    try:
+      if len(add_ids):
+        ins = '''
+          insert into users (id, name, title, location, sex)
+          values  (%s, %s, %s, %s, %s) '''
+        cur.executemany(ins, add_ids)
+          
+        print "Users ({0}) backfilled".format(len(add_ids))
+        
+      print "Submitting remaining reviews"
+      subrevs(v)
+      
+      cur.execute("""select count(*) from reviews""")
+      ct_s = int(cur.fetchone()[0])
+    except Exception as e:
+      print e
+      err.write("{0}\n".format(e))
     
   return ct_s, ct
 
@@ -191,13 +261,12 @@ def fill_revs(cur):
 with Beerad() as con:
   cur = con.cursor()
 
-  l = lambda f: f(cur)
-
-  print_res('BREWERS', l(fill_brewers))
-  print_res('STYLES', l(fill_styles))
-  print_res('BEERS', l(fill_beers))
-  print_res('USERS', l(fill_users))
-  print_res('REVIEWS', l(fill_revs))
+#  print_res('BREWERS', lambda: fill_brewers(cur))
+#  print_res('STYLES', lambda: fill_styles(cur))
+#  print_res('BEERS', lambda: fill_beers(cur))
+#  print_res('USERS', lambda: fill_users(cur))
+  
+  print_res('REVIEWS', lambda: fill_revs(cur))
   
   con.commit()
   cur.close()

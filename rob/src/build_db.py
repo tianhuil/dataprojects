@@ -4,8 +4,10 @@
 
 from warnings import filterwarnings
 from warnings import resetwarnings
-#import MySQLdb as mdb
+import MySQLdb as mdb
 import json
+
+from beeradcn import Beerad
 
 filterwarnings('ignore', category = mdb.Warning)
 
@@ -115,9 +117,51 @@ with Beerad() as con:
         on delete cascade
     )""")
   
-      
+  cur.execute("drop view if exists reviewsbybeer")
+  cur.execute("""
+    create view reviewsbybeer as
+    select beer_id, count(*) as rev_ct
+    from reviews
+    group by beer_id """)
+  
+  cur.execute("drop view if exists reviewsbystyle")
+  cur.execute("""
+    create view reviewsbystyle as
+    select be.style_id, sum(rev_ct) as rev_ct
+    from reviewsbybeer as r inner join beers be
+      on be.id = r.beer_id
+    group by be.style_id """)
+    
+  cur.execute("drop table if exists basewordcts")
+  cur.execute("""
+    create table basewordcts (
+      id int not null auto_increment,
+      word varchar(255),
+      count int default 0,
+      primary key (id),
+      unique (word),
+      check (count >= 0)
+    )""")
+    
+  cur.execute("drop procedure if exists wordupsert")
+  cur.execute("""
+    create procedure wordupsert (new_word varchar(255), ct int)
+    begin
+      if (select word from basewordcts where word = new_word)
+      begin
+        update basewordcts
+        set count = count + ct
+        word = new_word;
+      end
+      else
+      begin
+        insert into (word, count)
+        values (new_word, ct);
+      end
+      end if
+    end """)
+    
   con.commit()  # save to db
   cur.close()   # close cursor
-#  con.close()   # close db connection
 
 resetwarnings()
