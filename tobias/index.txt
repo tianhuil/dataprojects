@@ -1,0 +1,22 @@
+add_random_column.txt: The psql commands used to add a random column
+    to arXivmeta. 
+
+create_abstractclass.py : ** retired. Created table abstractclass
+
+dataload.py: creates table arXivmeta and loads all data
+
+load_abstractclass.py: ** retired. Loaded data into abstractclass
+
+Math_Test.py: ** retired. Read in a selection of abstracts and train
+    a multinomial naive bayes model to predict which are math, then
+    tests it on another selection of papers.
+
+Paperclass.py: Defines the class "Paper", which extracts 
+    stores all relevant info from an xml file.
+
+PaperList.py: ** retired. Used sqlite to load papers into a table.
+
+Read_SQL_for_NLP.py: ** retired. Using slqalchemy, read in lines of 
+    abstractclass, vectorized, and fit a model. 
+
+

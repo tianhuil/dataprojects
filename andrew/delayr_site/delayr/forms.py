@@ -5,7 +5,7 @@ import datetime
 
 def getcurrtime():
     curr = datetime.datetime.now()
-    return curr.strftime('%H:%M %p')
+    return curr.strftime('%I:%M %p')
 
 def getcurrdate():
     curr = datetime.datetime.now()
