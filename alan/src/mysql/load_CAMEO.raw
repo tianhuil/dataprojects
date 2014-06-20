@@ -1,3 +1,8 @@
+CREATE TABLE country_totals (SQLDATE int, country varchar(2), events int);
+alter table country_totals add unique key (SQLDATE, country);
+
+LOAD DATA INFILE '{gitdir}/data/gdelt_files/daily_country.csv' IGNORE INTO TABLE country_totals FIELDS TERMINATED BY ',';
+
 DROP TABLE IF EXISTS actor3codes;
 CREATE TABLE actor3codes (code varchar(4) primary key, description varchar(150));
 LOAD DATA INFILE '{gitdir}/data/gdelt_files/actor3codes.clean' IGNORE INTO TABLE  actor3codes  FIELDS TERMINATED BY ';' ;

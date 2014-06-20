@@ -3,12 +3,14 @@ import pandas.io.sql as psql
 import MySQLdb as mysql
 import warnings
 warnings.filterwarnings('ignore', category=mysql.Warning)
+import datetime 
 
 import sys
 sys.path.append('../')
 import settings
 
 from utils import *
+from stock_returns import date_contract
 
 Conn = mysql.connect(host = settings.host,
                      user = settings.user,
@@ -18,15 +20,21 @@ cursor = Conn.cursor()
 
 
 for stock in settings.to_use:
-
     stock_frame = psql.frame_query('select SQLDATE, open, high, low, last, diff, settle, volume, open_interest from %s;' %stock, con=Conn)
     print 'loaded dataframe from MySQL. records:', len(stock_frame)
 
     stock_frame.index = SQLdate_to_date(stock_frame['SQLDATE'])
     stock_frame.index = pd.to_datetime(stock_frame.index)
     stock_frame['orddate'] = SQLdate_to_ord(stock_frame['SQLDATE'])
-     
-    print stock_frame['orddate']
+
+    contract_dates = pd.to_datetime(pd.Series(['%d-%d-%d' %(a,b,settings.end_day[stock]) for a in range(1995,2020) for b in range(1,12)]))
+
+    #pd.date_range(start_date, end_date, freq='M')#-pd.tseries.offsets.DateOffset(1)
+    contract_dates = pd.DatetimeIndex(contract_dates) - pd.tseries.offsets.BDay(3)
+
+    # get the time to maturity in fraction of overall time
+    date_contract(contract_dates, stock_frame)
+    
     for data_name in ['CPI',  'GDP',  'Population',  'rec_prob',
                  'stress_ind',  'um_sent']:
         #Takes the most recent value of the metric as the current value

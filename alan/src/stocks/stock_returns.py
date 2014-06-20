@@ -21,20 +21,18 @@ Conn = mysql.connect(host = settings.host,
 Conn.autocommit(True)
 cursor = Conn.cursor()
 
+def date_contract(contract_dates, stock):
+    contract_ord = np.array([ a.date().toordinal() for a in contract_dates])
+    day_bins = np.digitize(stock['orddate'], contract_ord, right=True)
+    stock['day_bins'] = day_bins
+    trange = np.array([(contract_ord[x]-y)/float(contract_ord[x]-contract_ord[x-1]) for x,y in zip(day_bins, stock['orddate'])])
+    stock['time_remaining'] = trange
+    return
+
 def load_stock(comm_choice, start_date, end_date):
     stock_data = pd.read_pickle('%s.pickle' %comm_choice)
     stock_data = stock_data[pd.datetime(start_date.year,start_date.month,start_date.day):pd.datetime(end_date.year,end_date.month,end_date.day)]
     return stock_data
-
-def date_contract(contract_dates, stock):
-    contract_ord = np.array([a.toordinal() for a in contract_dates], dtype=int)
-    print stock['orddate']
-    print contract_ord
-    day_bins = np.digitize(stock['orddate'], contract_ord)
-    print day_bins
-    trange = np.array([(contract_ord[x]-y)/float(contract_ord[x]-contract_ord[x-1]) for x,y in zip(day_bins, stock['orddate'])])
-    stock['time_remaining'] = trange
-    return
 
 def moving_average(days, stock, key):
     good_days = np.concatenate([np.zeros(days+1),np.ones(days)])/float(days)
@@ -96,7 +94,7 @@ if __name__ == "__main__":
     stock_data['log_ret'] = np.log(stock_data['settle']/stock_data['settle'].shift(-1))
     stock_data['log_ret'] = stock_data['log_ret'].fillna(value=0)
     
-    events = psql.frame_query('select SQLDATE, GoldsteinScale from ev0405 order by rand();',  con=Conn)
+    events = psql.frame_query('select SQLDATE, avg(GoldsteinScale) as GoldsteinScale from ev0405 group by SQLDATE;',  con=Conn)
     events['orddate'] = SQLdate_to_ord(events['SQLDATE'])
 
     to_fit = pd.merge(events,stock_data,how='inner', on='SQLDATE')
@@ -117,15 +115,6 @@ if __name__ == "__main__":
     pl.scatter(to_fit['GoldsteinScale'],to_fit['log_ret'])
     pl.plot(x_vals, clf.predict(x_vals[:,np.newaxis]))
     pl.show()
-
-
-
-
-
-
-
-
-
 
     pl.subplot(3,3,1)
     stock_data['settle'].plot(c='k')
@@ -153,7 +142,7 @@ if __name__ == "__main__":
     stock_data['volume'].plot()
     pl.title("Volume")
     pl.ylabel("Volume")
-    
+
     pl.subplot(3,3,6)
     stock_data['open_interest'].plot()
     pl.title("Interest")
