@@ -47,6 +47,8 @@ def index(request):
                     context_dict['all_time_prediction'] = repr(prediction_dict['all_time_prediction'].to_json())
                 if 'all_date_prediction' in prediction_dict.keys():
                     context_dict['all_date_prediction'] = repr(prediction_dict['all_date_prediction'].to_json())
+                if 'other_option_prediction' in prediction_dict.keys():
+                    context_dict['other_option_prediction'] = prediction_dict['other_option_prediction']
             airlineform.fields['uniquecarrier'].initial = valuedict['uniquecarrier'][0]
             airportform.fields['origin'].initial = valuedict['origin'][0]
             airportform.fields['dest'].initial = valuedict['dest'][0]
