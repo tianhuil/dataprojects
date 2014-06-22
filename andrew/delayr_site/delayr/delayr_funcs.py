@@ -3,6 +3,8 @@ import os
 import numpy as np
 import datetime as dt
 import pandas as pd
+import importlib
+from django.db import connection
 
 #This little bit of code lets me import from the project's scripts directory.
 projectdir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))#the main project directory
@@ -11,7 +13,7 @@ sys.path.append(scriptsdir)
 import flightfuncs as ff
 import predict_delays_logreg as pdl
 import global_vars as gv
-import login_credentials as creds
+#import login_credentials as creds
 
 #Reads a df passed as a json string (to pass info through urls):
 def prep_passed_df(input_string,row_order_column=None,column_order_row=None,remove_row_order_column=True,remove_column_order_row=True):
@@ -98,6 +100,35 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
 
     if other_options != None:
         #Query the db to find market ids for the two airports. Make sure both are found.
+        #First, figuring out what the database is. This is going to be kludgey as balls, but I think it'll work:
+        monthname = ff.get_month_name(date)
+        timename = ff.get_time_name(date)
+        dbname = 'Flightdelays{month}{time}'.format(month=monthname[:1].upper()+monthname[1:],time=timename[:1].upper()+timename[1:])
+        dbname_sql = 'flightdelays_{month}_{time}'.format(month=monthname,time=timename)
+        print dbname
+        #Importing the database class:
+        model_module = importlib.import_module('delayr.models')
+        flightclass = getattr(model_module,dbname)
+
+        #Get the market ids for the origin and destination airports:
+        market_ids_qset = flightclass.objects.raw("""select fid,origin,origincitymarketid from {0:s} where origin = '{1:s}' or origin = '{2:s}' group by origin""".format(dbname_sql,inpdict['origin'][0],inpdict['dest'][0]))
+        market_ids = dict([(entry.origin,entry.origincitymarketid) for entry in market_ids_qset])
+        origin_market_id = market_ids[inpdict['origin'][0]]
+        dest_market_id = market_ids[inpdict['dest'][0]]
+        print inpdict['origin'][0],origin_market_id
+        print inpdict['dest'][0],dest_market_id
+        cursor = connection.cursor()
+        columns = ['origin','dest','uniquecarrier','orig_airportname','dest_airportname','airlinename']
+        cursor.execute("""select distinct fd.origin,fd.dest,fd.uniquecarrier,aorig.airportname,adest.airportname,aline.fullname from {0:s} as fd join airports as aorig on fd.origin=aorig.origin join airports as adest on fd.dest=adest.origin join airlinenames as aline on fd.uniquecarrier=aline.uniquecarrier where origincitymarketid={1:d} and destcitymarketid={2:d} and year(fd.flightdate) > 2012""".format(dbname_sql,origin_market_id,dest_market_id))
+        result = list(cursor.fetchall())
+        result_df = pd.DataFrame(result,columns=columns)
+        #flight_options_qset = flightclass.objects.raw("""select distinct fd.origin,fd.dest,fd.uniquecarrier,aorig.airportname,adest.airportname,aline.fullname from {0:s} as fd join airports as aorig on fd.origin=aorig.origin join airports as adest on fd.dest=adest.origin join airlinenames as aline on fd.uniquecarrier=aline.uniquecarrier where origincitymarketid={1:d} and destcitymarketid={2:d} and year(fd.flightdate) > 2012""".format(dbname_sql,origin_market_id,dest_market_id))
+        #testlist = [entry for entry in flight_options_qset]
+        searched_itinerary = (result_df['origin'] == inpdict['origin'][0]) & (result_df['dest'] == inpdict['dest'][0]) & (result_df['uniquecarrier'] == inpdict['uniquecarrier'][0])
+        pd.set_option('display.max_columns',10)
+        pd.set_option('display.width',1000)
+        print result_df
+        print result_df[searched_itinerary == False]
         #Query the db to find all distinct flights with the same origin and destination market ids. if it returns zero (user could ask for hawaii air flights between newark and jfk, for instance, which is nonsensical but will output a prediction) exit.
 
         #select distinct aorig.airportname,adest.airportname,aline.fullname from flightdelays_sep_early as fd join airports as aorig on fd.origin=aorig.origin join airports as adest on fd.dest=adest.origin join airlinenames as aline on fd.uniquecarrier=aline.uniquecarrier where origincitymarketid=31703 and destcitymarketid=30977 and year(fd.flightdate) > 2012;

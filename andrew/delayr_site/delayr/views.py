@@ -78,20 +78,15 @@ def index(request):
 #     context = RequestContext(request)
 
 def show_all_date_prediction(request,prediction):
-    print "zero"
     context = RequestContext(request)
     prediction_df = df.prep_passed_df(prediction,row_order_column='order',column_order_row='col_order')
-    print "one"
     column_names = prediction_df.columns.values[1:]#Only plotting delays and cancellations
-    print "two"
     row_names = prediction_df.index.values
     x_vals = np.arange(len(row_names))
-    print "three"
     fig = plt.figure()
     fig.set_facecolor('none')
     ax = fig.add_subplot(111)
-    print "four"
-    colorlist = ['black','red','blue','green','orange','cyan','purple']
+    colorlist = ['red','blue','green','orange','cyan','purple']
     colorcount = 0
     for i in range(len(column_names)):
         ax.plot(x_vals,prediction_df[column_names[i]]*100.,ls='-',marker='o',ms=5,color=colorlist[colorcount],mec=colorlist[colorcount],mfc=colorlist[colorcount],alpha=0.5,label=column_names[i],lw=3)
@@ -106,7 +101,6 @@ def show_all_date_prediction(request,prediction):
     ax.set_xticklabels(row_names)
     ax.set_xlim(x_vals.min(),x_vals.max())
     ax.legend(loc='best',prop={'size':10})
-    print "hello"
 
     canvas = FigureCanvasAgg(fig)
     response = HttpResponse(content_type='image/png')
@@ -131,7 +125,7 @@ def show_all_time_prediction(request,prediction):
     fig = plt.figure()
     fig.set_facecolor('none')
     ax = fig.add_subplot(111)
-    colorlist = ['black','red','blue','green','orange','cyan','purple']
+    colorlist = ['red','blue','green','orange','cyan','purple']
     colorcount = 0
     for i in range(len(column_names)):
         ax.plot(x_vals,prediction_df[column_names[i]]*100.,ls='-',marker='o',ms=5,color=colorlist[colorcount],mec=colorlist[colorcount],mfc=colorlist[colorcount],alpha=0.5,label=column_names[i],lw=3)

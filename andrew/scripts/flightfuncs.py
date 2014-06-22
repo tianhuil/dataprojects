@@ -101,13 +101,14 @@ def make_model_pickle_filename(tablename,predlist,dir_structure="../saved_models
 def get_model_filename(datetime_obj,predictorlist,tableprefix='flightdelays',dir_structure="../saved_models/"):
     #Convert the time into the proper format:
     int_time = datetime_obj.hour*100 + datetime_obj.minute
-    time_name = None
-    for key in gv.hours.keys():
-        if int_time >= gv.hours[key][0] and int_time < gv.hours[key][1]:
-            time_name = key
-            break
-    if time_name == None:
-        raise ValueError("get_model_filename: Time {0:d} outside of allowed range!".format(int_time))
+    time_name = get_time_name(datetime_obj)
+    # time_name = None
+    # for key in gv.hours.keys():
+    #     if int_time >= gv.hours[key][0] and int_time < gv.hours[key][1]:
+    #         time_name = key
+    #         break
+    # if time_name == None:
+    #     raise ValueError("get_model_filename: Time {0:d} outside of allowed range!".format(int_time))
 
     #Convert the month into the proper format:
     month_name = get_month_name(datetime_obj)
@@ -117,6 +118,19 @@ def get_model_filename(datetime_obj,predictorlist,tableprefix='flightdelays',dir
     return filename
     #print int_time,time_name,month_name
     #print filename
+
+def get_time_name(datetime_obj):
+    int_time = datetime_obj.hour*100 + datetime_obj.minute
+    time_name = None
+    for key in gv.hours.keys():
+        if int_time >= gv.hours[key][0] and int_time < gv.hours[key][1]:
+            time_name = key
+            break
+    if time_name == None:
+        raise ValueError("get_model_filename: Time {0:d} outside of allowed range!".format(int_time))
+
+    return time_name
+    
     
 def get_month_name(datetime_obj):
     month_name = None
