@@ -29,7 +29,6 @@ for stock in settings.to_use:
 
     contract_dates = pd.to_datetime(pd.Series(['%d-%d-%d' %(a,b,settings.end_day[stock]) for a in range(1995,2020) for b in range(1,12)]))
 
-    #pd.date_range(start_date, end_date, freq='M')#-pd.tseries.offsets.DateOffset(1)
     contract_dates = pd.DatetimeIndex(contract_dates) - pd.tseries.offsets.BDay(3)
 
     # get the time to maturity in fraction of overall time
@@ -47,7 +46,22 @@ for stock in settings.to_use:
         stock_frame = stock_frame.join(metric_df[data_name])
         print 'loaded dataframe from MySQL. records:', len(metric_df)
 
+
+
+    # now add in the number of events per day from each country
+
+    for country_name in ('US', 'IR', 'IN', 'IZ','KU', 'QA', 'SA', 'RS', 'CH', 'VE'):
+        #Takes the most recent value of the metric as the current value
+        cmd = "select SQLDATE as stockdate, country, events as count_%s  from country_totals  where country = '%s' ;" %(country_name,country_name)
+        metric_df = psql.frame_query(cmd, con=Conn)
+        ord_metric = SQLdate_to_date(metric_df['stockdate'])
+        metric_df.index = ord_metric
+        metric_df.index = pd.to_datetime(metric_df.index)
     
+        stock_frame = stock_frame.join(metric_df['count_%s' %country_name])
+        print 'loaded dataframe from MySQL. records:', len(metric_df)
+        
+    print stock_frame    
     stock_frame.to_pickle(stock+'.pickle')
 
     
