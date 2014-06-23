@@ -90,7 +90,7 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
             date_df = pdl.predict_delay(date_predictor_df,date_pkl_filename)
             all_date_df_list.append(date_df)
             #all_date_strings.append(offsetdate.strftime('%B'))
-            all_date_strings.append(offsetdate.strftime('%m-%d-%Y'))
+            all_date_strings.append(offsetdate.strftime('%m-%d'))
         all_date_df = combo_dfs(*all_date_df_list)
         all_date_df = all_date_df.set_index(np.array(all_date_strings))
         col_index_df = pd.DataFrame(np.arange(len(all_date_df.columns.values)).reshape(1,len(all_date_df.columns.values)),index=['col_order'],columns=all_date_df.columns.values)

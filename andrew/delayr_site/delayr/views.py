@@ -96,9 +96,9 @@ def show_all_date_prediction(request,prediction):
         if colorcount == len(colorlist):
             colorcount = 0
     #fig.autofmt_xdate()
-    ax.set_title("Delays on Nearby Days")
-    ax.set_ylabel("Delay Probability (%)")
-    ax.set_xlabel("Date")
+    ax.set_title("Delays on Nearby Days",fontsize=16)
+    ax.set_ylabel("Delay Probability (%)",fontsize=14)
+    ax.set_xlabel("Date",fontsize=14)
     ax.set_xticks(x_vals)
     ax.set_xticklabels(row_names)
     ax.set_xlim(x_vals.min(),x_vals.max())
@@ -134,9 +134,9 @@ def show_all_time_prediction(request,prediction):
         colorcount += 1
         if colorcount == len(colorlist):
             colorcount = 0
-    ax.set_title("Delays During the Day")
-    ax.set_ylabel("Delay Probability (%)")
-    ax.set_xlabel("Time of Day")
+    ax.set_title("Delays During the Day",fontsize=16)
+    ax.set_ylabel("Delay Probability (%)",fontsize=14)
+    ax.set_xlabel("Time of Day",fontsize=14)
     ax.set_xticks(x_vals)
     ax.set_xticklabels(row_names)
     ax.set_xlim(x_vals.min(),x_vals.max())
@@ -166,9 +166,9 @@ def show_user_prediction(request,string_prediction):
     else:
         ax.bar(x_pos,delay_likelihood*100.,width,color='red',alpha=0.5)
     ax.set_ylim(ax.get_ylim()[0],100)
-    ax.set_title("Predicted Delay for Selected Itinerary")
-    ax.set_ylabel("Probability (%)")
-    ax.set_xlabel("Delay (minutes)")
+    ax.set_title("Predicted Delay for Selected Itinerary",fontsize=16)
+    ax.set_ylabel("Probability (%)",fontsize=14)
+    ax.set_xlabel("Delay (minutes)",fontsize=14)
     ax.set_xticks(x_pos+width/2.)
     ax.set_xticklabels(delay_bins)
     ax.yaxis.set_major_formatter(ScalarFormatter())
