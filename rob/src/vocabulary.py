@@ -20,7 +20,7 @@ from ReviewTfidf import ReviewTfidf
 def get_styles(cur,num=5):
   qry = """
     select style_id
-    from reviewsbystyle
+    from reviewctbystyle
     order by rev_ct desc
     limit %s """
   

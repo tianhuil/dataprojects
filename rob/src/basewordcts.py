@@ -20,37 +20,50 @@ class BaseWordFreq(object):
   
   def __init__(self):
     self.word_counts = { }
+    
+  def __iter__(self):
+    for k, v in self.word_counts.iteritems():
+      yield k, v
    
   def __enc(self, s):
     return ''.join([x for x in s if ord(x) < 128])
    
-  def __select(self, where = "", limit = 0):
+  def __select(self, where = "", limit = 0, param = []):
     sel = ["select word, count from basewordcts"]
     
-    if not where:
+    if where != "":
+      sel.append("where")
       sel.append(where)
       
     if limit:
-      sel.append('limit %i' % limit)
+      sel.append('limit %s')
+      param.append(limit)
+    
+    if param and len(param) == 1:
+      param = (param[0],)
+    else:
+      param = tuple(param)
     
     res = None
     sel = ' '.join(s for s in sel)
     with Beerad() as dbc:
       cur = dbc.cursor()
-      if not cur.execute(sel):
-        res = cur.fetchall()
-        
+      cur.execute(sel, param)
+      res = cur.fetchall()
+      cur.close()
+      
     return res
   
   def __upsert(self, word, count):
-    qry = """
-      """
-    
     res = None
     with Beerad() as dbc:
       cur = dbc.cursor()
-      res = cur.execute(qry.replace('\n',''), (word, count, word, word, count))
-        
+      cur.callproc("wordupsert", (word, count))
+      res = cur.fetchone()
+      
+      dbc.commit()
+      cur.close()
+      
     return res
         
         
@@ -59,15 +72,16 @@ class BaseWordFreq(object):
     
     wcs = self.__select()
     if wcs is not None:
-      self.word_counts[r[0]] = r[1]
+      for r in wcs:
+        self.word_counts[r[0]] = r[1]
       
     return self.word_counts
           
           
   def count(self, word):
-    wc = self.__select('word = %s', 1)
+    wc = self.__select('word = %s', 1, [word])
     if wc is not None:
-      return wc[1]
+      return wc[0][1]
     else:
       return 0
       
@@ -78,6 +92,29 @@ class BaseWordFreq(object):
       raise ValueError('Bad word encoding')
       
     return self.__upsert(word, count)
+    
+  def remove_all(self):
+    with Beerad() as dbc:
+      cur = dbc.cursor()
+      cur.execute("truncate table basewordcts")
+      dbc.commit()
+      cur.close()
+      
+    self.word_counts = { }
+      
+  def add_many(self, word_counts):
+    res = None
+    with Beerad() as dbc:
+      cur = dbc.cursor()
+      cur.executemany("call wordupsert(%s,%s)", word_counts)
+      res = cur.fetchone()
+      
+      dbc.commit()
+      cur.close()
+    
+      
+  def iteritems(self):
+    return self.word_counts.iteritems()
     
     
     
@@ -91,31 +128,13 @@ def reload_and_populate():
     
     return fd
   
-  # connect to database and save info
-  with Beerad() as dbc:
-    cur = dbc.cursor()
-    
-    try:
-      cur.execute("truncate table basewordcts")
-    except Exception as e:
-      print 'Error clearing out basewordcts table', e
-      
-    word_list = [w.lower() for w in news_text]
-    word_list.extend([w.lower() for w in good_movie_revs])
-    word_list.extend([w.lower() for w in bad_movie_revs])
-    
-    qry = """
-      insert into basewordcts (word, count)
-      values (%s, %s) """
-    
-    try:
-      fd = load_nltk()
-      cur.executemany(qry, [(w,c)for w, c in fd])
-    except Exception as e:
-      print "Error processing and saving word counts", e
-      
-    dbc.commit()
-    cur.close()
+  try:
+    fd = load_nltk()
+    wcdb = BaseWordFreq()
+    wcdb.remove_all()
+    wcdb.add_many([(w,c)for w, c in fd.iteritems()])
+  except Exception as e:
+    print "Error processing and saving word counts", e
 
 
 # when run from command line, populate table
@@ -126,17 +145,6 @@ if __name__ == "__main__":
     if inp == 'n':
       break
     elif inp == 'y':
-      #reload_and_populate()
-      wc = BaseWordFreq()
-      wc.add_word('word', 5)
-      wc.add_word('homes', 7)
-      
-      print wc.count('word')
-      
-      wc.add_word('word', 2)
-      print wc.count('word')
-      
-      for w,c in wc.load_all().iteritems():
-        print w, c
+      reload_and_populate()
       
       break
