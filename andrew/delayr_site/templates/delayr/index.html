@@ -64,10 +64,12 @@
   </div>
   {% if other_option_prediction %}
   <div class="jumbotron">
-    <h3>Similar Itineraries with the Best On-Time Predictions</h3><br>
+    <h3>Similar Itineraries with the Best On-Time Predictions</h3>
+    <u1 class="list-group">
     {% for test in other_option_prediction %}
-    {{ test }}<br>
+    <li class="list-group-item">{{ test }}</li>
     {% endfor %}
+    </u1>
   </div>
   {% endif %}
 </div>
