@@ -10,11 +10,11 @@ default_tokenizer = TfidfVectorizer().build_tokenizer()
 stemmer = nltk.stem.SnowballStemmer("english", ignore_stopwords=True)
 
 # standard nltk stop words plus some common useless words
-base_stop_words.extend(nltk.corpus.stopwords.words('english') + \
+base_stop_words = nltk.corpus.stopwords.words('english') + \
   [
     'ever','sure','want','review','got','somewhat','along',
     'see','know','something','beer'
-  ])
+  ]
 
 def nonnum_stem_tokenizer(text):
     """
@@ -42,7 +42,7 @@ class ReviewTfidf(TfidfVectorizer):
     # standard nltk stop words plus some common useless words
     stop_words.extend(base_stop_words)
         
-    super(ReviewVectorizer, self).__init__(
+    super(ReviewTfidf, self).__init__(
       max_features=max_features,
       ngram_range=ngram_range,
       min_df=min_df,
