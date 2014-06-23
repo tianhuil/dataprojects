@@ -47,6 +47,7 @@
 {% if string_prediction or all_time_prediction or all_date_prediction %}
 <div class="container">
   <div class="jumbotron">
+    <h3> Predicted Delays for Your Itinerary</h3><br>
     <table>
       <tr>
 	{% if string_prediction %}
@@ -61,6 +62,14 @@
       </tr>
     </table>
   </div>
+  {% if other_option_prediction %}
+  <div class="jumbotron">
+    <h3>Similar Itineraries with the Best On-Time Predictions</h3><br>
+    {% for test in other_option_prediction %}
+    {{ test }}<br>
+    {% endfor %}
+  </div>
+  {% endif %}
 </div>
 {% endif %}
 {% endblock %}
