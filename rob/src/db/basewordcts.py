@@ -116,6 +116,9 @@ class BaseWordFreq(object):
   def iteritems(self):
     return self.word_counts.iteritems()
     
+  def keys(self):
+    return self.word_counts.keys()
+    
     
     
 # populate basewordcts table in beerad

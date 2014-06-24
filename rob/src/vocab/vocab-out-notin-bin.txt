@@ -1,0 +1,194 @@
+Retrieving reviews for style 116
+Grouped Style Beer Docs 748
+Retrieving reviews for style 140
+Grouped Style Beer Docs 1085
+Retrieving reviews for style 97
+Grouped Style Beer Docs 2764
+Retrieving reviews for style 84
+Grouped Style Beer Docs 1354
+Retrieving reviews for style 159
+Grouped Style Beer Docs 3221
+Total Beer Review Docs: 9172
+
+Start model 1
+
+Vectorizing reviews for style 116
+Storing vocabulary
+Vocabulary size 787
+
+Vectorizing reviews for style 140
+Storing vocabulary
+Vocabulary size 846
+
+Vectorizing reviews for style 97
+Storing vocabulary
+Vocabulary size 848
+
+Vectorizing reviews for style 84
+Storing vocabulary
+Vocabulary size 933
+
+Vectorizing reviews for style 159
+Storing vocabulary
+Vocabulary size 934
+
+Training with full vocabulary
+(u'hopdevil', 5.6878410160678969)	(u'dri', 1.6610805436956659)
+(u'pte', 5.6878410160678969)	(u'caramel', 1.6552318897562515)
+(u'guava', 5.6747689345005448)	(u'balanc', 1.5941545650903457)
+(u'harpoon', 5.6365477216803468)	(u'littl', 1.5171041254032271)
+(u'maharaja', 5.5877575575109146)	(u'drinkabl', 1.4811864576524718)
+(u'czar', 5.5759230998639122)	(u'mouthfeel', 1.3993662395312612)
+(u'enamel', 5.518764686023963)	(u'bodi', 1.3225657474733241)
+(u'onyx', 5.518764686023963)	(u'aroma', 1.2645714228599665)
+(u'cannabi', 5.5077148498373782)	(u'hop', 1.2615771727306742)
+(u'crema', 5.4859748632009726)	(u'tast', 1.2032043553935685)
+Classification Report for model 1
+             precision    recall  f1-score   support
+
+         84       0.97      0.46      0.62       136
+         97       0.76      0.97      0.85       276
+        116       1.00      0.12      0.21        75
+        140       0.92      0.83      0.88       109
+        159       0.79      0.97      0.87       322
+
+avg / total       0.84      0.81      0.77       918
+
+[[ 62   1   0   0  73]
+ [  0 267   0   0   9]
+ [  0  58   9   8   0]
+ [  0  17   0  91   1]
+ [  2   9   0   0 311]]
+Full vocabulary [u'abil' u'abl' u'abras' u'abund' u'abv' u'accentu' u'accompani' u'accur'
+ u'achiev' u'acquir' u'acrid' u'activ' u'addit' u'adequ' u'admir'
+ u'advertis' u'aforement' u'aftertast' u'aggress' u'agit' u'agre' u'agress'
+ u'aipa' u'airi' u'alchohol' u'alchol' u'ale' u'aliv' u'almond' u'alon'
+ u'alongsid' u'alreadi' u'altern' u'altogeth' u'amaz' u'amberish' u'ampl'
+ u'anis' u'anniversari' u'anoth' u'anticip' u'anymor' u'anyon' u'anyth'
+ u'anytim' u'anywher' u'apa' u'app' u'appar' u'apper' u'appet' u'appl'
+ u'appreci' u'appropri' u'apricot' u'aroma' u'aromat' u'arriv' u'arrog'
+ u'ashi' u'asid' u'aspirin' u'associ' u'assum' u'astring' u'attent'
+ u'attenu' u'attribut' u'auburn' u'averag' u'averi' u'awesom' u'awhil'
+ u'babi' u'backbon' u'backend' u'balanc' u'barley' u'barleywin' u'bartend'
+ u'basi' u'battl' u'bbq' u'beauti' u'becam' u'becom' u'beginn' u'beig'
+ u'believ' u'belli' u'benchmark' u'berri' u'besid' u'beverag' u'bevmo'
+ u'bewar' u'bif' u'billow' u'billowi' u'biscuit' u'biscuiti' u'blackberri'
+ u'blackish' u'blackstrap' u'blueberri' u'bodi' u'booz' u'boozey' u'boozi'
+ u'borderlin' u'bottl' u'brassi' u'breadi' u'brewer' u'breweri' u'brewpub'
+ u'briefli' u'bronz' u'browni' u'brownish' u'bubbl' u'buddi' u'buri'
+ u'burnish' u'busi' u'butteri' u'butterscotch' u'cacao' u'cali' u'campfir'
+ u'candi' u'cannabi' u'capon' u'caram' u'caramel' u'caramelli' u'carb'
+ u'carbin' u'carri' u'cascad' u'cask' u'categori' u'caus' u'cedar'
+ u'celebr' u'centenni' u'chalic' u'chalki' u'challeng' u'champagn' u'chanc'
+ u'char' u'characterist' u'charg' u'chees' u'chemic' u'cherri' u'chewi'
+ u'chicori' u'chimay' u'chinook' u'choclat' u'choco' u'chocol'
+ u'chocolatey' u'chocolati' u'choic' u'choos' u'christma' u'chunki'
+ u'cirtus' u'citi' u'citri' u'citric' u'citrus' u'citrusi' u'citrussi'
+ u'clariti' u'classifi' u'clementin' u'clingi' u'cloudi' u'clove' u'cloy'
+ u'clumpi' u'cm' u'coars' u'cocoa' u'coff' u'coffe' u'collaps' u'combin'
+ u'compani' u'compar' u'compet' u'competit' u'complet' u'compon' u'compris'
+ u'concentr' u'conclus' u'condit' u'confus' u'consid' u'consum' u'consumpt'
+ u'continu' u'contribut' u'cooki' u'copperi' u'copperish' u'coriand'
+ u'countri' u'coupl' u'cours' u'courtesi' u'crackeri' u'craggi' u'crazi'
+ u'creami' u'creamier' u'creat' u'crema' u'creme' u'crispi' u'currant'
+ u'czar' u'daili' u'danc' u'darkish' u'decad' u'decant' u'deceiv' u'decemb'
+ u'decept' u'decid' u'deepli' u'defin' u'definet' u'definit' u'degre'
+ u'delic' u'delici' u'deliv' u'dens' u'describ' u'descript' u'deserv'
+ u'desir' u'despit' u'dfh' u'diacetyl' u'didnt' u'dimens' u'dimpl' u'dipa'
+ u'dirti' u'disap' u'discov' u'disguis' u'disip' u'dissap' u'dissapoint'
+ u'dissip' u'dissolv' u'distanc' u'distribut' u'divid' u'dogfish' u'domin'
+ u'doubl' u'doughi' u'draught' u'dreadnaught' u'dri' u'drinkabilti'
+ u'drinkabl' u'dryness' u'durat' u'dusti' u'duvel' u'earli' u'earthi'
+ u'eas' u'easi' u'easili' u'eboni' u'edg' u'effervesc' u'eggshel' u'eleg'
+ u'els' u'emerg' u'emin' u'emphasi' u'empti' u'enamel' u'encount' u'engin'
+ u'enhanc' u'enorm' u'entic' u'entri' u'esb' u'escap' u'especi' u'espresso'
+ u'esqu' u'essenc' u'essenti' u'ester' u'esteri' u'ethanol' u'eventu'
+ u'evergreen' u'everi' u'everyon' u'everyth' u'everywher' u'evid' u'evolv'
+ u'exampl' u'excit' u'execut' u'expedit' u'expens' u'experi' u'experienc'
+ u'explod' u'explos' u'expresso' u'exquisit' u'extraordinari' u'extrem'
+ u'fabul' u'famili' u'fanci' u'fantast' u'favorit' u'favourit' u'featur'
+ u'ferment' u'festiv' u'figur' u'filmi' u'fizz' u'fizzi' u'fli' u'floati'
+ u'floral' u'floweri' u'fluffi' u'foami' u'foggi' u'forc' u'forev'
+ u'fortun' u'foundat' u'fragranc' u'fragrant' u'fri' u'fridg' u'frothi'
+ u'fruiti' u'fudg' u'fulli' u'fume' u'funki' u'funni' u'fusel' u'futur'
+ u'fuzzi' u'galor' u'garnet' u'gentl' u'gigant' u'glasswar' u'glori' u'gob'
+ u'goblet' u'goe' u'graini' u'grapefru' u'grapefruit' u'grapefuit'
+ u'grapfruit' u'grassi' u'graviti' u'grill' u'gritti' u'groceri' u'growler'
+ u'gt' u'guava' u'guin' u'handl' u'happi' u'happili' u'harmoni' u'harpoon'
+ u'hazelnut' u'hazi' u'headi' u'healthi' u'hearti' u'heavi' u'heavili'
+ u'herbac' u'hercul' u'hesit' u'holi' u'homebrew' u'hop' u'hopdevil'
+ u'hophead' u'hopi' u'hopp' u'hoppi' u'hoppier' u'hoppiest' u'hopslam'
+ u'horribl' u'hous' u'howev' u'huski' u'ibu' u'ibus' u'identifi' u'iipa'
+ u'imagin' u'immedi' u'immens' u'imp' u'impenetr' u'imperi' u'impi'
+ u'impli' u'imposs' u'includ' u'increas' u'incred' u'inde' u'indic'
+ u'individu' u'influenc' u'infus' u'ingredi' u'inhal' u'initi' u'inki'
+ u'insan' u'insid' u'inspir' u'integr' u'intens' u'intox' u'intric'
+ u'intrigu' u'introduc' u'introduct' u'invit' u'involv' u'ipa' u'ir'
+ u'isnt' u'issu' u'ive' u'ivori' u'januari' u'java' u'judg' u'juic'
+ u'juici' u'juli' u'junip' u'justic' u'khaki' u'kudo' u'laci' u'lactic'
+ u'lactos' u'lager' u'lagunita' u'larg' u'latt' u'lazi' u'leafi'
+ u'leatheri' u'leav' u'lemongrass' u'lemoni' u'licoric' u'liqueur'
+ u'liquoric' u'liter' u'littl' u'locat' u'loos' u'lucki' u'luckili'
+ u'lumpi' u'lupulin' u'luxuri' u'lyche' u'macro' u'magnific' u'maharaja'
+ u'mahogani' u'malti' u'maltier' u'malty' u'manag' u'mandarin' u'mango'
+ u'mani' u'mapl' u'marmalad' u'massiv' u'matur' u'mayb' u'measur' u'meati'
+ u'medicin' u'mediocr' u'meh' u'melon' u'memor' u'memori' u'meringu' u'mf'
+ u'middl' u'mighti' u'milki' u'milkshak' u'mingl' u'minim' u'minti'
+ u'minut' u'mistak' u'mixtur' u'ml' u'mmm' u'mmmm' u'mocha' u'moder'
+ u'molass' u'morn' u'mouss' u'mouthfeel' u'muddi' u'muddl' u'multipl'
+ u'murki' u'muski' u'musti' u'mysteri' u'natur' u'nd' u'necessarili'
+ u'nectar' u'nectarin' u'needl' u'negat' u'nib' u'nightcap' u'nobl'
+ u'nonic' u'notabl' u'noteworthi' u'noth' u'notic' u'nowher' u'nuanc'
+ u'nugget' u'numer' u'nutti' u'nw' u'oak' u'oaki' u'oat' u'oatmeal'
+ u'observ' u'obsidian' u'occas' u'octob' u'odor' u'offens' u'offwhit'
+ u'oili' u'olfactori' u'oliv' u'onion' u'onyx' u'ooz' u'opaqu' u'opportun'
+ u'oppos' u'opposit' u'orang' u'orangeish' u'orangi' u'orangish'
+ u'ordinari' u'otherwis' u'ounc' u'outsid' u'outstand' u'overbear'
+ u'overcarbon' u'overcom' u'overdon' u'overflow' u'overpow' u'oxid'
+ u'pacif' u'packag' u'palat' u'palett' u'pallet' u'parti' u'particl'
+ u'particul' u'patchi' u'peachi' u'pellet' u'penetr' u'penni' u'peopl'
+ u'pepperi' u'perceiv' u'percept' u'perfum' u'perfumey' u'perfumi'
+ u'perhap' u'phenol' u'phenomen' u'pictur' u'piec' u'pillowi' u'pilsner'
+ u'pineappl' u'piney' u'pini' u'pith' u'pithi' u'pleasur' u'plenti'
+ u'plini' u'plum' u'possibl' u'potenc' u'potenti' u'powderi' u'practic'
+ u'predomin' u'prepar' u'presenc' u'pretti' u'preval' u'primari'
+ u'primarili' u'probabl' u'produc' u'profil' u'promin' u'promis'
+ u'pronounc' u'provid' u'prune' u'pte' u'pud' u'puffi' u'pungenc'
+ u'purchas' u'purpl' u'purpos' u'quaf' u'quaff' u'quaffabl' u'qualiti'
+ u'quantiti' u'quench' u'quencher' u'raisin' u'raisini' u'raspberri'
+ u'readi' u'readili' u'realiz' u'realli' u'recal' u'reced' u'receiv'
+ u'recip' u'reduc' u'refin' u'refresh' u'refriger' u'relat' u'releas'
+ u'rememb' u'reminisc' u'remov' u'replac' u'repres' u'republ' u'reput'
+ u'requir' u'resembl' u'reserv' u'resid' u'residu' u'resili' u'resin'
+ u'resini' u'restaur' u'retent' u'ridicul' u'rim' u'rind' u'roasti'
+ u'roasty' u'rocki' u'rogu' u'rotat' u'rubi' u'ruddi' u'ruinat' u'rust'
+ u'rusti' u'sa' u'salti' u'sampl' u'sampler' u'sappi' u'satisfi' u'sauc'
+ u'scari' u'sculpin' u'secondari' u'sediment' u'sens' u'sensat' u'separ'
+ u'seri' u'serv' u'settl' u'sharpli' u'shelv' u'shi' u'shini' u'showcas'
+ u'signatur' u'signific' u'silki' u'simco' u'simpl' u'simpli' u'sinc'
+ u'singl' u'sipper' u'sixer' u'skunki' u'slighti' u'slipperi' u'slowli'
+ u'smoki' u'smoothest' u'smuttynos' u'sn' u'snappi' u'snif' u'snifter'
+ u'snpa' u'soapi' u'someon' u'sometim' u'somewher' u'sooth' u'sorri'
+ u'sourc' u'sparkl' u'specialti' u'specif' u'spicey' u'spici' u'sporad'
+ u'spotti' u'squeez' u'stabl' u'standbi' u'stapl' u'starter' u'sticki'
+ u'stori' u'strang' u'strawberri' u'structur' u'struggl' u'stubbi'
+ u'sturdi' u'subdu' u'sublim' u'subsequ' u'subsid' u'substanc' u'substanti'
+ u'subt' u'subtl' u'subtleti' u'sud' u'sudsi' u'suffici' u'sugari'
+ u'superbl' u'suppli' u'suppos' u'suprem' u'supris' u'surfac' u'surpris'
+ u'suspens' u'sweeter' u'sweetish' u'swig' u'swirl' u'syrupi' u'tabl'
+ u'tangerin' u'tangi' u'tannic' u'tannin' u'tannish' u'tar' u'tast'
+ u'tastebud' u'tasti' u'tawni' u'temperatur' u'terribl' u'terrif'
+ u'territori' u'textur' u'th' u'thickest' u'thirsti' u'tickl' u'ting'
+ u'tingl' u'tini' u'toasti' u'toffe' u'togeth' u'toler' u'tongu' u'toung'
+ u'tradit' u'translat' u'transluc' u'transpar' u'treacl' u'tremend'
+ u'tripl' u'troubl' u'truli' u'tumbler' u'twelv' u'twing' u'typic' u'ultim'
+ u'unbalanc' u'unbeliev' u'undercurr' u'underr' u'underst' u'underton'
+ u'underwhelm' u'undetect' u'unexpect' u'unfilt' u'unfortun' u'unimpress'
+ u'uniqu' u'unlik' u'unpleas' u'unremark' u'unsweeten' u'unusu' u'updat'
+ u'upfront' u'vacat' u'vagu' u'valu' u'vari' u'varieti' u'veget' u'velveti'
+ u'victori' u'vinous' u'vintag' u'viscos' u'visibl' u'volum' u'walnut'
+ u'wasnt' u'wast' u'wateri' u'websit' u'weizen' u'welcom' u'whatev'
+ u'whatsoev' u'wheati' u'whenev' u'whiski' u'whitish' u'wick' u'width'
+ u'winey' u'wisp' u'wispi' u'woodi' u'woodsi' u'worri' u'wors' u'worthi'
+ u'wouldnt' u'yeast' u'yeasti' u'yeti' u'yummi' u'zesti' u'zing'] 
+

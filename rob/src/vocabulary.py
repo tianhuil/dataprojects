@@ -12,7 +12,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import classification_report
 
 # import database connector
-from beeradcn import Beerad
+from db.beeradcn import Beerad
 from reviewvectorizer import ReviewTfidf, ReviewCountVec
 
 def pth(f):
@@ -85,6 +85,7 @@ def fit_and_predict(x_train, y_train, x_test, **kwargs):
   return pred
 
 
+
 def shuffle_ix(df):
   nix = np.random.permutation(df.index)
   df = df.reindex(index=nix, copy=False)
@@ -123,6 +124,11 @@ print 'Total Beer Review Docs: %s' % n
 
 kf = c_v.StratifiedKFold(revs['style_id'], n_folds = 10)
 
+from db.basewordcts import BaseWordFreq
+baseline = BaseWordFreq()
+baseline.load_all()
+
+
 # run model
 mod_ct = 0
 for train, test in kf:
@@ -143,43 +149,39 @@ for train, test in kf:
     
     print '\nVectorizing reviews for style %s' % style
   
-    
-  
     # build review vectorizer
     tfidf = ReviewTfidf(
       max_features=max_features,
       min_df=min_df,
       max_df=max_df,
-      use_idf=False,
-      norm=None)
+      binary=True,
+      stop_words=baseline.keys())
     
     x_train = revs.ix[train]
     x_train = x_train[x_train['style_id'] == style]
     tfidf.fit_transform(x_train['review'].values.ravel())
     
-    with open(pth('s-{0}-r-{1}.txt'.format(style, mod_ct)), 'w') as vo:
-      #idf = tfidf._tfidf.idf_
-      #w_lst = zip(tfidf.get_feature_names(), idf)
-      #w_lst.sort(key = lambda x: -x[1])
-      for k,v in tfidf.vocabulary_.iteritems():
-        vo.write('{0}\t{1}\n'.format(k,v))
+#    with open(pth('s-{0}-r-{1}.txt'.format(style, mod_ct)), 'w') as vo:
+#      idf = tfidf._tfidf.idf_
+#      w_lst = zip(tfidf.get_feature_names(), idf)
+#      w_lst.sort(key = lambda x: -x[1])
+#      for w in w_lst:
+#        vo.write("{0},{1}\n".format(w[0],w[1]))
     
     print 'Storing vocabulary'
     vocab = np.unique(np.append(vocab, tfidf.get_feature_names()))
+#    feat = tfidf.get_feature_names()
+#    for fi in feat:
+#      if fi not in baseline.keys():
+#        vocab = np.append(vocab, fi)
+#    vocab = np.unique(vocab)
     print 'Vocabulary size %s' % len(vocab)
 
-#  print vocab
-#  raise ValueError('get out')
-    
+
   # extract features with the full vocabulary
   print '\nTraining with full vocabulary'
   
   # build train and test dataframe with all reviews
-#  full_train, full_test = pd.DataFrame(), pd.DataFrame()
-#  for _, r in revs.iteritems():
-#    full_train = pd.concat([full_train, r.ix[train]], ignore_index=True)
-#    full_test = pd.concat([full_test, r.ix[test]], ignore_index=True)
- 
   full_train, full_test = revs.ix[train], revs.ix[test]
   y_test = full_test[["style_id"]].values.ravel()
   y_pred = fit_and_predict(full_train[["review"]].values.ravel(), # x-train

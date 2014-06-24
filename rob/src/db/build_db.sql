@@ -82,14 +82,16 @@ drop view if exists reviewctbybeer;
 create view reviewctbybeer as
 select beer_id, count(*) as rev_ct
 from reviews
-group by beer_id ;
+group by beer_id
+order by rev_ct ;
   
 drop view if exists reviewctbystyle;
 create view reviewctbystyle as
 select be.style_id, sum(rev_ct) as rev_ct
 from reviewctbybeer as r inner join beers be
   on be.id = r.beer_id
-group by be.style_id ;
+group by be.style_id
+order by rev_ct ;
   
 
 drop view if exists beerctbystyle;
