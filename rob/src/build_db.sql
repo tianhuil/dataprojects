@@ -90,6 +90,15 @@ select be.style_id, sum(rev_ct) as rev_ct
 from reviewctbybeer as r inner join beers be
   on be.id = r.beer_id
 group by be.style_id ;
+  
+
+drop view if exists beerctbystyle;
+create view beerctbystyle as
+select style_id, count(id) as beer_ct
+from beers
+group by style_id
+order by beer_ct desc ;
+  
     
 drop table if exists basewordcts;
 create table basewordcts (
@@ -101,7 +110,6 @@ create table basewordcts (
   check (count >= 0)
 );
     
-
 
 
 delimiter //

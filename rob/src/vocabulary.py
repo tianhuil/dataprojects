@@ -13,11 +13,13 @@ from sklearn.metrics import classification_report
 
 # import database connector
 from beeradcn import Beerad
-from reviewvectorizer import ReviewTfidf
+from reviewvectorizer import ReviewTfidf, ReviewCountVec
 
+def pth(f):
+  return 'src/vocab/' + f
 
 # get list of top #num styles ranked by review count
-def get_styles(cur,num=2):
+def get_styles(cur,num=5):
   qry = """
     select style_id
     from reviewctbystyle
@@ -29,7 +31,7 @@ def get_styles(cur,num=2):
 
 
 # get #num reviews for a given style_id
-def get_revs(cur,style_id,num=120000):
+def get_revs(cur,style_id,num=30000):
   qry = """
         select be.style_id, r.beer_id, r.review
         from reviews r inner join beers be
@@ -40,7 +42,7 @@ def get_revs(cur,style_id,num=120000):
     
   q_res = cur.execute(qry, (style,num))
   dt = cur.fetchall()
-  return pd.DataFrame.from_records((r for r in dt), columns=["style_id","beer_id","review"])
+  return pd.DataFrame.from_records((r for r in dt), columns=['style_id','beer_id','review'])
   
 
 # compute and plot confusion matrix
@@ -97,37 +99,27 @@ with Beerad() as dbc:
   styles = get_styles(cur)
   
   revs = { s: pd.DataFrame() for s in styles }
-#  cv = { s: { } for s in styles } # test/train ix per style for strat
   for style in styles:
     print 'Retrieving reviews for style %s' % style
     revs[style] = get_revs(cur, style)
     
     # shuffle
     revs[style] = shuffle_ix(revs[style])
-
-    # create one review document per beer
-    revs[style] = revs[style].groupby(['style_id', 'beer_id']).apply(lambda x: ' '.join(x['review']))
-#    revs[style] = revs[style].reset_index()   # composite ix (style_id, beer_id) to cols
-#    revs[style] = shuffle_ix(revs[style])     # shuffle rows
-#    revs[style].columns = ['style_id', 'beer_id', 'review']
-    
-    # build train/test indices
-#    n = len(revs[style].index)   # number of beers per style
-#    cv[style] = c_v.KFold(n, n_folds=10, indices=True)
-    
+    # create 10 review docs per beer
+    revs[style]['rev_doc'] = revs[style].index % 10
+    revs[style] = revs[style].groupby(['style_id', 'beer_id', 'rev_doc']).apply(lambda x: ' '.join(x['review']))
+    print 'Grouped Style Beer Docs %s' % len(revs[style].index)
   cur.close()
 
 
 # form single consolidated dataset
-revs = pd.concat([revs[s] for s in styles])#, ignore_index=True)
-revs = revs.reset_index()
-revs = shuffle_ix(revs)
-revs.columns = ['style_id', 'beer_id', 'review']
-print revs
-#raise ValueError('get out')
+revs = pd.concat([revs[s] for s in styles])
+revs = revs.reset_index()   # move style, beer, rev_doc index to cols
+revs = shuffle_ix(revs)     # shuffle on new numerical index
+revs.columns = ['style_id', 'beer_id', 'rev_doc', 'review']
 
 n = len(revs.index)
-print 'Total Reviewed Beers: %s' % n
+print 'Total Beer Review Docs: %s' % n
 
 kf = c_v.StratifiedKFold(revs['style_id'], n_folds = 10)
 
@@ -151,15 +143,26 @@ for train, test in kf:
     
     print '\nVectorizing reviews for style %s' % style
   
+    
+  
     # build review vectorizer
     tfidf = ReviewTfidf(
       max_features=max_features,
       min_df=min_df,
-      max_df=max_df)
+      max_df=max_df,
+      use_idf=False,
+      norm=None)
     
     x_train = revs.ix[train]
     x_train = x_train[x_train['style_id'] == style]
     tfidf.fit_transform(x_train['review'].values.ravel())
+    
+    with open(pth('s-{0}-r-{1}.txt'.format(style, mod_ct)), 'w') as vo:
+      #idf = tfidf._tfidf.idf_
+      #w_lst = zip(tfidf.get_feature_names(), idf)
+      #w_lst.sort(key = lambda x: -x[1])
+      for k,v in tfidf.vocabulary_.iteritems():
+        vo.write('{0}\t{1}\n'.format(k,v))
     
     print 'Storing vocabulary'
     vocab = np.unique(np.append(vocab, tfidf.get_feature_names()))
@@ -185,6 +188,7 @@ for train, test in kf:
             max_features=max_features,
             min_df=min_df,
             max_df=max_df,
+            binary=True,
             vocabulary=vocab)
   
   print 'Classification Report for model %s' % mod_ct
