@@ -4,7 +4,7 @@
 
 import re
 import nltk.tokenize
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
 default_tokenizer = TfidfVectorizer().build_tokenizer()
 stemmer = nltk.stem.SnowballStemmer("english", ignore_stopwords=True)
@@ -20,7 +20,6 @@ def nonnum_stem_tokenizer(text):
     """
     use the default tokenizer from TfidfVectorizer, combined with the nltk SnowballStemmer.
     """
-
     def non_num_tokenizer(text):
       return default_tokenizer(re.sub(r'\d', '', text))
 
@@ -37,7 +36,8 @@ class ReviewTfidf(TfidfVectorizer):
         use_idf = True,
         sublinear_tf = False,
         binary=False,
-        vocabulary=None):
+        vocabulary=None,
+        **kwargs):
     
     # standard nltk stop words plus some common useless words
     stop_words.extend(base_stop_words)
@@ -52,8 +52,29 @@ class ReviewTfidf(TfidfVectorizer):
       use_idf = use_idf,
       sublinear_tf = sublinear_tf,
       binary=binary,
-      vocabulary=vocabulary)
-      
+      vocabulary=vocabulary,
+      **kwargs)
       
 
+# count vectorizer
+class ReviewCountVec(CountVectorizer):
+  
+  def __init__(self,
+        max_features=None,
+        ngram_range=(1,1),
+        tokenizer=nonnum_stem_tokenizer,
+        stop_words=[],
+        binary=False,
+        vocabulary=None):
+    
+    # standard nltk stop words plus some common useless words
+    stop_words.extend(base_stop_words)
+    
+    super(ReviewCountVec, self).__init__(
+      max_features=max_features,
+      ngram_range=ngram_range,
+      tokenizer=tokenizer,
+      stop_words=map(stemmer.stem, stop_words),
+      binary=binary,
+      vocabulary=vocabulary)
 
