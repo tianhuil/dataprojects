@@ -89,7 +89,10 @@ if __name__ == "__main__":
         sys.exit("Syntax: [minimum number of flights from a given airport] [number of rows to query at a time] [randomize flights yes/no] [CSV list of delay time bin edges (e.g. 15,45)] [prep/numiters]")
 
     output_dict = {}
-        
+    target_col = 'target'
+    target_coded_col = 'target_coded'
+    id_col = 'fid'
+    
     min_flights = int(sys.argv[1])
     query_chunksize = int(sys.argv[2])
     randomize_flights = sys.argv[3]
@@ -183,16 +186,9 @@ if __name__ == "__main__":
         unique_discrete_predictors = [bestairports,bestairports,goodairlines,gooddays,goodmonths,goodhours]
         pc = predictorcode(discrete_predictors,unique_discrete_predictors,None)
         
-        output_dict['discrete_predictors'] = discrete_predictors
-        output_dict['discrete_predictors_addedsql'] = discrete_predictors_addedsql
-        output_dict['predictor_coder']=pc
-        
-        pkl_file = open('code_predictors.pkl','wb')
-        pickle.dump(output_dict,pkl_file)
-        
         if prepbool:
             cur.execute('drop table if exists coded_flightdelays')
-        table_fields_str = 'CREATE TABLE coded_flightdelays(fid INT PRIMARY KEY AUTO_INCREMENT, target INT NOT NULL DEFAULT 1440, target_coded TINYINT NOT NULL DEFAULT -1'
+        table_fields_str = 'CREATE TABLE coded_flightdelays({0:s} INT PRIMARY KEY AUTO_INCREMENT, {1:s} INT NOT NULL DEFAULT 1440, {2:s} TINYINT NOT NULL DEFAULT -1'.format(id_col,target_col,target_coded_col)
         table_fields_list = []
         for i,predictor in enumerate(unique_discrete_predictors):
             if len(predictor) > 0:
@@ -201,6 +197,17 @@ if __name__ == "__main__":
         table_fields_str = table_fields_str + ')'
         if prepbool:
             cur.execute(table_fields_str)
+        
+        output_dict['discrete_predictors'] = discrete_predictors
+        output_dict['discrete_predictors_addedsql'] = discrete_predictors_addedsql
+        output_dict['predictor_coder']=pc
+        output_dict['target_col'] = target_col
+        output_dict['target_coded_col'] = target_coded_col
+        output_dict['id_col'] = id_col
+        output_dict['predictor_col_list'] = table_fields_list
+        
+        pkl_file = open('code_predictors.pkl','wb')
+        pickle.dump(output_dict,pkl_file)
 
         if prepbool == False and len(good_fids) > 0:
             #Now, iterate through the database, querying on the shuffled fids, coding the data up, and then inserting it:
