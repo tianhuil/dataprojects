@@ -3,6 +3,7 @@ import pandas as pd
 import MySQLdb as mdb
 import sys
 import time
+import cPickle as pickle
 
 import load_credentials_nogit as creds
 
@@ -87,6 +88,8 @@ if __name__ == "__main__":
     if len(sys.argv) != 6:
         sys.exit("Syntax: [minimum number of flights from a given airport] [number of rows to query at a time] [randomize flights yes/no] [CSV list of delay time bin edges (e.g. 15,45)] [prep/numiters]")
 
+    output_dict = {}
+        
     min_flights = int(sys.argv[1])
     query_chunksize = int(sys.argv[2])
     randomize_flights = sys.argv[3]
@@ -102,7 +105,8 @@ if __name__ == "__main__":
     diverted_name = 'diverted'
     flightfile = 'fids_to_code.txt'
     tc = timecode(delay_time_bins)
-
+    output_dict['target_coder']=tc
+    
     table = 'flightdelays'
     #table = 'flightdelays_jun_afternoon'#For testing
     
@@ -178,7 +182,14 @@ if __name__ == "__main__":
         discrete_predictors_addedsql = ['','','','dayofweek(flightdate) ','month(flightdate) ','round((crsdeptime+20)/100.)%24 ']
         unique_discrete_predictors = [bestairports,bestairports,goodairlines,gooddays,goodmonths,goodhours]
         pc = predictorcode(discrete_predictors,unique_discrete_predictors,None)
-
+        
+        output_dict['discrete_predictors'] = discrete_predictors
+        output_dict['discrete_predictors_addedsql'] = discrete_predictors_addedsql
+        output_dict['predictor_coder']=pc
+        
+        pkl_file = open('code_predictors.pkl','wb')
+        pickle.dump(output_dict,pkl_file)
+        
         if prepbool:
             cur.execute('drop table if exists coded_flightdelays')
         table_fields_str = 'CREATE TABLE coded_flightdelays(fid INT PRIMARY KEY AUTO_INCREMENT, target INT NOT NULL DEFAULT 1440, target_coded TINYINT NOT NULL DEFAULT -1'
