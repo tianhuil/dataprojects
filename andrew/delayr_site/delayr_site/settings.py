@@ -97,3 +97,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+#django-lockdown:
+INSTALLED_APPS += ('lockdown', )
+MIDDLEWARE_CLASSES += ('lockdown.middleware.LockdownMiddleware', )
+LOCKDOWN_PASSWORDS = (master_pass, )
+LOCKDOWN_FORM = 'lockdown.forms.LockdownForm'

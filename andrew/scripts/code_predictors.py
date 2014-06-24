@@ -55,7 +55,8 @@ class predictorcode:
         #Next, do the discrete predictors (harder):
         for i, pred in enumerate(self.discrete_predictors):
             stacked_codes = self.one_hot_code(data[pred].values,i)
-            coded_arr = np.vstack((coded_arr,stacked_codes))
+            #print pred,stacked_codes.shape
+            coded_arr = np.vstack((coded_arr,stacked_codes[1:,:]))#Remove the first code to prevent issues with dummy variables
 
         return coded_arr[1:,:].T#Strip out the initial line of zeros
 
@@ -83,20 +84,27 @@ class predictorcode:
         
     
 if __name__ == "__main__":
-    if len(sys.argv) != 5:
-        sys.exit("Syntax: [minimum number of flights from a given airport] [number of rows to query at a time] [randomize flights yes/no] [CSV list of delay time bin edges (e.g. 15,45)]")
+    if len(sys.argv) != 6:
+        sys.exit("Syntax: [minimum number of flights from a given airport] [number of rows to query at a time] [randomize flights yes/no] [CSV list of delay time bin edges (e.g. 15,45)] [prep/numiters]")
 
     min_flights = int(sys.argv[1])
     query_chunksize = int(sys.argv[2])
     randomize_flights = sys.argv[3]
     delay_time_bins = np.array(sys.argv[4].split(','),dtype=np.int)
+    prepbool = False
+    numiters = 0
+    if sys.argv[5].lower() == 'prep':
+        prepbool = True
+    else:
+        numiters = int(sys.argv[5])+1
     target_name = 'arrdelay'
     cancelled_name = 'cancelled'
     diverted_name = 'diverted'
+    flightfile = 'fids_to_code.txt'
     tc = timecode(delay_time_bins)
 
     table = 'flightdelays'
-    table = 'flightdelays_jun_afternoon'#For testing
+    #table = 'flightdelays_jun_afternoon'#For testing
     
     #Connect to the db:
     con = ''
@@ -111,8 +119,9 @@ if __name__ == "__main__":
         bestairports_str = '"'+'","'.join(bestairports)+'"'
         print "Figured out which airports are good in {0:.2f}s".format(time.time()-start)
 
-        cur.execute('drop table if exists used_airports')
-        cur.execute('create table used_airports select * from airports where origin in ({bestairports})'.format(bestairports=bestairports_str))
+        if prepbool:
+            cur.execute('drop table if exists used_airports')
+            cur.execute('create table used_airports select * from airports where origin in ({bestairports})'.format(bestairports=bestairports_str))
 
         #Getting all the unique airlines:
         start = time.time()
@@ -120,12 +129,14 @@ if __name__ == "__main__":
         goodairlines = np.array(cur.fetchall()).reshape(-1)
         goodairlines_str = '"'+'","'.join(goodairlines)+'"'
         print "Got all unique airlines in {0:.2f}s".format(time.time()-start)
-        
-        cur.execute('drop table if exists used_airlines')
-        cur.execute('create table used_airlines select * from airlinenames where uniquecarrier in ({goodairlines})'.format(goodairlines=goodairlines_str))
+
+        if prepbool:
+            cur.execute('drop table if exists used_airlines')
+            cur.execute('create table used_airlines select * from airlinenames where uniquecarrier in ({goodairlines})'.format(goodairlines=goodairlines_str))
         
         conditional_str = '{diverted} < 1e-4 and origin in ({bestairports}) and dest in ({bestairports}) and uniquecarrier in ({goodairlines})'.format(diverted=diverted_name,bestairports=bestairports_str,goodairlines=goodairlines_str)
 
+        #print conditional_str
 
         #Getting all the months in the table:
         #cur.execute('select month(flightdate) month from {0:s} group by month'.format(table))
@@ -144,15 +155,22 @@ if __name__ == "__main__":
         
         #Get the ids of all the flights meeting that criteria:
         start = time.time()
-        cur.execute("select fid from {1:s} where {0:s}".format(conditional_str,table))
-        good_fids = np.array(cur.fetchall(),dtype=np.int).reshape(-1)
-        print "Got good flight ids in {0:.2f}s".format(time.time()-start)
+        if prepbool:
+            cur.execute("select fid from {1:s} where {0:s}".format(conditional_str,table))
+            good_fids = np.array(cur.fetchall(),dtype=np.int).reshape(-1)
+            print "Got good flight ids in {0:.2f}s".format(time.time()-start)
 
-        #If necessary, randomize the db order:
-        if randomize_flights.lower() == 'yes':
-            start = time.time()
-            np.random.shuffle(good_fids)
-            print "Shuffled flight ids in {0:.2f}s".format(time.time()-start)
+            #If necessary, randomize the db order:
+            if randomize_flights.lower() == 'yes':
+                start = time.time()
+                np.random.shuffle(good_fids)
+                print "Shuffled flight ids in {0:.2f}s".format(time.time()-start)
+            np.savetxt(flightfile,good_fids,fmt="%d")
+        else:
+            good_fids = np.loadtxt(flightfile,dtype=np.int)
+            print "Loaded good flight ids in {0:.2f}s".format(time.time()-start)
+            if len(good_fids) == 0:
+                print "All fids have already been loaded"
         
             
         #Figure out the coding schema, create the new database. Here we only have discrete predictors, this would need minor modifications/additions if there were also continuous variables:
@@ -161,44 +179,56 @@ if __name__ == "__main__":
         unique_discrete_predictors = [bestairports,bestairports,goodairlines,gooddays,goodmonths,goodhours]
         pc = predictorcode(discrete_predictors,unique_discrete_predictors,None)
 
-        cur.execute('drop table if exists coded_flightdelays')
-        table_fields_str = 'CREATE TABLE coded_flightdelays(fid INT PRIMARY KEY AUTO_INCREMENT, target TINYINT NOT NULL DEFAULT -1'
+        if prepbool:
+            cur.execute('drop table if exists coded_flightdelays')
+        table_fields_str = 'CREATE TABLE coded_flightdelays(fid INT PRIMARY KEY AUTO_INCREMENT, target INT NOT NULL DEFAULT 1440, target_coded TINYINT NOT NULL DEFAULT -1'
         table_fields_list = []
         for i,predictor in enumerate(unique_discrete_predictors):
             if len(predictor) > 0:
-                table_fields_list += ['{0:s}_{1:d}'.format(discrete_predictors[i],j) for j in range(len(predictor))]
-                table_fields_str = table_fields_str + ', ' + ','.join([' {0:s}_{1:d} TINYINT NOT NULL DEFAULT -1'.format(discrete_predictors[i],j) for j in range(len(predictor))])
+                table_fields_list += ['{0:s}_{1:d}'.format(discrete_predictors[i],j) for j in range(len(predictor)-1)]#-1 is to prevent dummy variable issues
+                table_fields_str = table_fields_str + ', ' + ','.join([' {0:s}_{1:d} TINYINT NOT NULL DEFAULT -1'.format(discrete_predictors[i],j) for j in range(len(predictor)-1)])#-1 is to prevent dummy variable issues
         table_fields_str = table_fields_str + ')'
-        # print table_fields_list
-        cur.execute(table_fields_str)
+        if prepbool:
+            cur.execute(table_fields_str)
 
-        #Now, iterate through the database, querying on the shuffled fids, coding the data up, and then inserting it:
-        query_syntax_prefix = "select {0:s},{1:s},".format(target_name,cancelled_name) + ','.join([discrete_predictors_addedsql[i]+discrete_predictors[i] for i in range(len(discrete_predictors))])+ " from {0:s}".format(table)
-        #print query_syntax_prefix
-        chunk_idxes = np.arange(0,len(good_fids),query_chunksize)
-        #print len(good_fids),query_chunksize
-        if chunk_idxes[-1] < len(good_fids):
-            chunk_idxes = np.append(chunk_idxes,len(good_fids))#Don't need -1 here because numpy slicing will take care of it.
-        start = time.time()
-        for i in range(1,len(chunk_idxes)):
-            curr_fids = good_fids[chunk_idxes[i-1]:chunk_idxes[i]]
-            fid_string = ','.join(curr_fids.astype(np.str))
-            query_syntax = query_syntax_prefix + ' where fid in ({0:s})'.format(fid_string)
-            curr_df = pd.io.sql.read_sql(query_syntax,con)
+        if prepbool == False and len(good_fids) > 0:
+            #Now, iterate through the database, querying on the shuffled fids, coding the data up, and then inserting it:
+            query_syntax_prefix = "select {0:s},{1:s},".format(target_name,cancelled_name) + ','.join([discrete_predictors_addedsql[i]+discrete_predictors[i] for i in range(len(discrete_predictors))])+ " from {0:s}".format(table)
+            #print query_syntax_prefix
+            chunk_idxes = np.arange(0,len(good_fids),query_chunksize)
+            #print len(good_fids),query_chunksize
+            if chunk_idxes[-1] < len(good_fids):
+                chunk_idxes = np.append(chunk_idxes,len(good_fids))#Don't need -1 here because numpy slicing will take care of it.
 
-            target_coded = tc.encode(curr_df[target_name].values,curr_df[cancelled_name].values)
-            # for j,code in enumerate(target_coded):
-            #     print j,code,curr_df[target_name].values[j],curr_df[cancelled_name].values[j]
+            start = time.time()
+            if numiters > len(chunk_idxes):
+                numiters = len(chunk_idxes)
+            for i in range(1,numiters):
+                curr_fids = good_fids[chunk_idxes[i-1]:chunk_idxes[i]]
+                fid_string = ','.join(curr_fids.astype(np.str))
+                query_syntax = query_syntax_prefix + ' where fid in ({0:s})'.format(fid_string)
+                curr_df = pd.io.sql.read_sql(query_syntax,con)
+                actual_targets = curr_df[target_name]
+                actual_targets[curr_df[cancelled_name] > 1.e-4] = 1440
+
+                target_coded = tc.encode(curr_df[target_name].values,curr_df[cancelled_name].values)
+                # for j,code in enumerate(target_coded):
+                #     print j,code,curr_df[target_name].values[j],curr_df[cancelled_name].values[j]
+
+                curr_coded_data = pc.code_data(curr_df.drop([target_name,cancelled_name],axis=1))
+                curr_df = None
+                curr_coded_df = pd.DataFrame(curr_coded_data,columns=table_fields_list)
+                curr_coded_df['target_coded'] = target_coded
+                curr_coded_df['target'] = actual_targets
+                #print curr_coded_df.values.nbytes/1024.**3
+                curr_coded_df.to_sql('coded_flightdelays',con,flavor='mysql',if_exists='append')
+                print "Iteration {0:d} of {1:d}: {2:.2f} seconds elapsed, {3:d} entries loaded".format(i,numiters-1,time.time()-start,len(curr_fids))
+                #sys.exit(1)
+            if numiters == len(chunk_idxes):
+                print "Finished all flights!"
             
-            curr_coded_data = pc.code_data(curr_df.drop([target_name,cancelled_name],axis=1))
-            curr_coded_df = pd.DataFrame(curr_coded_data,columns=table_fields_list)
-            curr_coded_df['target'] = target_coded
-            print curr_coded_df.values.nbytes/1024.**3
-            curr_coded_df.to_sql('coded_flightdelays',con,flavor='mysql',if_exists='append')
-            print "Iteration {0:d} of {1:d}: {2:.2f} seconds elapsed".format(i,len(chunk_idxes),time.time()-start)
-            sys.exit(1)
+            np.savetxt(flightfile,good_fids[chunk_idxes[numiters-1]:],fmt='%d')
             
-        print len(good_fids),chunk_idxes
            
     except mdb.Error, e:
         print "Error %d: %s" % (e.args[0],e.args[1])
