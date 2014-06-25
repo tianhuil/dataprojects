@@ -208,6 +208,7 @@ if __name__ == "__main__":
         
         pkl_file = open('code_predictors.pkl','wb')
         pickle.dump(output_dict,pkl_file)
+        pkl_file.close()
 
         if prepbool == False and len(good_fids) > 0:
             #Now, iterate through the database, querying on the shuffled fids, coding the data up, and then inserting it:
