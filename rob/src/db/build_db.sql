@@ -91,7 +91,7 @@ select be.style_id, sum(rev_ct) as rev_ct
 from reviewctbybeer as r inner join beers be
   on be.id = r.beer_id
 group by be.style_id
-order by rev_ct ;
+order by rev_ct desc ;
   
 
 drop view if exists beerctbystyle;

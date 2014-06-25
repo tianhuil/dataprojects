@@ -55,6 +55,13 @@ class ReviewTfidf(TfidfVectorizer):
       vocabulary=vocabulary,
       **kwargs)
       
+      
+  def feature_vals(self):
+    idf = self._tfidf.idf_
+    w_lst = zip(self.get_feature_names(), idf)
+        
+    return { w[0]: w[1] for w in w_lst }
+      
 
 # count vectorizer
 class ReviewCountVec(CountVectorizer):
