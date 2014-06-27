@@ -51,13 +51,13 @@
     <table>
       <tr>
 	{% if string_prediction %}
-	<td><img src="/delayr/user_prediction_{{ string_prediction }}.jpg" width="350px"></td>
+	<td><img class="img-responsive" src="/delayr/user_prediction_{{ string_prediction }}.jpg"></td>
 	{% endif %}
 	{% if all_time_prediction %}
-	<td><img src="/delayr/all_time_prediction_{{ all_time_prediction }}.jpg" width="350px"></td>
+	<td><img class="img-responsive" src="/delayr/all_time_prediction_{{ all_time_prediction }}.jpg"></td>
 	{% endif %}
 	{% if all_date_prediction %}
-	<td><img src="/delayr/all_date_prediction_{{ all_date_prediction }}.jpg" width="350px"></td>
+	<td><img class="img-responsive" src="/delayr/all_date_prediction_{{ all_date_prediction }}.jpg"></td>
 	{% endif %}
       </tr>
     </table>
@@ -66,8 +66,17 @@
   <div class="jumbotron">
     <h3>Similar Itineraries with the Best On-Time Predictions</h3>
     <u1 class="list-group">
-    {% for test in other_option_prediction %}
-    <li class="list-group-item">{{ test }}</li>
+    {% for other_option in other_option_prediction %}
+    <form id="search_form" method="post" action="/delayr/">
+    {% csrf_token %}
+    {% for field in datetimeform.visible_fields %}
+    <input id="{{ field.auto_id }}" name="{{ field.name }}" type="hidden" value="{{ field.value }}" />
+    {% endfor %}
+    <input id="id_uniquecarrier" name="uniquecarrier" type="hidden" value="{{ other_option.uniquecarrier }}" />
+    <input id="id_origin" name="origin" type="hidden" value="{{ other_option.orig }}" />
+    <input id="id_dest" name="dest" type="hidden" value="{{ other_option.dest }}" />
+    <li class="list-group-item"><input type="submit" class="linkButton" name="submit" value="{{ forloop.counter }}:">{{ other_option.display_string }}</li>
+    </form>
     {% endfor %}
     </u1>
   </div>

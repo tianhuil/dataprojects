@@ -149,9 +149,12 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
                 #trimmed_sorted_result_df = trimmed_sorted_result_df.append(col_index_df)
                 #trimmed_sorted_result_df['order'] = range(trimmed_sorted_result_df.shape[0])
                 stringlist = []
+                #print "debug: ",trimmed_sorted_result_df
                 for i in range(trimmed_sorted_result_df.shape[0]):
                     rowvals = trimmed_sorted_result_df.irow(i)
-                    stringlist.append("{0:s} to {1:s} on {2:s} (prediction: {3:.2f}% chance of delay {4:s} minutes)".format(rowvals['orig_airportname'],rowvals['dest_airportname'],rowvals['airlinename'],rowvals[all_result_cols[-1]]*100.,all_result_cols[-1]))
+                    testdict = {'display_string':"{0:s} to {1:s} on {2:s} (prediction: {3:.2f}% chance of delay {4:s} minutes)".format(rowvals['orig_airportname'],rowvals['dest_airportname'],rowvals['airlinename'],rowvals[all_result_cols[-1]]*100.,all_result_cols[-1]),'orig':rowvals['origin'],'dest':rowvals['dest'],'uniquecarrier':rowvals['uniquecarrier']}
+                    stringlist.append(testdict)
+                    #stringlist.append("{0:s} to {1:s} on {2:s} (prediction: {3:.2f}% chance of delay {4:s} minutes)".format(rowvals['orig_airportname'],rowvals['dest_airportname'],rowvals['airlinename'],rowvals[all_result_cols[-1]]*100.,all_result_cols[-1]))
                 #print trimmed_sorted_result_df
                 #print stringlist
                 return_dict['other_option_prediction'] = stringlist
