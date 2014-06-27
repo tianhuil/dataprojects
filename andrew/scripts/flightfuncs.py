@@ -148,6 +148,7 @@ def get_month_name(datetime_obj):
 def pdf_scoring(estimator, X, y):
     integer_y = y.astype(np.int16)
     probs = estimator.predict_proba(X)[range(len(integer_y)),integer_y]
+    #print "Debug:",probs.min(),probs.max()
     return np.sum(probs**2)
 
 #Get selected columns and put them into a Pandas Dataframe:

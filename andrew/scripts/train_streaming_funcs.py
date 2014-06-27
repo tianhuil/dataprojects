@@ -25,7 +25,7 @@ def get_distinct(cur,table_name,col_name):
     
 def combine_args(**argarrs):#argarrs are [arg name]=[list of values]
     #Get all permutations of the arguments. Returns a pandas data frame with the argument names as the columns and the cartesian product of all their possible values.
-    #Note that this can't handle boolean or None values (at least not yet)
+    #Note that this can't handle None values (at least not yet)
     arg_keys = argarrs.keys()
     if len(arg_keys) == 0:
         raise ValueError("Must be at least one keyword argument (if you don't want to train multiple models just use lists with single entries")
@@ -45,8 +45,11 @@ def combine_args(**argarrs):#argarrs are [arg name]=[list of values]
     max_str_lens = max(str_lens)
     all_arg_combos = np.zeros((M,len(arg_keys)),dtype='S{0:d}'.format(max_str_lens))
     all_arg_combos = pd.DataFrame(cartesian(arg_tup,all_arg_combos),columns=arg_keys)
-    for i,type in enumerate(type_list):
-        all_arg_combos[arg_keys[i]] = all_arg_combos[arg_keys[i]].astype(type)
+    for i,currtype in enumerate(type_list):
+        if currtype == np.bool:
+            all_arg_combos[arg_keys[i]] = (all_arg_combos[arg_keys[i]] == 'True')
+        else:
+            all_arg_combos[arg_keys[i]] = all_arg_combos[arg_keys[i]].astype(currtype)
     return all_arg_combos
 
 def run_all_args(predictors,target,option_df,func):#option_df is a dataframe containing all permutations of the fit options, func is a function that will fit a sklearn model (e.g. run_rforest below)

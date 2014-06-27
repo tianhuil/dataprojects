@@ -3,6 +3,7 @@ import pandas as pd
 import cPickle as pickle
 import MySQLdb as mdb
 import sys
+import os
 import time
 
 import train_streaming_funcs as tsf
@@ -16,38 +17,48 @@ from sklearn.linear_model import SGDClassifier
 if __name__ == "__main__":
     if len(sys.argv) != 4:
         sys.exit("Syntax: [Table info pickle file] [Number of rows per iteration] [Fraction of data set for validation]")
-    #This should probably be an argument but it's not likely to change, so w/e:
+    #This should probably be a command line argument but it's not likely to change, so w/e:
     table = 'coded_flightdelays'
-    
+
+    np.random.seed(40)
     #Compute all permutations of classifier options you want to vary:
-    option_dict = {'loss':np.array(['log']),'penalty':np.array(['l2']),'alpha':np.array([1.e-7,1.e-4,1e-2]),'n_iter':np.array([20,80]),'learning_rate':np.array(['constant']),'eta0':np.array([1e-2,1e-1,1.])}
+    #option_dict = {'loss':np.array(['log']),'penalty':np.array(['l2']),'alpha':np.array([1.e-8,1.e-7]),'n_iter':np.array([5]),'learning_rate':np.array(['optimal','constant']),'eta0':np.array([1e-1,1.,10.,100.]),'shuffle':np.array([True])}
+    option_dict = {'loss':np.array(['log']),'alpha':np.array([1.e-7]),'n_iter':np.array([5]),'learning_rate':np.array(['optimal']),'eta0':np.array([1.e-1]),'shuffle':np.array([False]),'random_state':np.array([10])}
     combined_args_df = tsf.combine_args(**option_dict)
     #print combined_args_df
-    #print combined_args_df.dtypes
+    # print combined_args_df.dtypes
     #sys.exit(1)
-
     #Initialize the SGD models:
     sgd_models = []
     for i in range(combined_args_df.shape[0]):
-        sgd_models.append(SGDClassifier(**(combined_args_df.irow(i).to_dict())))
+        argsdict = combined_args_df.irow(i).to_dict()
+        for key in argsdict.keys():
+            if type(argsdict[key]) == np.bool_:
+                #print type(argsdict[key]),np.bool_
+                argsdict[key] = np.asscalar(argsdict[key])
+            # if argsdict[key].dtype == np.bool:
+            #     print key,'true'
+            #argsdict[key] = np.asscalar(argsdict[key])
+        #sys.exit(1)
+        sgd_models.append(SGDClassifier(**(argsdict)))
 
     #Load up dictionary of predictors:
-    info_dict = {}#Temporary due to broken pickling in code_predictors
-    info_dict['target_coded_col'] = 'target_coded'
-    info_dict['predictor_col_list'] = ['hour_{0:d}'.format(i) for i in range(23)]
-    info_dict['predictor_col_list'].extend(['origin_{0:d}'.format(i) for i in range(103)])
-    info_dict['predictor_col_list'].extend(['dest_{0:d}'.format(i) for i in range(103)])
-    info_dict['predictor_col_list'].extend(['uniquecarrier_{0:d}'.format(i) for i in range(23)])
-    info_dict['predictor_col_list'].extend(['dayofweek_{0:d}'.format(i) for i in range(6)])
-    info_dict['predictor_col_list'].extend(['monthnum_{0:d}'.format(i) for i in range(11)])
-    info_dict['id_col'] = 'fid'
+    # info_dict = {}#Temporary due to broken pickling in code_predictors
+    # info_dict['target_coded_col'] = 'target_coded'
+    # info_dict['predictor_col_list'] = ['hour_{0:d}'.format(i) for i in range(23)]
+    # info_dict['predictor_col_list'].extend(['origin_{0:d}'.format(i) for i in range(103)])
+    # info_dict['predictor_col_list'].extend(['dest_{0:d}'.format(i) for i in range(103)])
+    # info_dict['predictor_col_list'].extend(['uniquecarrier_{0:d}'.format(i) for i in range(23)])
+    # info_dict['predictor_col_list'].extend(['dayofweek_{0:d}'.format(i) for i in range(6)])
+    # info_dict['predictor_col_list'].extend(['monthnum_{0:d}'.format(i) for i in range(11)])
+    # info_dict['id_col'] = 'fid'
     info_pkl = open(sys.argv[1],'rb')
-    #info_dict = pickle.load(info_pkl)
+    info_dict = pickle.load(info_pkl)
     info_pkl.close()
     #The other command line arguments
     numrows = int(sys.argv[2])
     valfrac = float(sys.argv[3])
-
+    
     #Connect to the db:
     con = ''
     try:
@@ -63,8 +74,8 @@ if __name__ == "__main__":
         val_maxid = maxid
 
         #For testing purposes:
-        train_maxid = train_minid + 5*numrows
-        val_maxid = val_minid + 5*numrows
+        train_maxid = train_minid + 3*numrows
+        val_minid = val_maxid - 30000
         
         #Split up training set ids:
         id_chunks = np.arange(train_minid,train_maxid+1,numrows)
@@ -91,7 +102,7 @@ if __name__ == "__main__":
             
             for j,model in enumerate(sgd_models):
                 model.partial_fit(predictor_arr,target_arr,classes=unique_targets)
-                #print "Model {0:d}: {1:.2f}s elapsed".format(j,time.time()-start)
+                print "    ",j,model.t_
             print "Training iteration {0:d} of {1:d} finished; total elapsed time = {2:.2f}s".format(i,len(id_chunks)-1,time.time()-start)
 
         #Validate the models on the OoS data:
@@ -115,15 +126,21 @@ if __name__ == "__main__":
                 #probs = model.predict_proba(predictor_arr)
                 #Now that I have the probabilities, I can generate a score:
                 score_arr[j] += ff.pdf_scoring(model,predictor_arr,target_arr)
-                # if j == 0:
-                #     print "  ",probs[:10,:]
-                #     print "  ",target_arr[:10]
             print "Validation iteration {0:d} of {1:d} finished; total elapsed time = {2:.2f}s".format(i,len(id_chunks)-1,time.time()-start)
         #Normalize the scoring array for easier display:
         score_arr = score_arr/float(val_maxid-val_minid)
         combined_args_df['score'] = score_arr
-
         print combined_args_df
+
+        #Add the model with the best score to the info dictionary, and save as a new pickle:
+        bestidx = np.argmax(score_arr)
+        bestmodel = sgd_models[bestidx]
+        info_dict['trained_model'] = bestmodel
+        output_fname = os.path.splitext(sys.argv[1])[0] + "_trained" + os.path.splitext(sys.argv[1])[1]
+        f = open(output_fname,'wb')
+        pickle.dump(info_dict,f)
+        f.close()
+        
     
     except mdb.Error, e:
         print "Error %d: %s" % (e.args[0],e.args[1])
@@ -131,3 +148,7 @@ if __name__ == "__main__":
     finally:
         if con:
             con.close()
+
+
+#fit_binary: 251
+#constant = 1, optimal = 2
