@@ -1,1 +1,3 @@
 creds.json
+src/vocab/*
+!src/vocab/*.csv

@@ -75,38 +75,40 @@ class StyleTfidfNB(BaseEstimator):
     # if no vocab provided, extract by style
     
     if self.vocabulary is None or not self.vocabulary:
-      print 'no given vocab. extracting from style specific reviews'
+#      print 'no given vocab. extracting from style specific reviews'
       from multiprocessing import Pool
       
       # reviews for a given style id
       sy_dat = lambda s: X[ y == s ]
       
       p = Pool(min(30,len(sy_ids)))
-      print 'START WORKER POOL'
+#      print 'START WORKER POOL'
       # for each style run tfidf
       # pool returns [ { word: idf }, ..., { word: idf } ]
       sy_vecs = p.map(_asyncable_style_voc,
                 [(s, self.__get_vectorizer(), sy_dat(s)) for s in sy_ids])
-      print 'DONE WORKER POOL'
+#      print 'DONE WORKER POOL'
       self.style_vectorizers = { syv[0]: syv[1] for syv in sy_vecs }
-      print 'extract vocabulary'
+#      print 'extract vocabulary'
       # build merged dictionary
 #      print self.style_vectorizers[84].feature_vals().keys()
       all_w = ( fv for s,v in self.style_vectorizers.iteritems() for fv in v.feature_vals().keys() )
+#      print 'Vocab', all_w
       self.extracted_vocabulary = np.unique( all_w )
-      print 'vocab size %s' % len(self.extracted_vocabulary)
+#      print 'Unique', self.extracted_vocabulary
+#      print 'vocab size %s' % len(self.extracted_vocabulary)
       use_voc = self.extracted_vocabulary
     else:
       use_voc = self.vocabulary
-    print 'vectorize full corpus'
+#    print 'vectorize full corpus'
     # fit_and_transform on full corpus
     self.reviews_vectorizer = self.__get_vectorizer(use_voc)
     x_t = self.reviews_vectorizer.fit_transform(X)
-    print 'fit classifier'
+#    print 'fit classifier'
     # fit NB to f_and_t result
     self.style_nb_clf = MultinomialNB()
     self.style_nb_clf.fit(x_t, y)
-    print 'DONE FIT'
+#    print 'DONE FIT'
     return self
     
   def predict(self, X):
@@ -122,7 +124,7 @@ if __name__ == "__main__":
   from db.styles import Styles
   from db.basewordcts import BaseWordFreq
   from sklearn import cross_validation as c_v
-  from sklearn.metrics import confusion_matrix
+  from sklearn.metrics import classification_report, confusion_matrix
   
   print 'Load baseline stop words'
   baseline = BaseWordFreq()
@@ -132,7 +134,7 @@ if __name__ == "__main__":
   styles = Styles()
   
   # get top n styles by review count
-  sty_ids = styles.review_counts(5).keys()
+  sty_ids = styles.review_counts(10).keys()
   X = styles.beer_reviews_rollup(sty_ids, limit=0)
   print 'Styles Retrieved: %s' % len(np.unique(X['style_id'].values))
   print 'Beers Retrieved : %s' % len(np.unique(X['beer_id'].values))
@@ -140,7 +142,7 @@ if __name__ == "__main__":
 
   X_train, X_test, y_train, y_test = c_v.train_test_split(
     X['review'], X['style_id'], test_size=0.2, random_state=0)
-
+  
   clf = StyleTfidfNB(
           max_features=None,
           ngram_range=(1,2),
@@ -151,5 +153,18 @@ if __name__ == "__main__":
   clf.fit(X_train, y_train)
   y_pred = clf.predict(X_test)
   
-  
+  print classification_report(y_test, y_pred)
   print confusion_matrix(y_test, y_pred)
+  
+  try:
+    for v in clf.extracted_vocabulary:
+      print v
+  except:
+    print 'print error'
+  
+  try:
+    with open('src/vocab/full_10_mindf_05.txt', 'w') as out:
+      for v in clf.extracted_vocabulary:
+        out.write(v + '\n')
+  except:
+    print 'write error'
