@@ -24,13 +24,24 @@ class TableAcc(object):
     return ''.join([x for x in s if ord(x) < 128])
   
   # not intended for outside use
-  def _select(self, cols="", where = "", limit = 0, param = []):
+  def _select(self, distinct=False, cols="", where="", order_by="", limit=0, param = []):
     """ query builder """
+    
+    # check for injection
+    inj_keys = ['drop', 'truncate']
+    check = [cols, where, order_by]
+    for k in inj_keys:
+      for c in check:
+        if k in c:
+          raise ValueError('No drop or truncate statements allowed in select')
     
     sel = ["select"]
     
+    if distinct:
+      sel.append("distinct")
+    
     cols = cols if cols != "" else self.__cols
-    sel.append(", ".join(s in self.__cols))
+    sel.append(", ".join(cols))
     
     sel.append("from")
     sel.append(self.__table_name)
@@ -38,6 +49,10 @@ class TableAcc(object):
     if where != "":
       sel.append("where")
       sel.append(where)
+      
+    if order_by != "":
+      sel.append("order by")
+      sel.append(order_by)
       
     if limit:
       sel.append('limit %s')
@@ -58,17 +73,35 @@ class TableAcc(object):
       
     return res
     
+  def _exec_many_procs(self, proc, records):
+    qry = ["call", proc, "("]
+    ps = ', '.join('%s' for i in range(len(records[0])))
+    qry.append(ps)
+    qry.append(')')
+    
+    res = None
+    with Beerad() as dbc:
+      cur = dbc.cursor()
+      cur.executemany(' '.join(qry), records)
+      res = cur.fetchone()
+      
+      dbc.commit()
+      cur.close()
+  
+  def row_count(self):
+    return self._select(cols=["count(*)"])[0]
+    
   def load_all(self):
     self.__rows = []
     all_r = self._select()
-    if wcs is not None:
-      self.__rows.extend([r in all_r])
+    if all_r is not None:
+      self.__rows.extend(all_r)
       
     return self
     
   def add_record(self, rec_tup):
     try:
-      d = len(tup)
+      d = len(rec_tup)
     except:
       # must not be a tuple
       rec_tup = (rec_tup,)
@@ -92,19 +125,7 @@ class TableAcc(object):
       cur.close()
       
     self.__rows = { }
-
-  def add_many(self, records):
-    qry = ["call", self.__upsert, "("]
-    ps = ', '.join('%s' for i in range(len(records[0])))
-    qry.append(ps)
-    qry.append(')')
-    
-    res = None
-    with Beerad() as dbc:
-      cur = dbc.cursor()
-      cur.executemany(' '.join(qry), records)
-      res = cur.fetchone()
       
-      dbc.commit()
-      cur.close()
+  def add_many(self, records):
+    self._exec_many_proc(self.__upsert_proc, records)
 

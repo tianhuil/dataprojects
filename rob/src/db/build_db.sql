@@ -68,14 +68,14 @@ create table reviews (
   overall double(3,2),
   review text,
   primary key (brewer_id, beer_id, user_id),
-    foreign key (user_id)
-      references users (id)
-      on update cascade
-      on delete cascade,
-    foreign key (beer_id, brewer_id)
-      references beers (id, brewer_id)
-      on update cascade
-      on delete cascade
+  foreign key (user_id)
+    references users (id)
+    on update cascade
+    on delete cascade,
+  foreign key (beer_id, brewer_id)
+    references beers (id, brewer_id)
+    on update cascade
+    on delete cascade
 );
   
 drop view if exists reviewctbybeer;
@@ -130,3 +130,77 @@ begin
 end ;
 //
 
+
+drop table if exists reviewfeatures ;
+create table reviewfeatures (
+  style_id int not null,
+  feature varchar(255),
+  primary key (style_id, feature),
+  foreign key (style_id)
+    references styles (id)
+    on update cascade
+    on delete cascade
+);
+
+# doesn't really need an upsert, just insert if not exists
+delimiter //
+//
+drop procedure if exists featureupsert ;
+create procedure featureupsert (in new_style_id int, in new_feat varchar(255))
+begin
+  if not exists (
+      select feature
+      from reviewfeatures
+      where style_id = new_style_id
+        and feature = new_feat ) then
+
+    insert into reviewfeatures (style_id, feature)
+    values (new_style_id, new_feat) ;
+    
+  end if ;
+end ;
+//
+
+
+drop table if exists beersimilarity ;
+create table beersimilarity (
+  beer_id_ref int not null,           # beer being searched
+  beer_id_comp int not null,          # beer being compared to
+  smooth_ct int not null default 1,   # number of averaging updates
+  similarity double,
+  primary key (beer_id_ref, beer_id_comp),
+  foreign key (beer_id_ref)
+    references beers (id)
+    on update cascade
+    on delete cascade,
+  foreign key (beer_id_comp)
+    references beers (id)
+    on update cascade
+    on delete cascade,
+  check (smooth_ct > 0)
+);
+
+delimiter //
+//
+drop procedure if exists similarityupsert ;
+create procedure similarityupsert (in new_bi_r int, in new_bi_c int, in new_sim double)
+begin
+  INSERT INTO beersimilarity (beer_id_ref, beer_id_comp, similarity)
+  VALUES (new_bi_r, new_bi_c, new_sim)
+  ON DUPLICATE KEY UPDATE
+    similarity = new_sim ;
+end ;
+//
+
+delimiter //
+//
+drop procedure if exists similaritysmooth ;
+create procedure similaritysmooth (in new_bi_r int, in new_bi_c int, in new_sim double)
+begin
+  INSERT INTO beersimilarity (beer_id_ref, beer_id_comp, similarity)
+  VALUES (new_bi_r, new_bi_c, new_sim)
+  ON DUPLICATE KEY UPDATE
+    similarity = (smooth_ct*similarity + new_sim)/(smooth_ct+1) ,
+    smooth_ct = smooth_ct + 1 ;
+end ;
+//

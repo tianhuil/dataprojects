@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 
-from db.beeradcn import Beerad
+from beeradcn import Beerad
 
 
 class Styles(object):
