@@ -1,0 +1,536 @@
+84,abbey
+84,abv
+84,abv abv
+84,abv ale
+84,abv citrus
+84,abv dipa
+84,abv drinkabl
+84,abv ipa
+84,abv ml
+84,abv mouthfeel
+84,abv snifter
+84,abv tripel
+84,acrid
+84,aipa
+84,ale
+84,ale abv
+84,ale ale
+84,ale apa
+84,ale caramel
+84,ale citrus
+84,ale drinkabl
+84,ale floral
+84,ale ipa
+84,ale malti
+84,ale ml
+84,ale mouthfeel
+84,ale tripel
+84,ale yeast
+84,allspic
+84,almond
+84,anis
+84,anis mouthfeel
+84,apa
+84,apa ale
+84,apa apa
+84,apa citrus
+84,aromat
+84,ashi
+84,barley
+84,barleywin
+84,beig
+84,bernardus
+84,biscuit
+84,biscuiti
+84,blackberri
+84,blueberri
+84,blueberri blueberri
+84,boozi
+84,boozi mouthfeel
+84,breadi
+84,breadi caramel
+84,breadi citrus
+84,breadi ipa
+84,breadi mouthfeel
+84,breadi yeast
+84,breadi yeasti
+84,brewer
+84,breweri
+84,breweri ipa
+84,brewpub
+84,brownish
+84,brueri
+84,bsda
+84,bsdas
+84,burgundi
+84,butteri
+84,butterscotch
+84,caramel
+84,caramel abv
+84,caramel ale
+84,caramel biscuit
+84,caramel breadi
+84,caramel caramel
+84,caramel citrus
+84,caramel citrusi
+84,caramel clove
+84,caramel cocoa
+84,caramel dipa
+84,caramel drinkabl
+84,caramel espresso
+84,caramel floral
+84,caramel grapefruit
+84,caramel ipa
+84,caramel licoric
+84,caramel malti
+84,caramel mouthfeel
+84,caramel oak
+84,caramel piney
+84,caramel plum
+84,caramel raisin
+84,caramel resin
+84,caramel roasti
+84,caramel toffe
+84,caramel yeast
+84,caramel yeasti
+84,caramelli
+84,carb
+84,cardamom
+84,cascad
+84,cask
+84,chalic
+84,chalki
+84,chewi
+84,chewi drinkabl
+84,chewi mouthfeel
+84,chimay
+84,chimay chalic
+84,chimay goblet
+84,chocolatey
+84,chocolati
+84,citric
+84,citric grapefruit
+84,citrus
+84,citrus abv
+84,citrus ale
+84,citrus apa
+84,citrus breadi
+84,citrus caramel
+84,citrus citrus
+84,citrus clove
+84,citrus dipa
+84,citrus drinkabl
+84,citrus floral
+84,citrus grapefruit
+84,citrus ipa
+84,citrus malti
+84,citrus mango
+84,citrus mouthfeel
+84,citrus piney
+84,citrus resin
+84,citrus resini
+84,citrus rind
+84,citrus tripel
+84,citrus yeast
+84,citrus yeasti
+84,citrusi
+84,citrusi caramel
+84,citrusi citrus
+84,citrusi dipa
+84,citrusi floral
+84,citrusi grapefruit
+84,citrusi ipa
+84,citrusi mouthfeel
+84,citrusi piney
+84,cl
+84,clove
+84,clove caramel
+84,clove citrus
+84,clove clove
+84,clove coriand
+84,clove mouthfeel
+84,clove tripel
+84,clove yeast
+84,clove yeasti
+84,cocoa
+84,cocoa caramel
+84,cocoa cocoa
+84,cocoa espresso
+84,cocoa licoric
+84,cocoa mouthfeel
+84,cocoa nib
+84,cocoa oak
+84,cocoa raisin
+84,cocoa roasti
+84,coff
+84,copperi
+84,coriand
+84,coriand clove
+84,coriand mouthfeel
+84,coriand yeast
+84,corriand
+84,currant
+84,dfh
+84,didnt
+84,dipa
+84,dipa abv
+84,dipa ale
+84,dipa breweri
+84,dipa caramel
+84,dipa citrus
+84,dipa citrusi
+84,dipa dipa
+84,dipa drinkabl
+84,dipa floral
+84,dipa grapefruit
+84,dipa ipa
+84,dipa malti
+84,dipa mouthfeel
+84,dipa piney
+84,dogfish
+84,doughi
+84,dreadnaught
+84,drinkabl
+84,drinkabl abv
+84,drinkabl ale
+84,drinkabl apa
+84,drinkabl breweri
+84,drinkabl caramel
+84,drinkabl citrus
+84,drinkabl dipa
+84,drinkabl drinkabl
+84,drinkabl ipa
+84,drinkabl ml
+84,drinkabl mocha
+84,drinkabl mouthfeel
+84,drinkabl roasti
+84,drinkabl sipper
+84,drinkabl snifter
+84,drinkabl tripel
+84,drinkabl yeast
+84,dryness
+84,dubbel
+84,duvel
+84,eggshel
+84,espresso
+84,espresso caramel
+84,espresso cocoa
+84,espresso espresso
+84,espresso licoric
+84,espresso mouthfeel
+84,espresso roasti
+84,ester
+84,ester mouthfeel
+84,ester yeast
+84,esteri
+84,ethanol
+84,expresso
+84,ferment
+84,fizz
+84,fizzi
+84,floati
+84,floral
+84,floral ale
+84,floral caramel
+84,floral citrus
+84,floral citrusi
+84,floral dipa
+84,floral floral
+84,floral grapefruit
+84,floral ipa
+84,floral malti
+84,floral mouthfeel
+84,floral piney
+84,floral resin
+84,floral tripel
+84,floral yeast
+84,floweri
+84,foami
+84,foami citrus
+84,foami yeast
+84,fragrant
+84,fruitcak
+84,fusel
+84,garnet
+84,goblet
+84,grapefru
+84,grapefruit
+84,grapefruit abv
+84,grapefruit breadi
+84,grapefruit caramel
+84,grapefruit citrus
+84,grapefruit citrusi
+84,grapefruit dipa
+84,grapefruit drinkabl
+84,grapefruit floral
+84,grapefruit grapefruit
+84,grapefruit ipa
+84,grapefruit malti
+84,grapefruit mango
+84,grapefruit mouthfeel
+84,grapefruit piney
+84,grapefruit pith
+84,grapefruit resin
+84,grapefruit rind
+84,growler
+84,hazelnut
+84,hophead
+84,hopslam
+84,ibu
+84,ibus
+84,iipa
+84,imp
+84,impi
+84,ipa
+84,ipa abv
+84,ipa ale
+84,ipa breweri
+84,ipa caramel
+84,ipa citrus
+84,ipa citrusi
+84,ipa dipa
+84,ipa drinkabl
+84,ipa floral
+84,ipa foami
+84,ipa grapefruit
+84,ipa ipa
+84,ipa malti
+84,ipa mouthfeel
+84,ipa piney
+84,isnt
+84,ive
+84,java
+84,karmeliet
+84,khaki
+84,lactic
+84,lactos
+84,lager
+84,lambic
+84,lemoni
+84,licoric
+84,licoric caramel
+84,licoric licoric
+84,licoric mouthfeel
+84,liquoric
+84,macro
+84,mahogani
+84,malti
+84,malti ale
+84,malti caramel
+84,malti citrus
+84,malti dipa
+84,malti drinkabl
+84,malti grapefruit
+84,malti ipa
+84,malti malti
+84,malti mouthfeel
+84,malti piney
+84,malti plum
+84,malti raisin
+84,malti roasti
+84,malti tripel
+84,malti yeast
+84,malti yeasti
+84,mandarin
+84,mango
+84,mango caramel
+84,mango citrus
+84,mango grapefruit
+84,melon
+84,mf
+84,minti
+84,ml
+84,ml snifter
+84,mocha
+84,mocha caramel
+84,mocha cocoa
+84,mocha espresso
+84,mocha mouthfeel
+84,mocha oak
+84,mocha roasti
+84,mond
+84,mouthfeel
+84,mouthfeel abv
+84,mouthfeel ale
+84,mouthfeel apa
+84,mouthfeel caramel
+84,mouthfeel chewi
+84,mouthfeel citrus
+84,mouthfeel dipa
+84,mouthfeel drinkabl
+84,mouthfeel grapefruit
+84,mouthfeel ipa
+84,mouthfeel malti
+84,mouthfeel ml
+84,mouthfeel mouthfeel
+84,mouthfeel resin
+84,mouthfeel roasti
+84,mouthfeel sipper
+84,mouthfeel snifter
+84,mouthfeel tripel
+84,mouthfeel velveti
+84,mouthfeel yeast
+84,nib
+84,nonic
+84,oak
+84,oak boozi
+84,oak caramel
+84,oak cocoa
+84,oak mouthfeel
+84,oak oak
+84,oak roasti
+84,oaki
+84,oatmeal
+84,orangish
+84,overrip
+84,pallet
+84,particl
+84,pepperi
+84,pepperi mouthfeel
+84,pepperi yeast
+84,phenol
+84,phenol yeast
+84,pillowi
+84,pilsner
+84,piney
+84,piney caramel
+84,piney citrus
+84,piney citrusi
+84,piney dipa
+84,piney floral
+84,piney grapefruit
+84,piney ipa
+84,piney malti
+84,piney mouthfeel
+84,piney piney
+84,piney resin
+84,pini
+84,pinkish
+84,pith
+84,plini
+84,plum
+84,plum caramel
+84,plum mouthfeel
+84,plum plum
+84,plum raisin
+84,plum yeast
+84,quad
+84,raisin
+84,raisin caramel
+84,raisin clove
+84,raisin malti
+84,raisin mouthfeel
+84,raisin plum
+84,raisin raisin
+84,raisin yeast
+84,raisini
+84,raspberri
+84,raspberri mouthfeel
+84,raspberri raspberri
+84,resin
+84,resin caramel
+84,resin citrus
+84,resin dipa
+84,resin drinkabl
+84,resin grapefruit
+84,resin ipa
+84,resin mouthfeel
+84,resini
+84,resini citrus
+84,rind
+84,roasti
+84,roasti caramel
+84,roasti cocoa
+84,roasti drinkabl
+84,roasti espresso
+84,roasti licoric
+84,roasti malti
+84,roasti mouthfeel
+84,roasti oak
+84,roasti roasti
+84,saison
+84,sediment
+84,sediment yeast
+84,sipper
+84,sixer
+84,snifter
+84,snifter caramel
+84,snifter citrus
+84,snifter mocha
+84,soapi
+84,spicey
+84,spritzi
+84,sweeter
+84,tangi
+84,tannic
+84,tannin
+84,tannish
+84,tar
+84,tastebud
+84,th
+84,toasti
+84,toasti caramel
+84,toffe
+84,toffe caramel
+84,toffe mouthfeel
+84,toffe raisin
+84,trappist
+84,tripel
+84,tripel abv
+84,tripel ale
+84,tripel breweri
+84,tripel citrus
+84,tripel clove
+84,tripel drinkabl
+84,tripel malti
+84,tripel ml
+84,tripel mouthfeel
+84,tripel tripel
+84,tripel yeast
+84,tripel yeasti
+84,trippel
+84,unfilt
+84,unibrou
+84,unsweeten
+84,upfront
+84,velveti
+84,velveti drinkabl
+84,vinous
+84,viscos
+84,westmall
+84,wheati
+84,whiski
+84,wisp
+84,yeast
+84,yeast abv
+84,yeast ale
+84,yeast breadi
+84,yeast caramel
+84,yeast citrus
+84,yeast clove
+84,yeast coriand
+84,yeast drinkabl
+84,yeast ester
+84,yeast floral
+84,yeast malti
+84,yeast mouthfeel
+84,yeast pepperi
+84,yeast phenol
+84,yeast plum
+84,yeast raisin
+84,yeast sediment
+84,yeast tripel
+84,yeast yeast
+84,yeast yeasti
+84,yeasti
+84,yeasti breadi
+84,yeasti caramel
+84,yeasti citrus
+84,yeasti clove
+84,yeasti malti
+84,yeasti mouthfeel
+84,yeasti tripel
+84,yeasti yeast
+84,yeasti yeasti
+84,yeti
+84,yummi

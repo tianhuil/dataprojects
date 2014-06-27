@@ -1,5 +1,13 @@
 
 
+#######################################
+##
+## NEED TO REFACTOR
+## INHERIT FROM db.tableacc.TableAcc
+##
+#######################################
+
+
 # create a baseline word frequency distribution
 # if run from command line the word counts will
 # be recomputed from nltk and commited to databse.
@@ -22,8 +30,8 @@ class BaseWordFreq(object):
     self.word_counts = { }
     
   def __iter__(self):
-    for k, v in self.word_counts.iteritems():
-      yield k, v
+    for k in self.word_counts:
+      yield k
    
   def __enc(self, s):
     return ''.join([x for x in s if ord(x) < 128])
@@ -119,6 +127,14 @@ class BaseWordFreq(object):
   def keys(self):
     return self.word_counts.keys()
     
+
+
+def expanded_stop_words():
+  """Get list of stop words constructed from nltk review docs"""
+  baseline = BaseWordFreq()
+  baseline.load_all()
+  return baseline.keys()
+
     
     
 # populate basewordcts table in beerad
