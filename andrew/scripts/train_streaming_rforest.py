@@ -1,10 +1,18 @@
 import numpy as np
+import pandas as pd
 import sys
+import os
+import time
+import cPickle as pickle
+import MySQLdb as mdb
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.cross_validation import train_test_split
 
 import matplotlib.pyplot as plt
+import train_streaming_funcs as tsf
+from code_predictors import timecode,predictorcode
+import load_credentials_nogit as creds
 
 class PDFRandomForestRegressor(BaseEstimator, RegressorMixin):
     """A normal random forest, except that it stores the final leaf positions and delay times for each row of the training set. It will also have a specialized scoring method."""
@@ -133,40 +141,126 @@ class PDFRandomForestRegressor(BaseEstimator, RegressorMixin):
         #print med_percentiles[:10],percentiles[:10]
         return 1.-np.sum((med_percentiles-percentiles)**2)/float(len(y))
     
-
+def make_tree_filename(output_dir,min_delay,max_delay,argsdict):
+    keys = sorted(argsdict.keys())
+    fname = "{0:s}rforest__min_delay={1:d}__max_delay={2:d}__".format(output_dir,min_delay,max_delay)
+    for key in keys:
+        fname += "{0:s}={1}__".format(key,argsdict[key])
+    fname += "{0:.0f}.pkl".format(time.time())
+    return fname
 
 if __name__ == "__main__":
 
     np.random.seed(4)
+
+    if len(sys.argv) != 5:
+        sys.exit("Syntax: [Table info pickle file] [Number of rows per iteration] [Number of iterations] [Fraction of data set for validation]")
+
+    info_pickle_file = sys.argv[1]
+    numrows = int(sys.argv[2])
+    numiters = int(sys.argv[3])
+    valfrac = float(sys.argv[4])
+        
+    #Some constants that likely will not change, but are all listed up here for easy dealing with if that's a bad assumption:
+    table = 'coded_flightdelays'
+    n_jobs = 2
+    output_dir = "../rforest_models/"
+    min_delay = -20#minutes
+    max_delay = 150#minutes
+    #option_dict = {'n_estimators':np.array([5,10,20]),'max_features':np.array(["auto","sqrt"]),'max_depth':np.array([4,8,12,16,20])}
+    option_dict = {'n_estimators':np.array([10]),'max_features':np.array(["auto","sqrt"]),'max_depth':np.array([4,8])}
+    info_pkl = open(info_pickle_file,'rb')
+    info_dict = pickle.load(info_pkl)
+    info_pkl.close()
+
     
-    # Create a random dataset
-    X = 5*np.random.rand(1000,1)
-    y = 30*np.sin(X).ravel()
-    y[::2] += 30*(0.5-np.random.rand(len(y[::2])))
-    y = y.astype(np.int)
-    X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.30)
-    #train_indices = np.argsort(X_train,axis=0)
-    # rng = np.random.RandomState(1)
-    # X = np.sort(5 * rng.rand(1000, 1), axis=0)
-    # y = 50*np.sin(X).ravel()
-    # y[::2] += 50 * (0.5 - rng.rand(len(y[::2])))
+    #1: Figure out how many different random forests will be run per iteration and what their hyperparameters will be (for cross validation later)
+    combined_args_df = tsf.combine_args(**option_dict)
+    #print combined_args_df
 
-    for depth in range(2,40):
-        clf = PDFRandomForestRegressor(-50,50,n_estimators=10,max_depth=depth)
-        clf.fit(X,y,compute_pdf=True)
-        x_pred = np.linspace(X_train.min(),X_train.max(),17)
-        y_pred = clf.predict(x_pred[:,np.newaxis])
-        y_pred_25_75 = clf.predict_percentiles(x_pred[:,np.newaxis],[25.,50.,75.])
-        y_score = clf.score_percentiles(X_test,y_test)
-        print depth,
-        print "Regular Score=",clf.score(X_test,y_test),
-        print "Percentile Score=",y_score
+    #connect to the db:
+    con = ''
+    try:
+        con = mdb.connect(host=creds.host,user=creds.user,db=creds.database,passwd=creds.password,local_infile=1)
+        cur = con.cursor()
+        #2: Determine the split between training and cross validation FIDs. Since the database has been pre-shuffled, this should be easy.
+        minid,maxid = tsf.get_col_range(cur,table,info_dict['id_col'])
+        id_range = maxid-minid
+        train_minid = minid
+        train_maxid = minid + np.round(id_range*(1.-valfrac)).astype(np.int)
+        val_minid = train_maxid + 1
+        val_maxid = maxid
 
-    #print help(clf.rforest.score)
+        select_clause = "select {0:s},{1:s} from {2:s}".format(','.join(info_dict['predictor_col_list']),info_dict['target_col'],table)
+        for count in range(numiters):
+            start = time.time()
+            #3: Query the database for a random sample from the training set, and fit it to all the random forests.
+            rows_to_query = np.random.random_integers(train_minid,train_maxid,numrows)
+            where_clause = "where {0:s} in ({1:s})".format(info_dict['id_col'],','.join(rows_to_query.astype(np.str)))
+            full_query = select_clause + " " + where_clause
+            query_construct_time = time.time()-start
+            full_df = pd.io.sql.read_sql(full_query,con)
+            query_execute_time = time.time()-(start+query_construct_time)
 
-    ax = plt.figure().add_subplot(111)
-    ax.fill_between(x_pred,y_pred_25_75[:,0],y_pred_25_75[:,2],color='gray',alpha=0.25)
-    ax.plot(X_train.ravel(),y_train,ls='.',marker='o',ms=2,mec='black',mfc='black',alpha=0.5)
-    ax.plot(x_pred,y_pred_25_75[:,1],ls='-',color='green',lw=2,alpha=0.5)
-    ax.plot(x_pred,y_pred,ls='-',color='orange',lw=2,alpha=0.5)
-    ax.figure.savefig('train_streaming_rforest.jpg')
+            target_arr = full_df[info_dict['target_col']].values
+            predictor_arr = full_df.drop(info_dict['target_col'],axis=1).values.astype(np.float32)
+            del full_df
+            for i in range(combined_args_df.shape[0]):
+                argsdict = combined_args_df.irow(i).to_dict()
+                for key in argsdict.keys():
+                    if type(argsdict[key]) == np.bool_:
+                        argsdict[key] = np.asscalar(argsdict[key])
+                clf = PDFRandomForestRegressor(min_delay,max_delay,n_jobs=n_jobs,**argsdict)
+                clf.fit(predictor_arr,target_arr,compute_pdf=True)
+                #4: Save each of the random forests as a pickle, with the pickle filename indicating the state of the hyperparameters
+                tree_filename = make_tree_filename(output_dir,min_delay,max_delay,argsdict)
+                f = open(tree_filename,'wb')
+                pickle.dump(clf,f)
+                f.close()
+            tree_train_time = time.time()-(start+query_execute_time)
+                
+
+            print "Iteration {0:d} of {1:d}: {2:.2f}s total ({3:.2f}s to build query, {4:.2f}s to execute query, {5:.2f}s to train {6:d} random forests)".format(count+1,numiters,time.time()-start,query_construct_time,query_execute_time,tree_train_time,combined_args_df.shape[0])
+    
+    except mdb.Error, e:
+        print "Error %d: %s" % (e.args[0],e.args[1])
+        sys.exit(1)
+    finally:
+        if con:
+            con.close()
+        
+    #Workflow:
+    #5: Iterate back to #3 until done. 
+
+    
+    # # Create a random dataset
+    # X = 5*np.random.rand(1000,1)
+    # y = 30*np.sin(X).ravel()
+    # y[::2] += 30*(0.5-np.random.rand(len(y[::2])))
+    # y = y.astype(np.int)
+    # X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.30)
+    # #train_indices = np.argsort(X_train,axis=0)
+    # # rng = np.random.RandomState(1)
+    # # X = np.sort(5 * rng.rand(1000, 1), axis=0)
+    # # y = 50*np.sin(X).ravel()
+    # # y[::2] += 50 * (0.5 - rng.rand(len(y[::2])))
+
+    # for depth in range(2,40):
+    #     clf = PDFRandomForestRegressor(-50,50,n_estimators=10,max_depth=depth)
+    #     clf.fit(X,y,compute_pdf=True)
+    #     x_pred = np.linspace(X_train.min(),X_train.max(),17)
+    #     y_pred = clf.predict(x_pred[:,np.newaxis])
+    #     y_pred_25_75 = clf.predict_percentiles(x_pred[:,np.newaxis],[25.,50.,75.])
+    #     y_score = clf.score_percentiles(X_test,y_test)
+    #     print depth,
+    #     print "Regular Score=",clf.score(X_test,y_test),
+    #     print "Percentile Score=",y_score
+
+    # #print help(clf.rforest.score)
+
+    # ax = plt.figure().add_subplot(111)
+    # ax.fill_between(x_pred,y_pred_25_75[:,0],y_pred_25_75[:,2],color='gray',alpha=0.25)
+    # ax.plot(X_train.ravel(),y_train,ls='.',marker='o',ms=2,mec='black',mfc='black',alpha=0.5)
+    # ax.plot(x_pred,y_pred_25_75[:,1],ls='-',color='green',lw=2,alpha=0.5)
+    # ax.plot(x_pred,y_pred,ls='-',color='orange',lw=2,alpha=0.5)
+    # ax.figure.savefig('train_streaming_rforest.jpg')
