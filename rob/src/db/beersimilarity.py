@@ -4,6 +4,8 @@
 # cli: truncate beersimilarity, load unique feature set
 # and recompute all beer similarities
 
+from datetime import datetime as dt
+
 from tableacc import TableAcc
 
 class BeerSimilarity(TableAcc):
@@ -34,7 +36,6 @@ class BeerSimilarity(TableAcc):
 
 
 def __asyncable_similarity(tup):
-  from datetime import datetime as dt
   
 #  bs, beer_id_ref, ref_vect, s_ids, b_ids, X_t, top = tup
   
@@ -47,7 +48,7 @@ def __asyncable_similarity(tup):
   bs, b_refs, X_t_ref, b_comps, X_t_comp, top = tup
 
   start = dt.now()
-  print 'Beers %s vs %s: Compute Similarity' % (b_refs.values.ravel(),b_comps.values.ravel())
+  print 'Beers %s vs %s: Compute Similarity' % (b_refs,b_comps)
   try:
     for i in xrange(len(b_refs)):
       
@@ -59,7 +60,7 @@ def __asyncable_similarity(tup):
       kp = min(top, n)
       m_ixs = lk.argsort()[-kp:]
       
-      sims = [ (b_refs.values[i], b_comps.values[j], lk[j]) for j in m_ixs ]
+      sims = [ (b_refs[i], b_comps[j], lk[j]) for j in m_ixs ]
       bs.smooth_similarity(sims)
     
     print 'Comparison Complete: %s' % (dt.now() - start)
@@ -72,11 +73,12 @@ def __asyncable_transform(tup):
   
   vectorizer, style_id, X = tup
   
-  return {
-    'style_id': style_id,
-    'beer_ids': X['beer_id'].values,
-    'X_t': vectorizer.transform(X['review'])
-  }
+  print 'Vectorize %s: start' % style_id
+  start = dt.now()
+  X_t = vectorizer.transform(X['review'])
+  print 'Vectorize %s: done %s' % (style_id, (dt.now()-start))
+  
+  return (style_id, X['beer_id'].values, X_t)
 
 
 if __name__ == "__main__":
@@ -99,81 +101,72 @@ if __name__ == "__main__":
   from sklearn.metrics.pairwise import linear_kernel
   
   
-  # pickling helper funcs
+  # pickling helper func
   def pkl_l(src):
     with open(src, 'rb') as f:
       res = pickle.loads(f.read())
     return res
   
-  def pkl_d(obj, dest):
-    with open(dest, 'wb') as f:
-      pickle.dump(obj,  f)
-  
   # loading/building vectorizer
   def load_vec(vec_pkl):
-    # load features from db
-    print 'Loading features'
-    feat = ReviewFeatures()
-      
     try:
       # load pickled vectorizer if available
-      return True, pkl_l(vec_pkl), feat.style_ids()
+      return True, pkl_l(vec_pkl)
     except Exception as e:
       print "Pickled vectorizer not found."
       print "Must run styletfidfnb.py to build model"
       
-      # vectorize full review set with vocab
-      return False, ReviewTfidf(
-          ngram_range=(1,2),
-          min_df=0.05,
-          max_df=0.8,
-          stop_words=expanded_stop_words(),
-          vocabulary=feat.unique_feat()), feat.style_ids()
-  
+      return False, None
+      
   
   def recompute_and_populate():
     """
-      - get unique feature list
-      - load reviews for all styles with features in db
-      - vectorize and transform docs
+      - load pickled vectorizer
+      - transform docs
       - compute cosine similarity for all vector pairs
-      - there will be rev_rollup_ct worth of duplicates
-      - take average of similarity between two beers (need something better)
+      - data is retrieved at rev_rollup_ct = 1 (beer level)
     """
     
     vec_pkl = "src/vocab/review_vectorizer.p"
-    was_pkl, vec, style_ids = load_vec(vec_pkl)
+    was_pkl, vec = load_vec(vec_pkl)
     
     # load data for styles with feature sets
-#    X = styles.beer_reviews_rollup(style_ids, limit=0)
     # overridden until full feature table is populated
+    
     styles = Styles()
     top_sy = [159, 84, 157, 56, 58, 9, 128, 97, 116, 140]
     print 'Comparing the top %s styles: %s' % (len(top_sy), ', '.join(str(s) for s in top_sy))
-    X = styles.beer_reviews_rollup(top_sy, limit=1000, rev_rollup_ct=1, shuffle=False)
+    X = styles.beer_reviews_rollup(top_sy, limit=0, rev_rollup_ct=1, shuffle=False)
     
     if was_pkl:
       print "Loaded pickled vectorizer."
       print "Feature count: %s" % len(vec.get_feature_names())
       print "Transforming reviews"
-      start = dt.now()
-      X_t = vec.transform(X['review'])
-      print "Transform time %s" % (dt.now()-start)
+      
+      trans_pool = Pool(min(10,len(top_sy)))
+      res_t = trans_pool.map(__asyncable_transform,
+        [ (vec, sy, X[ X['style_id'] == sy ]) for sy in top_sy])
+      
+      # as style keyed dict
+      res_t = {
+        r[0]: {
+          'beer_ids': r[1],
+          'X_t': r[2]
+          } for r in res_t
+      }
+      
     else:
-      print "Recomputing fit"
-      start = dt.now()
-      X_t = vec.fit_transform(X['review'])
-      print "Transform time %s" % (dt.now()-start)
-      print 'Vectorizing: Done'
-      print "Pickling vectorizer"
-      pkl_d(vec, vec_pkl)
+      # exit program
+      return 0
         
     print 'Truncating similarity table'
     bs = BeerSimilarity()
     bs.remove_all()
     
-    print 'Computing similarities and saving to db %s' % X_t.shape[0]
-    print 'Nonzero elements %s' % len(X_t.data)
+    dim1 = sum(v['X_t'].shape[0] for k,v in res_t.iteritems())
+    dim2 = sum(len(v['X_t'].data) for k,v in res_t.iteritems())
+    print 'Computing similarities and saving to db %s' % dim1
+    print 'Nonzero elements %s' % dim2
     
     # set style RU
     # will account for symmetry in the database
@@ -181,13 +174,11 @@ if __name__ == "__main__":
     
     pool_inp = []
     for ruc in ru_sids:
-      indices = np.where(X['style_id'].values == ruc[0])[0]
-      X_t_ref = X_t.tocsr()[indices,]
-      b_id_ref = X['beer_id'].ix[indices,]
+      X_t_ref = res_t[ruc[0]]['X_t']
+      b_id_ref = res_t[ruc[0]]['beer_ids']
       
-      indices = np.where(X['style_id'].values == ruc[1])[0]
-      X_t_comp = X_t.tocsr()[indices,:]
-      b_id_comp = X['beer_id'].ix[indices,]
+      X_t_comp = res_t[ruc[1]]['X_t']
+      b_id_comp = res_t[ruc[1]]['beer_ids']
       
       pool_inp.append((bs, b_id_ref, X_t_ref, b_id_comp, X_t_comp, 100))
       

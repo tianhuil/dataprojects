@@ -77,6 +77,10 @@ create table reviews (
     on update cascade
     on delete cascade
 );
+
+alter table reviews add index user_id_ix (user_id);
+alter table reviews add index beer_id_ix (beer_id);
+
   
 drop view if exists reviewctbybeer;
 create view reviewctbybeer as
