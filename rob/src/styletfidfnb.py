@@ -157,6 +157,13 @@ if __name__ == "__main__":
   print confusion_matrix(y_test, y_pred)
   
   try:
+    # pickle the vectorizer. used in beersimilarity
+    with open("src/vocab/review_vectorizer-cand.p", 'wb') as f:
+      pickle.dump(clf.reviews_vectorizer,  f)
+  except Exception as e:
+    print 'review_vectorizer pickle error: %s' % e
+    
+  try:
     for v in clf.extracted_vocabulary:
       print v
   except:

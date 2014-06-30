@@ -102,14 +102,15 @@ class Styles(object):
       
     return reviews
       
-  def beer_reviews_rollup(self, style_ids, limit=0, rev_rollup_ct=10):
+  def beer_reviews_rollup(self, style_ids, limit=0, rev_rollup_ct=10, shuffle=True):
     """Get rolled up beer review docs for a list of style ids. More memory efficient
     than getting a bunch of style reviews and then rolling them all up"""
     
     r = { s: pd.DataFrame() for s in style_ids }
     for s in style_ids:
       r[s] = self.beer_reviews_df(s, limit)           # get data
-      r[s] = self.__shuffle_ix(r[s])                  # shuffle it
+      if shuffle:
+        r[s] = self.__shuffle_ix(r[s])                  # shuffle it
       r[s]['rev_doc'] = r[s].index % rev_rollup_ct    # set rev_rollup_ct indices
       
       # combine the reviews into rev_rollup_ct docs
@@ -117,7 +118,8 @@ class Styles(object):
     
     r = pd.concat([r[s] for s in style_ids])
     r = r.reset_index()
-    r = self.__shuffle_ix(r)
+    if shuffle:
+      r = self.__shuffle_ix(r)
     r.columns = ['style_id', 'beer_id', 'rev_doc', 'review']
     
     return r
