@@ -1,0 +1,694 @@
+Load baseline stop words
+Get reviews by style
+Styles Retrieved: 10
+Beers Retrieved : 17539
+Total Rev Docs  : 68127
+extract styles
+style ids  [  9  56  58  84  97 116 128 140 157 159]
+no given vocab. extracting from style specific reviews
+START WORKER POOL
+DONE WORKER POOL
+extract vocabulary
+Vocab <generator object <genexpr> at 0x1dcbf870>
+Unique [u'abbey' u'abv' u'abv abv' u'abv ale' u'abv citrus' u'abv dipa'
+ u'abv drinkabl' u'abv ipa' u'abv ml' u'abv mouthfeel' u'abv snifter'
+ u'abv tripel' u'acrid' u'aipa' u'ale' u'ale abv' u'ale ale' u'ale apa'
+ u'ale caramel' u'ale citrus' u'ale drinkabl' u'ale floral' u'ale ipa'
+ u'ale malti' u'ale ml' u'ale mouthfeel' u'ale tripel' u'ale yeast'
+ u'allspic' u'almond' u'anis' u'anis mouthfeel' u'apa' u'apa ale'
+ u'apa apa' u'apa citrus' u'aromat' u'ashi' u'barley' u'barleywin' u'beig'
+ u'bernardus' u'biscuit' u'biscuiti' u'blackberri' u'blueberri'
+ u'blueberri blueberri' u'boozi' u'boozi mouthfeel' u'breadi'
+ u'breadi caramel' u'breadi citrus' u'breadi ipa' u'breadi mouthfeel'
+ u'breadi yeast' u'breadi yeasti' u'brewer' u'breweri' u'breweri ipa'
+ u'brewpub' u'brownish' u'brueri' u'bsda' u'bsdas' u'burgundi' u'butteri'
+ u'butterscotch' u'caramel' u'caramel abv' u'caramel ale'
+ u'caramel biscuit' u'caramel breadi' u'caramel caramel' u'caramel citrus'
+ u'caramel citrusi' u'caramel clove' u'caramel cocoa' u'caramel dipa'
+ u'caramel drinkabl' u'caramel espresso' u'caramel floral'
+ u'caramel grapefruit' u'caramel ipa' u'caramel licoric' u'caramel malti'
+ u'caramel mouthfeel' u'caramel oak' u'caramel piney' u'caramel plum'
+ u'caramel raisin' u'caramel resin' u'caramel roasti' u'caramel toffe'
+ u'caramel yeast' u'caramel yeasti' u'caramelli' u'carb' u'cardamom'
+ u'cascad' u'cask' u'chalic' u'chalki' u'chewi' u'chewi drinkabl'
+ u'chewi mouthfeel' u'chimay' u'chimay chalic' u'chimay goblet'
+ u'chocolatey' u'chocolati' u'citric' u'citric grapefruit' u'citrus'
+ u'citrus abv' u'citrus ale' u'citrus apa' u'citrus breadi'
+ u'citrus caramel' u'citrus citrus' u'citrus clove' u'citrus dipa'
+ u'citrus drinkabl' u'citrus floral' u'citrus grapefruit' u'citrus ipa'
+ u'citrus malti' u'citrus mango' u'citrus mouthfeel' u'citrus piney'
+ u'citrus resin' u'citrus resini' u'citrus rind' u'citrus tripel'
+ u'citrus yeast' u'citrus yeasti' u'citrusi' u'citrusi caramel'
+ u'citrusi citrus' u'citrusi dipa' u'citrusi floral' u'citrusi grapefruit'
+ u'citrusi ipa' u'citrusi mouthfeel' u'citrusi piney' u'cl' u'clove'
+ u'clove caramel' u'clove citrus' u'clove clove' u'clove coriand'
+ u'clove mouthfeel' u'clove tripel' u'clove yeast' u'clove yeasti' u'cocoa'
+ u'cocoa caramel' u'cocoa cocoa' u'cocoa espresso' u'cocoa licoric'
+ u'cocoa mouthfeel' u'cocoa nib' u'cocoa oak' u'cocoa raisin'
+ u'cocoa roasti' u'coff' u'copperi' u'coriand' u'coriand clove'
+ u'coriand mouthfeel' u'coriand yeast' u'corriand' u'currant' u'dfh'
+ u'didnt' u'dipa' u'dipa abv' u'dipa ale' u'dipa breweri' u'dipa caramel'
+ u'dipa citrus' u'dipa citrusi' u'dipa dipa' u'dipa drinkabl'
+ u'dipa floral' u'dipa grapefruit' u'dipa ipa' u'dipa malti'
+ u'dipa mouthfeel' u'dipa piney' u'dogfish' u'doughi' u'dreadnaught'
+ u'drinkabl' u'drinkabl abv' u'drinkabl ale' u'drinkabl apa'
+ u'drinkabl breweri' u'drinkabl caramel' u'drinkabl citrus'
+ u'drinkabl dipa' u'drinkabl drinkabl' u'drinkabl ipa' u'drinkabl ml'
+ u'drinkabl mocha' u'drinkabl mouthfeel' u'drinkabl roasti'
+ u'drinkabl sipper' u'drinkabl snifter' u'drinkabl tripel'
+ u'drinkabl yeast' u'dryness' u'dubbel' u'duvel' u'eggshel' u'espresso'
+ u'espresso caramel' u'espresso cocoa' u'espresso espresso'
+ u'espresso licoric' u'espresso mouthfeel' u'espresso roasti' u'ester'
+ u'ester mouthfeel' u'ester yeast' u'esteri' u'ethanol' u'expresso'
+ u'ferment' u'fizz' u'fizzi' u'floati' u'floral' u'floral ale'
+ u'floral caramel' u'floral citrus' u'floral citrusi' u'floral dipa'
+ u'floral floral' u'floral grapefruit' u'floral ipa' u'floral malti'
+ u'floral mouthfeel' u'floral piney' u'floral resin' u'floral tripel'
+ u'floral yeast' u'floweri' u'foami' u'foami citrus' u'foami yeast'
+ u'fragrant' u'fruitcak' u'fusel' u'garnet' u'goblet' u'grapefru'
+ u'grapefruit' u'grapefruit abv' u'grapefruit breadi' u'grapefruit caramel'
+ u'grapefruit citrus' u'grapefruit citrusi' u'grapefruit dipa'
+ u'grapefruit drinkabl' u'grapefruit floral' u'grapefruit grapefruit'
+ u'grapefruit ipa' u'grapefruit malti' u'grapefruit mango'
+ u'grapefruit mouthfeel' u'grapefruit piney' u'grapefruit pith'
+ u'grapefruit resin' u'grapefruit rind' u'growler' u'hazelnut' u'hophead'
+ u'hopslam' u'ibu' u'ibus' u'iipa' u'imp' u'impi' u'ipa' u'ipa abv'
+ u'ipa ale' u'ipa breweri' u'ipa caramel' u'ipa citrus' u'ipa citrusi'
+ u'ipa dipa' u'ipa drinkabl' u'ipa floral' u'ipa foami' u'ipa grapefruit'
+ u'ipa ipa' u'ipa malti' u'ipa mouthfeel' u'ipa piney' u'isnt' u'ive'
+ u'java' u'karmeliet' u'khaki' u'lactic' u'lactos' u'lager' u'lambic'
+ u'lemoni' u'licoric' u'licoric caramel' u'licoric licoric'
+ u'licoric mouthfeel' u'liquoric' u'macro' u'mahogani' u'malti'
+ u'malti ale' u'malti caramel' u'malti citrus' u'malti dipa'
+ u'malti drinkabl' u'malti grapefruit' u'malti ipa' u'malti malti'
+ u'malti mouthfeel' u'malti piney' u'malti plum' u'malti raisin'
+ u'malti roasti' u'malti tripel' u'malti yeast' u'malti yeasti' u'mandarin'
+ u'mango' u'mango caramel' u'mango citrus' u'mango grapefruit' u'melon'
+ u'mf' u'minti' u'ml' u'ml snifter' u'mocha' u'mocha caramel'
+ u'mocha cocoa' u'mocha espresso' u'mocha mouthfeel' u'mocha oak'
+ u'mocha roasti' u'mond' u'mouthfeel' u'mouthfeel abv' u'mouthfeel ale'
+ u'mouthfeel apa' u'mouthfeel caramel' u'mouthfeel chewi'
+ u'mouthfeel citrus' u'mouthfeel dipa' u'mouthfeel drinkabl'
+ u'mouthfeel grapefruit' u'mouthfeel ipa' u'mouthfeel malti'
+ u'mouthfeel ml' u'mouthfeel mouthfeel' u'mouthfeel resin'
+ u'mouthfeel roasti' u'mouthfeel sipper' u'mouthfeel snifter'
+ u'mouthfeel tripel' u'mouthfeel velveti' u'mouthfeel yeast' u'nib'
+ u'nonic' u'oak' u'oak boozi' u'oak caramel' u'oak cocoa' u'oak mouthfeel'
+ u'oak oak' u'oak roasti' u'oaki' u'oatmeal' u'orangish' u'overrip'
+ u'pallet' u'particl' u'pepperi' u'pepperi mouthfeel' u'pepperi yeast'
+ u'phenol' u'phenol yeast' u'pillowi' u'pilsner' u'piney' u'piney caramel'
+ u'piney citrus' u'piney citrusi' u'piney dipa' u'piney floral'
+ u'piney grapefruit' u'piney ipa' u'piney malti' u'piney mouthfeel'
+ u'piney piney' u'piney resin' u'pini' u'pinkish' u'pith' u'plini' u'plum'
+ u'plum caramel' u'plum mouthfeel' u'plum plum' u'plum raisin'
+ u'plum yeast' u'quad' u'raisin' u'raisin caramel' u'raisin clove'
+ u'raisin malti' u'raisin mouthfeel' u'raisin plum' u'raisin raisin'
+ u'raisin yeast' u'raisini' u'raspberri' u'raspberri mouthfeel'
+ u'raspberri raspberri' u'resin' u'resin caramel' u'resin citrus'
+ u'resin dipa' u'resin drinkabl' u'resin grapefruit' u'resin ipa'
+ u'resin mouthfeel' u'resini' u'resini citrus' u'rind' u'roasti'
+ u'roasti caramel' u'roasti cocoa' u'roasti drinkabl' u'roasti espresso'
+ u'roasti licoric' u'roasti malti' u'roasti mouthfeel' u'roasti oak'
+ u'roasti roasti' u'saison' u'sediment' u'sediment yeast' u'sipper'
+ u'sixer' u'snifter' u'snifter caramel' u'snifter citrus' u'snifter mocha'
+ u'soapi' u'spicey' u'spritzi' u'sweeter' u'tangi' u'tannic' u'tannin'
+ u'tannish' u'tar' u'tastebud' u'th' u'toasti' u'toasti caramel' u'toffe'
+ u'toffe caramel' u'toffe mouthfeel' u'toffe raisin' u'trappist' u'tripel'
+ u'tripel abv' u'tripel ale' u'tripel breweri' u'tripel citrus'
+ u'tripel clove' u'tripel drinkabl' u'tripel malti' u'tripel ml'
+ u'tripel mouthfeel' u'tripel tripel' u'tripel yeast' u'tripel yeasti'
+ u'trippel' u'unfilt' u'unibrou' u'unsweeten' u'upfront' u'velveti'
+ u'velveti drinkabl' u'vinous' u'viscos' u'westmall' u'wheati' u'whiski'
+ u'wisp' u'yeast' u'yeast abv' u'yeast ale' u'yeast breadi'
+ u'yeast caramel' u'yeast citrus' u'yeast clove' u'yeast coriand'
+ u'yeast drinkabl' u'yeast ester' u'yeast floral' u'yeast malti'
+ u'yeast mouthfeel' u'yeast pepperi' u'yeast phenol' u'yeast plum'
+ u'yeast raisin' u'yeast sediment' u'yeast tripel' u'yeast yeast'
+ u'yeast yeasti' u'yeasti' u'yeasti breadi' u'yeasti caramel'
+ u'yeasti citrus' u'yeasti clove' u'yeasti malti' u'yeasti mouthfeel'
+ u'yeasti tripel' u'yeasti yeast' u'yeasti yeasti' u'yeti' u'yummi']
+vocab size 536
+vectorize full corpus
+fit classifier
+DONE FIT
+             precision    recall  f1-score   support
+
+          9       0.73      0.59      0.65      1114
+         56       0.66      0.64      0.65       665
+         58       0.80      0.78      0.79       689
+         84       0.52      0.31      0.39       829
+         97       0.64      0.62      0.63      2239
+        116       0.63      0.84      0.72      2720
+        128       0.57      0.53      0.55      1716
+        140       0.89      0.59      0.71      1360
+        157       0.40      0.31      0.35       756
+        159       0.49      0.66      0.56      1538
+
+avg / total       0.63      0.62      0.62     13626
+
+[[ 653   28   41    7   98  104   61    1   12  109]
+ [  20  423   41   17   15   13   56    1   24   55]
+ [  24   35  535    3   18   23   23    1    9   18]
+ [   6   34    1  256   11   21   23    3  185  289]
+ [  61   11   15    1 1377  447  236   11    3   77]
+ [  13    5   10    1  199 2289   79   66   14   44]
+ [  49   50   13    2  328  189  909   13    8  155]
+ [   3    7    5    4   55  420   39  798   10   19]
+ [  14   14    4  147    6   27   17    2  236  289]
+ [  49   31    3   56   39   99  147    4   93 1017]]
+abbey
+abv
+abv abv
+abv ale
+abv citrus
+abv dipa
+abv drinkabl
+abv ipa
+abv ml
+abv mouthfeel
+abv snifter
+abv tripel
+acrid
+aipa
+ale
+ale abv
+ale ale
+ale apa
+ale caramel
+ale citrus
+ale drinkabl
+ale floral
+ale ipa
+ale malti
+ale ml
+ale mouthfeel
+ale tripel
+ale yeast
+allspic
+almond
+anis
+anis mouthfeel
+apa
+apa ale
+apa apa
+apa citrus
+aromat
+ashi
+barley
+barleywin
+beig
+bernardus
+biscuit
+biscuiti
+blackberri
+blueberri
+blueberri blueberri
+boozi
+boozi mouthfeel
+breadi
+breadi caramel
+breadi citrus
+breadi ipa
+breadi mouthfeel
+breadi yeast
+breadi yeasti
+brewer
+breweri
+breweri ipa
+brewpub
+brownish
+brueri
+bsda
+bsdas
+burgundi
+butteri
+butterscotch
+caramel
+caramel abv
+caramel ale
+caramel biscuit
+caramel breadi
+caramel caramel
+caramel citrus
+caramel citrusi
+caramel clove
+caramel cocoa
+caramel dipa
+caramel drinkabl
+caramel espresso
+caramel floral
+caramel grapefruit
+caramel ipa
+caramel licoric
+caramel malti
+caramel mouthfeel
+caramel oak
+caramel piney
+caramel plum
+caramel raisin
+caramel resin
+caramel roasti
+caramel toffe
+caramel yeast
+caramel yeasti
+caramelli
+carb
+cardamom
+cascad
+cask
+chalic
+chalki
+chewi
+chewi drinkabl
+chewi mouthfeel
+chimay
+chimay chalic
+chimay goblet
+chocolatey
+chocolati
+citric
+citric grapefruit
+citrus
+citrus abv
+citrus ale
+citrus apa
+citrus breadi
+citrus caramel
+citrus citrus
+citrus clove
+citrus dipa
+citrus drinkabl
+citrus floral
+citrus grapefruit
+citrus ipa
+citrus malti
+citrus mango
+citrus mouthfeel
+citrus piney
+citrus resin
+citrus resini
+citrus rind
+citrus tripel
+citrus yeast
+citrus yeasti
+citrusi
+citrusi caramel
+citrusi citrus
+citrusi dipa
+citrusi floral
+citrusi grapefruit
+citrusi ipa
+citrusi mouthfeel
+citrusi piney
+cl
+clove
+clove caramel
+clove citrus
+clove clove
+clove coriand
+clove mouthfeel
+clove tripel
+clove yeast
+clove yeasti
+cocoa
+cocoa caramel
+cocoa cocoa
+cocoa espresso
+cocoa licoric
+cocoa mouthfeel
+cocoa nib
+cocoa oak
+cocoa raisin
+cocoa roasti
+coff
+copperi
+coriand
+coriand clove
+coriand mouthfeel
+coriand yeast
+corriand
+currant
+dfh
+didnt
+dipa
+dipa abv
+dipa ale
+dipa breweri
+dipa caramel
+dipa citrus
+dipa citrusi
+dipa dipa
+dipa drinkabl
+dipa floral
+dipa grapefruit
+dipa ipa
+dipa malti
+dipa mouthfeel
+dipa piney
+dogfish
+doughi
+dreadnaught
+drinkabl
+drinkabl abv
+drinkabl ale
+drinkabl apa
+drinkabl breweri
+drinkabl caramel
+drinkabl citrus
+drinkabl dipa
+drinkabl drinkabl
+drinkabl ipa
+drinkabl ml
+drinkabl mocha
+drinkabl mouthfeel
+drinkabl roasti
+drinkabl sipper
+drinkabl snifter
+drinkabl tripel
+drinkabl yeast
+dryness
+dubbel
+duvel
+eggshel
+espresso
+espresso caramel
+espresso cocoa
+espresso espresso
+espresso licoric
+espresso mouthfeel
+espresso roasti
+ester
+ester mouthfeel
+ester yeast
+esteri
+ethanol
+expresso
+ferment
+fizz
+fizzi
+floati
+floral
+floral ale
+floral caramel
+floral citrus
+floral citrusi
+floral dipa
+floral floral
+floral grapefruit
+floral ipa
+floral malti
+floral mouthfeel
+floral piney
+floral resin
+floral tripel
+floral yeast
+floweri
+foami
+foami citrus
+foami yeast
+fragrant
+fruitcak
+fusel
+garnet
+goblet
+grapefru
+grapefruit
+grapefruit abv
+grapefruit breadi
+grapefruit caramel
+grapefruit citrus
+grapefruit citrusi
+grapefruit dipa
+grapefruit drinkabl
+grapefruit floral
+grapefruit grapefruit
+grapefruit ipa
+grapefruit malti
+grapefruit mango
+grapefruit mouthfeel
+grapefruit piney
+grapefruit pith
+grapefruit resin
+grapefruit rind
+growler
+hazelnut
+hophead
+hopslam
+ibu
+ibus
+iipa
+imp
+impi
+ipa
+ipa abv
+ipa ale
+ipa breweri
+ipa caramel
+ipa citrus
+ipa citrusi
+ipa dipa
+ipa drinkabl
+ipa floral
+ipa foami
+ipa grapefruit
+ipa ipa
+ipa malti
+ipa mouthfeel
+ipa piney
+isnt
+ive
+java
+karmeliet
+khaki
+lactic
+lactos
+lager
+lambic
+lemoni
+licoric
+licoric caramel
+licoric licoric
+licoric mouthfeel
+liquoric
+macro
+mahogani
+malti
+malti ale
+malti caramel
+malti citrus
+malti dipa
+malti drinkabl
+malti grapefruit
+malti ipa
+malti malti
+malti mouthfeel
+malti piney
+malti plum
+malti raisin
+malti roasti
+malti tripel
+malti yeast
+malti yeasti
+mandarin
+mango
+mango caramel
+mango citrus
+mango grapefruit
+melon
+mf
+minti
+ml
+ml snifter
+mocha
+mocha caramel
+mocha cocoa
+mocha espresso
+mocha mouthfeel
+mocha oak
+mocha roasti
+mond
+mouthfeel
+mouthfeel abv
+mouthfeel ale
+mouthfeel apa
+mouthfeel caramel
+mouthfeel chewi
+mouthfeel citrus
+mouthfeel dipa
+mouthfeel drinkabl
+mouthfeel grapefruit
+mouthfeel ipa
+mouthfeel malti
+mouthfeel ml
+mouthfeel mouthfeel
+mouthfeel resin
+mouthfeel roasti
+mouthfeel sipper
+mouthfeel snifter
+mouthfeel tripel
+mouthfeel velveti
+mouthfeel yeast
+nib
+nonic
+oak
+oak boozi
+oak caramel
+oak cocoa
+oak mouthfeel
+oak oak
+oak roasti
+oaki
+oatmeal
+orangish
+overrip
+pallet
+particl
+pepperi
+pepperi mouthfeel
+pepperi yeast
+phenol
+phenol yeast
+pillowi
+pilsner
+piney
+piney caramel
+piney citrus
+piney citrusi
+piney dipa
+piney floral
+piney grapefruit
+piney ipa
+piney malti
+piney mouthfeel
+piney piney
+piney resin
+pini
+pinkish
+pith
+plini
+plum
+plum caramel
+plum mouthfeel
+plum plum
+plum raisin
+plum yeast
+quad
+raisin
+raisin caramel
+raisin clove
+raisin malti
+raisin mouthfeel
+raisin plum
+raisin raisin
+raisin yeast
+raisini
+raspberri
+raspberri mouthfeel
+raspberri raspberri
+resin
+resin caramel
+resin citrus
+resin dipa
+resin drinkabl
+resin grapefruit
+resin ipa
+resin mouthfeel
+resini
+resini citrus
+rind
+roasti
+roasti caramel
+roasti cocoa
+roasti drinkabl
+roasti espresso
+roasti licoric
+roasti malti
+roasti mouthfeel
+roasti oak
+roasti roasti
+saison
+sediment
+sediment yeast
+sipper
+sixer
+snifter
+snifter caramel
+snifter citrus
+snifter mocha
+soapi
+spicey
+spritzi
+sweeter
+tangi
+tannic
+tannin
+tannish
+tar
+tastebud
+th
+toasti
+toasti caramel
+toffe
+toffe caramel
+toffe mouthfeel
+toffe raisin
+trappist
+tripel
+tripel abv
+tripel ale
+tripel breweri
+tripel citrus
+tripel clove
+tripel drinkabl
+tripel malti
+tripel ml
+tripel mouthfeel
+tripel tripel
+tripel yeast
+tripel yeasti
+trippel
+unfilt
+unibrou
+unsweeten
+upfront
+velveti
+velveti drinkabl
+vinous
+viscos
+westmall
+wheati
+whiski
+wisp
+yeast
+yeast abv
+yeast ale
+yeast breadi
+yeast caramel
+yeast citrus
+yeast clove
+yeast coriand
+yeast drinkabl
+yeast ester
+yeast floral
+yeast malti
+yeast mouthfeel
+yeast pepperi
+yeast phenol
+yeast plum
+yeast raisin
+yeast sediment
+yeast tripel
+yeast yeast
+yeast yeasti
+yeasti
+yeasti breadi
+yeasti caramel
+yeasti citrus
+yeasti clove
+yeasti malti
+yeasti mouthfeel
+yeasti tripel
+yeasti yeast
+yeasti yeasti
+yeti
+yummi

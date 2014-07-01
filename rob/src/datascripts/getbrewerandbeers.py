@@ -4,12 +4,17 @@
 # write info to brewerdata.txt and beerdata.txt
 # write out production dictionary { brewer: [beers] } to products.json
 
+# annoying boilerplate
+# always make cmd line calls from parent of src and data
+import sys
+sys.path.append('src/')
+
 import json
 from scrapr.brewermeta import brewer_meta_parse
 from scrapr.beermeta import beer_meta_parse
 
+# write to data folder
 dirc = 'data/'
-
 def pth(f):
   return dirc + f
 

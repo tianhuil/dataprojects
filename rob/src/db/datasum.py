@@ -19,6 +19,24 @@ qry.append("""
   group by br.name
   order by beer_ct desc
   limit 10 """)
+  
+# top 10 regions by beer ct
+qry.append("""
+  select br.location, count(be.id) as beer_ct
+  from brewers br inner join beers be
+      on br.id = be.brewer_id
+  group by br.location
+  order by beer_ct desc
+  limit 10 """)
+  
+# top 10 beers by style
+qry.append("""
+  select st.name, count(be.id) as beer_ct
+  from styles st inner join beers be
+    on st.id = be.style_id
+  group by st.name
+  order by beer_ct desc
+  limit 10 """)
     
 # top 10 beers by review count
 qry.append("""
@@ -86,11 +104,11 @@ qry.append("""
   order by power_users desc
   limit 10 """)
     
-# number of beers w valid abv and ibu data
+# number of beers w valid abv
 qry.append("""
   select 'valid abv and ibu' as type, count(*)
   from beers be
-  where abv > 0 and ibu > 0 """)
+  where abv > 0 """)
 
 # create and open connection to beerad
 with Beerad() as dbc:

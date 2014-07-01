@@ -3,6 +3,8 @@ import os
 import numpy as np
 import datetime as dt
 import pandas as pd
+import importlib
+from django.db import connection
 
 #This little bit of code lets me import from the project's scripts directory.
 projectdir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))#the main project directory
@@ -11,7 +13,7 @@ sys.path.append(scriptsdir)
 import flightfuncs as ff
 import predict_delays_logreg as pdl
 import global_vars as gv
-import login_credentials as creds
+#import login_credentials as creds
 
 #Reads a df passed as a json string (to pass info through urls):
 def prep_passed_df(input_string,row_order_column=None,column_order_row=None,remove_row_order_column=True,remove_column_order_row=True):
@@ -88,7 +90,7 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
             date_df = pdl.predict_delay(date_predictor_df,date_pkl_filename)
             all_date_df_list.append(date_df)
             #all_date_strings.append(offsetdate.strftime('%B'))
-            all_date_strings.append(offsetdate.strftime('%m-%d-%Y'))
+            all_date_strings.append(offsetdate.strftime('%m-%d'))
         all_date_df = combo_dfs(*all_date_df_list)
         all_date_df = all_date_df.set_index(np.array(all_date_strings))
         col_index_df = pd.DataFrame(np.arange(len(all_date_df.columns.values)).reshape(1,len(all_date_df.columns.values)),index=['col_order'],columns=all_date_df.columns.values)
@@ -98,16 +100,64 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
 
     if other_options != None:
         #Query the db to find market ids for the two airports. Make sure both are found.
+        #First, figuring out what the database is. This is going to be kludgey as balls, but I think it'll work:
+        monthname = ff.get_month_name(date)
+        timename = ff.get_time_name(date)
+        dbname = 'Flightdelays{month}{time}'.format(month=monthname[:1].upper()+monthname[1:],time=timename[:1].upper()+timename[1:])
+        dbname_sql = 'flightdelays_{month}_{time}'.format(month=monthname,time=timename)
+        print dbname
+        #Importing the database class:
+        model_module = importlib.import_module('delayr.models')
+        flightclass = getattr(model_module,dbname)
+
+        #Get the market ids for the origin and destination airports:
+        market_ids_qset = flightclass.objects.raw("""select fid,origin,origincitymarketid from {0:s} where origin = '{1:s}' or origin = '{2:s}' group by origin""".format(dbname_sql,inpdict['origin'][0],inpdict['dest'][0]))
+        market_ids = dict([(entry.origin,entry.origincitymarketid) for entry in market_ids_qset])
+        origin_market_id = market_ids[inpdict['origin'][0]]
+        dest_market_id = market_ids[inpdict['dest'][0]]
         #Query the db to find all distinct flights with the same origin and destination market ids. if it returns zero (user could ask for hawaii air flights between newark and jfk, for instance, which is nonsensical but will output a prediction) exit.
-
-        #select distinct aorig.airportname,adest.airportname,aline.fullname from flightdelays_sep_early as fd join airports as aorig on fd.origin=aorig.origin join airports as adest on fd.dest=adest.origin join airlinenames as aline on fd.uniquecarrier=aline.uniquecarrier where origincitymarketid=31703 and destcitymarketid=30977 and year(fd.flightdate) > 2012;
-        
-        #cut out the flight that the user queried. if that was the one entry in the dataframe, exit.
-        
-        #Estimate the delay times for each of the remaining flights.
-
-        #Sort the delay times (probably based on on-time percentage) and report the top N alternatives. Perhaps a stacked bar chart, with your flight in there as well?
-        pass
+        cursor = connection.cursor()
+        columns = ['origin','dest','uniquecarrier','orig_airportname','dest_airportname','airlinename']
+        cursor.execute("""select distinct fd.origin,fd.dest,fd.uniquecarrier,aorig.airportname,adest.airportname,aline.fullname from {0:s} as fd join airports as aorig on fd.origin=aorig.origin join airports as adest on fd.dest=adest.origin join airlinenames as aline on fd.uniquecarrier=aline.uniquecarrier where origincitymarketid={1:d} and destcitymarketid={2:d} and year(fd.flightdate) > 2012""".format(dbname_sql,origin_market_id,dest_market_id))
+        result = list(cursor.fetchall())
+        if len(result) > 0:
+            print len(result)
+            result_df = pd.DataFrame(result,columns=columns)
+            #Cut out the itinerary that the user selected, if necessary:
+            searched_itinerary = (result_df['origin'] == inpdict['origin'][0]) & (result_df['dest'] == inpdict['dest'][0]) & (result_df['uniquecarrier'] == inpdict['uniquecarrier'][0])
+            pd.set_option('display.max_columns',10)
+            pd.set_option('display.width',1000)
+            #print result_df
+            result_df = result_df[searched_itinerary == False]
+            result_df['delay'] = 0.
+            #print result_df
+            if result_df.shape[0] > 0:
+                #Predict the delay time for each other itinerary:
+                for i in result_df.index.values:
+                    temp_predictor_df = user_predictor_df.copy()
+                    temp_predictor_df.xs('origin',axis=1,copy=False)[0] = result_df.xs('origin',axis=1,copy=False)[i]
+                    temp_predictor_df.xs('dest',axis=1,copy=False)[0] = result_df.xs('dest',axis=1,copy=False)[i]
+                    temp_predictor_df.xs('uniquecarrier',axis=1,copy=False)[0] = result_df.xs('uniquecarrier',axis=1,copy=False)[i]
+                    temp_output_df = pdl.predict_delay(temp_predictor_df,user_pkl_filename)
+                    result_df.xs('delay',axis=1,copy=False)[i] = temp_output_df.icol(0)
+                all_result_cols = result_df.columns.values
+                all_result_cols[-1] = temp_output_df.columns.values[0]
+                result_df.columns = all_result_cols
+                sorted_result_df = result_df.sort(all_result_cols[-1],ascending=False)
+                trimmed_sorted_result_df = sorted_result_df[:other_options]
+                #col_index_df = pd.DataFrame(np.arange(len(trimmed_sorted_result_df.columns.values)).reshape(1,len(trimmed_sorted_result_df.columns.values)),index=['col_order'],columns=trimmed_sorted_result_df.columns.values)
+                #trimmed_sorted_result_df = trimmed_sorted_result_df.append(col_index_df)
+                #trimmed_sorted_result_df['order'] = range(trimmed_sorted_result_df.shape[0])
+                stringlist = []
+                #print "debug: ",trimmed_sorted_result_df
+                for i in range(trimmed_sorted_result_df.shape[0]):
+                    rowvals = trimmed_sorted_result_df.irow(i)
+                    testdict = {'display_string':"{0:s} to {1:s} on {2:s} (prediction: {3:.2f}% chance of delay {4:s} minutes)".format(rowvals['orig_airportname'],rowvals['dest_airportname'],rowvals['airlinename'],rowvals[all_result_cols[-1]]*100.,all_result_cols[-1]),'orig':rowvals['origin'],'dest':rowvals['dest'],'uniquecarrier':rowvals['uniquecarrier']}
+                    stringlist.append(testdict)
+                    #stringlist.append("{0:s} to {1:s} on {2:s} (prediction: {3:.2f}% chance of delay {4:s} minutes)".format(rowvals['orig_airportname'],rowvals['dest_airportname'],rowvals['airlinename'],rowvals[all_result_cols[-1]]*100.,all_result_cols[-1]))
+                #print trimmed_sorted_result_df
+                #print stringlist
+                return_dict['other_option_prediction'] = stringlist
             
     return return_dict
 

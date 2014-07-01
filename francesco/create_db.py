@@ -5,19 +5,24 @@ import sys
 import getpass
 
 """
-create a connector object via
-mysql.connector.connect(user=usr, database=db)
+create a connection object via
+cnx = psycopg2.connect(user=usr, database=db, password=pwd)
 To execute queries:
 cursor = cnx.cursor()
 cursor.execute(query_string)
+
+careful with the query string, use of string concatenation
+is to be avoided (with user input) table names should be
+hard coded.
 """
 
 
 class DBFill():
-    def __init__(self, category, connection):
+
+    def __init__(self, database, category, user="", password=""):
         self._category = category.lower()
-        self._connection = connection
-        self._cursor = connection.cursor()
+        self._connection = psycopg2.connect(database=database, user=user, password=password)
+        self._cursor = self._connection.cursor()
 
     def __enter__(self):
         return self
@@ -36,7 +41,7 @@ class DBFill():
                         summary text,
                         text text,
                         score integer,
-                        helpfulness varchar(10),
+                        helpfulness varchar(12),
                         time integer
                        );""" % self._category)
 
@@ -64,6 +69,29 @@ class DBFill():
         self._connection.close()
 
 
+class DBRead():
+
+    def __init__(self, database, user, password):
+        self._database = database
+        self._connection = psycopg2.connect(database, user=user, password=password)
+        self._cursor = self._connection.cursor()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self._cursor.close()
+        self._connection.close()
+
+    def select(self, columns):
+        columns = ", ".join(columns)
+        self._cursor.execute("SELECT " + columns +  # this is bad; change it to use categories list
+                             " FROM " + database)
+
+    def fetch_one(self):
+        return self._cursor.fetchone()
+
+
 if __name__ == "__main__":
     args = sys.argv
     try:
@@ -74,8 +102,7 @@ if __name__ == "__main__":
         sys.exit("Usage:\n"
                  "\tpython create_db.py username database category")
     password = getpass.getpass("Password:")
-    connection = psycopg2.connect(database=database, user=user, password=password)
-    with DBFill(category, connection) as filler:
+    with DBFill(database, category, user, password) as filler:
         entries = read_gz.parse(category)
         filler.create_table()
         filler.fill_table(entries)

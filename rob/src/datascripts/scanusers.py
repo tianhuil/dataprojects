@@ -7,6 +7,14 @@ from urllib2 import HTTPError
 # ids that yield HTTP Forbidden errors are stored in <err_log_file>
 # syntax: python scanusers.py -s <starting_index> -f <ending_index> -o <out_file> -l <err_log_file>
 
+# annoying boilerplate
+# always make cmd line calls from parent of src and data
+import sys
+sys.path.append('src/')
+
+from scrapr.userdat import user_profile_parse
+
+
 # retrieve and store users in ID range specified in cli opts
 def retrieve_users(argv):
   # data is serialized via json

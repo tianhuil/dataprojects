@@ -4,6 +4,7 @@ from django.http import HttpResponse
 
 import pandas as pd
 import numpy as np
+import re
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.ticker import ScalarFormatter
@@ -19,6 +20,11 @@ def test(request):
     context_dict = {}
     return render_to_response('delayr/test.html',context_dict,context)
 
+def about(request):
+    context = RequestContext(request)
+    context_dict = {}
+    return render_to_response('delayr/about.html',context_dict,context)
+
 def index(request):
     context = RequestContext(request)
     context_dict = {}
@@ -31,9 +37,14 @@ def index(request):
         submittedform = AirportForm(request.POST)
         if submittedform.is_valid():
             valuedict = dict(submittedform.data)
+            date_regexp = re.compile(r'^\d\d/\d\d/\d\d\d\d$')
+            print valuedict['date'][0],date_regexp.search(valuedict['date'][0])
             if valuedict['origin'][0] == valuedict['dest'][0]:
                 context_dict['welcome_message'] = "Welcome to Delayr!"
                 context_dict['errmessage'] = "Choose two different airports"
+            elif date_regexp.search(valuedict['date'][0]) == None:
+                context_dict['welcome_message'] = "Welcome to Delayr!"
+                context_dict['errmessage'] = "Incorrect date format"
             else:
                 prediction_dict = df.make_predictions(valuedict)
                 if 'user_prediction' in prediction_dict.keys():
@@ -47,6 +58,8 @@ def index(request):
                     context_dict['all_time_prediction'] = repr(prediction_dict['all_time_prediction'].to_json())
                 if 'all_date_prediction' in prediction_dict.keys():
                     context_dict['all_date_prediction'] = repr(prediction_dict['all_date_prediction'].to_json())
+                if 'other_option_prediction' in prediction_dict.keys():
+                    context_dict['other_option_prediction'] = prediction_dict['other_option_prediction']
             airlineform.fields['uniquecarrier'].initial = valuedict['uniquecarrier'][0]
             airportform.fields['origin'].initial = valuedict['origin'][0]
             airportform.fields['dest'].initial = valuedict['dest'][0]
@@ -78,20 +91,15 @@ def index(request):
 #     context = RequestContext(request)
 
 def show_all_date_prediction(request,prediction):
-    print "zero"
     context = RequestContext(request)
     prediction_df = df.prep_passed_df(prediction,row_order_column='order',column_order_row='col_order')
-    print "one"
     column_names = prediction_df.columns.values[1:]#Only plotting delays and cancellations
-    print "two"
     row_names = prediction_df.index.values
     x_vals = np.arange(len(row_names))
-    print "three"
     fig = plt.figure()
     fig.set_facecolor('none')
     ax = fig.add_subplot(111)
-    print "four"
-    colorlist = ['black','red','blue','green','orange','cyan','purple']
+    colorlist = ['red','blue','green','orange','cyan','purple']
     colorcount = 0
     for i in range(len(column_names)):
         ax.plot(x_vals,prediction_df[column_names[i]]*100.,ls='-',marker='o',ms=5,color=colorlist[colorcount],mec=colorlist[colorcount],mfc=colorlist[colorcount],alpha=0.5,label=column_names[i],lw=3)
@@ -99,14 +107,13 @@ def show_all_date_prediction(request,prediction):
         if colorcount == len(colorlist):
             colorcount = 0
     #fig.autofmt_xdate()
-    ax.set_title("Delays on Nearby Days")
-    ax.set_ylabel("Delay Probability (%)")
-    ax.set_xlabel("Date")
+    ax.set_title("Delays on Nearby Days",fontsize=16)
+    ax.set_ylabel("Delay Probability (%)",fontsize=14)
+    ax.set_xlabel("Date",fontsize=14)
     ax.set_xticks(x_vals)
     ax.set_xticklabels(row_names)
     ax.set_xlim(x_vals.min(),x_vals.max())
     ax.legend(loc='best',prop={'size':10})
-    print "hello"
 
     canvas = FigureCanvasAgg(fig)
     response = HttpResponse(content_type='image/png')
@@ -131,16 +138,16 @@ def show_all_time_prediction(request,prediction):
     fig = plt.figure()
     fig.set_facecolor('none')
     ax = fig.add_subplot(111)
-    colorlist = ['black','red','blue','green','orange','cyan','purple']
+    colorlist = ['red','blue','green','orange','cyan','purple']
     colorcount = 0
     for i in range(len(column_names)):
         ax.plot(x_vals,prediction_df[column_names[i]]*100.,ls='-',marker='o',ms=5,color=colorlist[colorcount],mec=colorlist[colorcount],mfc=colorlist[colorcount],alpha=0.5,label=column_names[i],lw=3)
         colorcount += 1
         if colorcount == len(colorlist):
             colorcount = 0
-    ax.set_title("Delays During the Day")
-    ax.set_ylabel("Delay Probability (%)")
-    ax.set_xlabel("Time of Day")
+    ax.set_title("Delays During the Day",fontsize=16)
+    ax.set_ylabel("Delay Probability (%)",fontsize=14)
+    ax.set_xlabel("Time of Day",fontsize=14)
     ax.set_xticks(x_vals)
     ax.set_xticklabels(row_names)
     ax.set_xlim(x_vals.min(),x_vals.max())
@@ -170,9 +177,9 @@ def show_user_prediction(request,string_prediction):
     else:
         ax.bar(x_pos,delay_likelihood*100.,width,color='red',alpha=0.5)
     ax.set_ylim(ax.get_ylim()[0],100)
-    ax.set_title("Predicted Delay for Selected Itinerary")
-    ax.set_ylabel("Probability (%)")
-    ax.set_xlabel("Delay (minutes)")
+    ax.set_title("Predicted Delay for Selected Itinerary",fontsize=16)
+    ax.set_ylabel("Probability (%)",fontsize=14)
+    ax.set_xlabel("Delay (minutes)",fontsize=14)
     ax.set_xticks(x_pos+width/2.)
     ax.set_xticklabels(delay_bins)
     ax.yaxis.set_major_formatter(ScalarFormatter())
