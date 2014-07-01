@@ -3,11 +3,13 @@ from pypaths import *
 
 ### GDelt ###
 gdelt_downstatus = 'GDeltDownStatus.txt'
+gdelt_sql = 'GDeltSQLStatus.txt'
 
 ### QUANDL Stock date range info
 start_date = '2000-01-01'
 end_date = '2012-12-31' 
 stock_downstatus = 'StockDownStatus.txt'
+stock_sql = 'StockSQLStatus.txt'
 
 # there is potential to add more in commodities in the future
 to_use = ['oil',]#'natural_gas', 'corn', 'wheat']
@@ -47,6 +49,7 @@ fed_series = {'CPIAUCNS':'CPI','GDPCA':'GDP','RECPROUSM156N':'RecProb',
               'UMCSENT':'umSent','FEDFUNDS':'FedFundsRate','POP':'Population',
               'STLFSI':'stressInd'}
 fed_downstatus = 'FedDownStatus.txt'
+fed_sql = 'FedSQLStatus.txt'
 
 
 ##### SQL INFO  ######

@@ -7,17 +7,19 @@ import traceback
 
 warnings.filterwarnings('ignore', category=mysql.Warning)
 
-Conn = mysql.connect(host = "localhost",
-                     user = "incubator",
-                     db = "Commodities")
+import sys
+sys.path.append('../')
+import settings 
+
+data_path = settings.project_path + 'data/gdelt_files'
+
+Conn = mysql.connect(host = settings.host,
+                     user = settings.user,
+                     db = settings.db)
 Conn.autocommit(False)
 
 def insert_row(Conn, row, table, altabs):
-    row = ['"'+a[0]+'"' if "varchar" in a[1][1] else a[0] for a in zip(row, altabs[table]) ] 
-    
-    #cmd = 'insert ignore into %s values (%s);' %(table, ','.join(row))
-    #print cmd
-    #Conn.cursor().execute(cmd)
+    row = ['"'+a[0]+'"' if "varchar" in a[1][1] else a[0] for a in zip(row, altabs[table]) ]     
     return '('+','.join(row)+')'
 
 loadstep = 10000
@@ -47,10 +49,9 @@ tables={
 event_cols = [a[0] for a in tables['EVENTS']]
 
 
-os.system('ls /home/ameert/git_projects/dataprojects/alan/data/gdelt_files/20*.zip> zipfiles.txt')
+os.system('ls %s/20*.zip> zipfiles.txt' %data_path)
 
 zipfiles = open('zipfiles.txt').readlines()
-#zipfiles = ['/home/ameert/git_projects/dataprojects/alan/data/gdelt_files/200601.zip',]
 for inzip in zipfiles:
     print "Loading %s" %inzip
     inzip = inzip.strip()
@@ -99,3 +100,7 @@ for inzip in zipfiles:
     print inzip+ ' LOADED!!!'
     print "sleeping for 10 seconds to allow graceful kill"
     time.sleep(10)
+
+statusfile = open(settings.gdelt_sql, 'w')
+statusfile.write('GDelt data Successfully loaded to SQL!')
+statusfile.close()

@@ -17,13 +17,18 @@ cursor = Conn.cursor()
 
 data_path = settings.project_path +'data/st_louis_fed/'
 
-filenames = ['CPI.txt',  'GDP.txt',  'Population.txt',  'rec_prob.txt',
-             'stress_ind.txt',  'um_sent.txt', 'FedFundsRate.txt']
-
-for name in filenames:
-    data = np.loadtxt(data_path+name, unpack=True)
-    sqldate = ['%04d%02d%02d' %(int(a[0]),int(a[1]),int(a[2])) for a in zip(data[0],data[1],data[2])]
+if __name__=="__main__":
+    for tab in settings.fed_series.values():
+        cursor.execute('DROP TABLE IF EXISTS %s;' %tab)
+        cursor.execute('CREATE TABLE %s (SQLDATE int primary key, value float);' %tab)
+        data = np.loadtxt(data_path+tab+'.txt', unpack=True)
+        sqldate = ['%04d%02d%02d' %(int(a[0]),int(a[1]),int(a[2])) for a in zip(data[0],data[1],data[2])]
     
-    values = ','.join(['('+','.join([str(b) for b in a]) +')' for a in zip(sqldate, data[3])])
-    cmd = 'insert ignore into %s values %s;' %(name.split('.txt')[0], values)
-    cursor.execute(cmd)
+        values = ','.join(['('+','.join([str(b) for b in a]) +')' for a in zip(sqldate, data[3])])
+        cmd = 'insert ignore into %s values %s;' %(tab, values)
+        cursor.execute(cmd)
+
+    
+statusfile = open(settings.fed_sql, 'w')
+statusfile.write('Fed Data data Successfully loaded to SQL!')
+statusfile.close()

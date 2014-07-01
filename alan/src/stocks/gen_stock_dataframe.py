@@ -73,6 +73,15 @@ for stock in settings.to_use:
     
         stock_frame = stock_frame.join(metric_df['count19%s' %country_name])
         print 'loaded dataframe from MySQL. records:', len(metric_df)
+
+        cmd = "select SQLDATE as stockdate, numevents as count18%s  from EVENT19country  where Geo_CountryCode_1 = '%s' or Geo_CountryCode_2='%s' group by SQLDATE;" %(country_name,country_name,country_name)
+        metric_df = psql.frame_query(cmd, con=Conn)
+        ord_metric = SQLdate_to_date(metric_df['stockdate'])
+        metric_df.index = ord_metric
+        metric_df.index = pd.to_datetime(metric_df.index)
+    
+        stock_frame = stock_frame.join(metric_df['count18%s' %country_name])
+        print 'loaded dataframe from MySQL. records:', len(metric_df)
         
         
 
