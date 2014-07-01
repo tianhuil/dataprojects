@@ -37,6 +37,6 @@ CREATE TABLE ngocodes (code varchar(13) primary key, description varchar(150));
 LOAD DATA INFILE '{gitdir}/data/gdelt_files/ngocodes.clean' IGNORE INTO TABLE  ngocodes  FIELDS TERMINATED BY ';' ;
 
 DROP TABLE IF EXISTS EventCodes;
-CREATE TABLE EventCodes (code int primary key, description varchar(150));
+CREATE TABLE EventCodes (code float primary key, description varchar(150));
 LOAD DATA INFILE '{gitdir}/data/gdelt_files/EventCodes.clean' IGNORE INTO TABLE  EventCodes  FIELDS TERMINATED BY ';' ;
 

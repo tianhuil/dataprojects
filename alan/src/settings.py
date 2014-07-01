@@ -2,10 +2,17 @@
 from pypaths import *
 
 ### QUANDL Stock date range info
-start_date = '2000-01-01'
 #start_date = '2004-01-01'
 #end_date = '2005-12-31'
-end_date = '2010-12-31'
+train_start_date = '2000-01-01'
+train_end_date = '2006-12-31'
+
+test_start_date = '2009-01-01'
+test_end_date = '2012-12-31'
+
+
+
+
 authtoken="ZwZp5EomA34QgSDRezss" #this is optional
 
 host = 'localhost'

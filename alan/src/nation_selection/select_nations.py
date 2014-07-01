@@ -1,12 +1,11 @@
 import numpy as np
 import sys
-
 sys.path.append('../')
 import settings
+import pandas as pd
 
-
-datadir = '../data/'
-countryfile  = 'countries_new.txt'
+datadir = settings.project_path+'data/trademap/'
+countryfile  = 'Trade_Map_oil_balance.txt'
 
 def top_list(filename, percent, year):
     infile = open(filename)
@@ -26,14 +25,11 @@ def top_list(filename, percent, year):
     good_countries = [ a[0]  for a in zip(nation,good_countries) if a[1]==True]
     return good_countries
 
-outfile = open(countryfile, 'w')
 
-for stock in settings.to_use:
-    for ending in ['Export.csv', 'Import.csv']:
-        filename = datadir + stock+ending
-        to_add = top_list(filename, 0.9, 2010)
-        for a in to_add:
-            outfile.write(a+'\n')
+import_df = pd.read_csv(datadir+countryfile, skiprows=1, delimiter = '\t') 
 
-outfile.close()
+print import_df
 
+print import_df.sort(column=import_df.columns[1])
+
+print import_df.sort(column=import_df.columns[1],ascending=False)

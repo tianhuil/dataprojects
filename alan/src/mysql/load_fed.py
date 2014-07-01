@@ -18,8 +18,7 @@ cursor = Conn.cursor()
 data_path = settings.project_path +'data/st_louis_fed/'
 
 filenames = ['CPI.txt',  'GDP.txt',  'Population.txt',  'rec_prob.txt',
-             'stress_ind.txt',  'um_sent.txt']
-
+             'stress_ind.txt',  'um_sent.txt', 'FedFundsRate.txt']
 
 for name in filenames:
     data = np.loadtxt(data_path+name, unpack=True)

@@ -16,3 +16,6 @@ CREATE TABLE stress_ind (SQLDATE int primary key, value float);
 DROP TABLE IF EXISTS um_sent;
 CREATE TABLE um_sent (SQLDATE int primary key, value float);
 
+DROP TABLE IF EXISTS FedFundsRate;
+CREATE TABLE FedFundsRate (SQLDATE int primary key, value float);
+

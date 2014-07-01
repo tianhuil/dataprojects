@@ -3,6 +3,8 @@ import zipfile
 import MySQLdb as mysql
 import time
 import warnings
+import traceback
+
 warnings.filterwarnings('ignore', category=mysql.Warning)
 
 Conn = mysql.connect(host = "localhost",
@@ -26,7 +28,7 @@ tables={
               ('Actor1Code', 'varchar(13)',5), 
               ('Actor2Code', 'varchar(13)',15),
               ('IsRootEvent', 'bool',25), 
-              ('EventCode', 'int',26), 
+              ('EventCode', 'float',26), 
               ('GoldsteinScale', 'float',30), 
               ('NumMentions', 'smallint',31), 
               ('AvgTone', 'float',34),
@@ -45,7 +47,7 @@ tables={
 event_cols = [a[0] for a in tables['EVENTS']]
 
 
-os.system('ls /home/ameert/git_projects/dataprojects/alan/data/gdelt_files/201*.zip> zipfiles.txt')
+os.system('ls /home/ameert/git_projects/dataprojects/alan/data/gdelt_files/20*.zip> zipfiles.txt')
 
 zipfiles = open('zipfiles.txt').readlines()
 #zipfiles = ['/home/ameert/git_projects/dataprojects/alan/data/gdelt_files/200601.zip',]
@@ -54,8 +56,10 @@ for inzip in zipfiles:
     inzip = inzip.strip()
     infile = zipfile.ZipFile(inzip, "r")
     csvfile = inzip.split('/')[-1].replace('.zip','.csv')
-    
-    cmd = 'insert ignore into EVENTS values '
+
+    year = int(inzip.split('/')[-1].split('.zip')[0][:4])
+    print "year ", year
+    cmd = 'insert ignore into EVENTS%d values ' %year
     count = 0
     tot_load =0
     for line in infile.read(csvfile).split("\n"):
@@ -67,20 +71,27 @@ for inzip in zipfiles:
                 Conn.cursor().execute(cmd)
                 Conn.commit()
                 count = 0
-                cmd = 'insert ignore into EVENTS values '
+                cmd = 'insert ignore into EVENTS%d values ' %year
                 print tot_load, ' loaded'
             count +=1
             row = line.replace(r'/',' ')
+            row = row.replace('---','NULL')
             row =line.strip().split('\t')
             row = ['NULL' if a=='' else a for a in row] 
             row = ['NULL' if a=='X' else a for a in row] 
             event_row= [row[a[2]] for a in tables['EVENTS']]
+            # add a decimal to the event code
+            try:
+                float(event_row[5])
+                event_row[5] =event_row[5][:2]+'.'+event_row[5][2:]
+            except:
+                pass                
             cmd += insert_row(Conn, event_row, 'EVENTS', tables)+','
-        except:
+        except Exception, err:
+            print Exception, err
             print "bad group ",tot_load
-    
+            
     infile.close()
-    cmd = cmd.replace('---','NULL')
     cmd = cmd[:-1]+';'        
     Conn.cursor().execute(cmd)
     Conn.commit()

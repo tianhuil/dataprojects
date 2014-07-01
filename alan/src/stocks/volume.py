@@ -25,8 +25,8 @@ from stock_returns import load_stock, date_contract, moving_average
 
 comm_choice = settings.comm_choice
 maxdays=settings.maxdays
-start_date = do_date(settings.start_date)
-end_date = do_date(settings.end_date)
+start_date = do_date(settings.train_start_date)
+end_date = do_date(settings.train_end_date)
 
 data_path = '/home/ameert/git_projects/dataprojects/alan/data/st_louis_fed/'
 stock_data = load_stock(comm_choice, start_date, end_date)
@@ -45,12 +45,11 @@ yval =np.array(to_fit['log_ret'])
 
 fig = pl.figure()
 groups = to_fit.groupby('day_bins')
+group_points = np.array([int(a) for a,b in groups])
 means= groups.mean()
 period_mean =means['volume']
 interest_mean =means['open_interest']
-print period_mean
 
-group_points = np.array([int(a) for a,b in groups])
 #pl.scatter(group_points,np.log10(period_mean))
 #pl.plot(group_points,pd.stats.moments.ewma(period_mean.apply(np.log10), span=5).values)
 pl.subplot(2,2,1)
