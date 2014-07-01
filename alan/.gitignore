@@ -6,4 +6,3 @@ src/stocks/*.pickle
 *.pyc
 *~
 *\#
-data/gdelt_files
