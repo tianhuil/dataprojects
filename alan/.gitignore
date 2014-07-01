@@ -6,3 +6,4 @@ src/stocks/*.pickle
 *.pyc
 *~
 *\#
+.ipynb_checkpoints
