@@ -1,8 +1,0 @@
-Loading features
-Pickled vectorizer not found.
-Recomputing fit
-Vectorizing: Done
-Pickling vectorizer
-Truncating similarity table
-Computing similarities and saving to db 17539
-Nonzero elements 609560
