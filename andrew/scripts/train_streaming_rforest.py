@@ -8,6 +8,7 @@ import MySQLdb as mdb
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.cross_validation import train_test_split
+from sklearn.externals import joblib
 
 import matplotlib.pyplot as plt
 import train_streaming_funcs as tsf
@@ -143,15 +144,15 @@ class PDFRandomForestRegressor(BaseEstimator, RegressorMixin):
     
 def make_tree_filename(output_dir,min_delay,max_delay,argsdict):
     keys = sorted(argsdict.keys())
-    fname = "{0:s}rforest__min_delay={1:d}__max_delay={2:d}__".format(output_dir,min_delay,max_delay)
+    fname = "{0:s}rforest__min_delay-{1:d}__max_delay-{2:d}__".format(output_dir,min_delay,max_delay)
     for key in keys:
-        fname += "{0:s}={1}__".format(key,argsdict[key])
+        fname += "{0:s}-{1}__".format(key,argsdict[key])
     fname += "{0:.0f}.pkl".format(time.time())
     return fname
 
 if __name__ == "__main__":
 
-    np.random.seed(4)
+    #np.random.seed(4)
 
     if len(sys.argv) != 5:
         sys.exit("Syntax: [Table info pickle file] [Number of rows per iteration] [Number of iterations] [Fraction of data set for validation]")
@@ -167,8 +168,8 @@ if __name__ == "__main__":
     output_dir = "../rforest_models/"
     min_delay = -20#minutes
     max_delay = 150#minutes
-    #option_dict = {'n_estimators':np.array([5,10,20]),'max_features':np.array(["auto","sqrt"]),'max_depth':np.array([4,8,12,16,20])}
-    option_dict = {'n_estimators':np.array([10]),'max_features':np.array(["auto","sqrt"]),'max_depth':np.array([4,8])}
+    option_dict = {'n_estimators':np.array([10]),'max_features':np.array(["auto","sqrt"]),'max_depth':np.array([8,12,16])}
+    #option_dict = {'n_estimators':np.array([10]),'max_features':np.array(["auto","sqrt"]),'max_depth':np.array([4,8])}
     info_pkl = open(info_pickle_file,'rb')
     info_dict = pickle.load(info_pkl)
     info_pkl.close()
@@ -190,6 +191,14 @@ if __name__ == "__main__":
         train_maxid = minid + np.round(id_range*(1.-valfrac)).astype(np.int)
         val_minid = train_maxid + 1
         val_maxid = maxid
+        training_info = {}
+        training_info['model_dir'] = output_dir
+        training_info['table'] = table
+        training_info['val_minid'] = val_minid
+        training_info['val_maxid'] = val_maxid
+        training_pkl = open('train_streaming_rforest.pkl','wb')
+        pickle.dump(training_info,training_pkl)
+        training_pkl.close()
 
         select_clause = "select {0:s},{1:s} from {2:s}".format(','.join(info_dict['predictor_col_list']),info_dict['target_col'],table)
         for count in range(numiters):
@@ -214,9 +223,10 @@ if __name__ == "__main__":
                 clf.fit(predictor_arr,target_arr,compute_pdf=True)
                 #4: Save each of the random forests as a pickle, with the pickle filename indicating the state of the hyperparameters
                 tree_filename = make_tree_filename(output_dir,min_delay,max_delay,argsdict)
-                f = open(tree_filename,'wb')
-                pickle.dump(clf,f)
-                f.close()
+                #f = open(tree_filename,'wb')
+                joblib.dump(clf,tree_filename)
+                #pickle.dump(clf,f)
+                #f.close()
             tree_train_time = time.time()-(start+query_execute_time)
                 
 
@@ -228,9 +238,6 @@ if __name__ == "__main__":
     finally:
         if con:
             con.close()
-        
-    #Workflow:
-    #5: Iterate back to #3 until done. 
 
     
     # # Create a random dataset
