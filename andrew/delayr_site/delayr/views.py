@@ -15,6 +15,16 @@ from delayr.forms import AirportForm,AirlineForm,DateTimeForm
 
 import delayr_funcs as df
 
+pd.options.display.mpl_style = 'default'
+#colorlist = ['red','gold','cyan','orange','green','purple']
+colorlist = ['#8da0cb','#66c2a5','#fc8d62','#e78ac3','#a6d854','#ffd92f','#e5c494','#b3b3b3']
+titlesize = 24
+axlabelsize = 20
+ticklabelsize = 20
+legendsize = 18
+fontname = 'Times New Roman Bold'
+figsize = (8,6)
+
 def test(request):
     context = RequestContext(request)
     context_dict = {}
@@ -75,6 +85,7 @@ def index(request):
     context_dict['airportform'] = airportform
     context_dict['airlineform'] = airlineform
     context_dict['datetimeform'] = datetimeform
+
     
     return render_to_response('delayr/index.html',context_dict,context)
 
@@ -96,24 +107,25 @@ def show_all_date_prediction(request,prediction):
     column_names = prediction_df.columns.values[1:]#Only plotting delays and cancellations
     row_names = prediction_df.index.values
     x_vals = np.arange(len(row_names))
-    fig = plt.figure()
+    fig = plt.figure(figsize=figsize)
     fig.set_facecolor('none')
     ax = fig.add_subplot(111)
-    colorlist = ['red','blue','green','orange','cyan','purple']
-    colorcount = 0
+    ax.tick_params(axis='both',which='major',labelsize=ticklabelsize)
+    colorcount = 1
     for i in range(len(column_names)):
-        ax.plot(x_vals,prediction_df[column_names[i]]*100.,ls='-',marker='o',ms=5,color=colorlist[colorcount],mec=colorlist[colorcount],mfc=colorlist[colorcount],alpha=0.5,label=column_names[i],lw=3)
+        ax.plot(x_vals,prediction_df[column_names[i]]*100.,ls='-',marker='o',ms=7,color=colorlist[colorcount],mec=colorlist[colorcount],mfc=colorlist[colorcount],alpha=0.95,label=column_names[i],lw=4)
         colorcount += 1
         if colorcount == len(colorlist):
             colorcount = 0
     #fig.autofmt_xdate()
-    ax.set_title("Delays on Nearby Days",fontsize=16)
-    ax.set_ylabel("Delay Probability (%)",fontsize=14)
-    ax.set_xlabel("Date",fontsize=14)
+    ax.set_title("Delays on Nearby Days",fontsize=titlesize,fontname=fontname)
+    ax.set_ylabel("Delay Probability (%)",fontsize=axlabelsize,fontname=fontname)
+    ax.set_xlabel("Date",fontsize=axlabelsize,fontname=fontname)
     ax.set_xticks(x_vals)
     ax.set_xticklabels(row_names)
     ax.set_xlim(x_vals.min(),x_vals.max())
-    ax.legend(loc='best',prop={'size':10})
+    ax.set_ylim(ax.get_ylim()[0],ax.get_ylim()[1]-0.01)
+    ax.legend(loc='best',prop={'size':legendsize},numpoints=1)
 
     canvas = FigureCanvasAgg(fig)
     response = HttpResponse(content_type='image/png')
@@ -135,23 +147,25 @@ def show_all_time_prediction(request,prediction):
     # print column_names
     # print row_names
     # print prediction_df
-    fig = plt.figure()
+    fig = plt.figure(figsize=figsize)
     fig.set_facecolor('none')
     ax = fig.add_subplot(111)
-    colorlist = ['red','blue','green','orange','cyan','purple']
-    colorcount = 0
+    ax.tick_params(axis='both',which='major',labelsize=ticklabelsize)
+    colorcount = 1
     for i in range(len(column_names)):
-        ax.plot(x_vals,prediction_df[column_names[i]]*100.,ls='-',marker='o',ms=5,color=colorlist[colorcount],mec=colorlist[colorcount],mfc=colorlist[colorcount],alpha=0.5,label=column_names[i],lw=3)
+        ax.plot(x_vals,prediction_df[column_names[i]]*100.,ls='-',marker='o',ms=7,color=colorlist[colorcount],mec=colorlist[colorcount],mfc=colorlist[colorcount],alpha=0.95,label=column_names[i],lw=4)
+        #ax.plot(x_vals,prediction_df[column_names[i]]*100.,ls='-',marker='o',ms=5,label=column_names[i],lw=3)
         colorcount += 1
         if colorcount == len(colorlist):
             colorcount = 0
-    ax.set_title("Delays During the Day",fontsize=16)
-    ax.set_ylabel("Delay Probability (%)",fontsize=14)
-    ax.set_xlabel("Time of Day",fontsize=14)
+    ax.set_title("Delays During the Day",fontsize=titlesize,fontname=fontname)
+    ax.set_ylabel("Delay Probability (%)",fontsize=axlabelsize,fontname=fontname)
+    ax.set_xlabel("Time of Day",fontsize=axlabelsize,fontname=fontname)
     ax.set_xticks(x_vals)
     ax.set_xticklabels(row_names)
     ax.set_xlim(x_vals.min(),x_vals.max())
-    ax.legend(loc='best',prop={'size':10})
+    ax.set_ylim(ax.get_ylim()[0],ax.get_ylim()[1]-0.01)
+    ax.legend(loc='best',prop={'size':legendsize},numpoints=1)
 
     canvas = FigureCanvasAgg(fig)
     response = HttpResponse(content_type='image/png')
@@ -166,26 +180,29 @@ def show_user_prediction(request,string_prediction):
     delay_bins = unzipped_prediction[0]
     delay_likelihood = np.array(unzipped_prediction[1])
     x_pos = np.arange(len(delay_bins))
-    f = plt.figure()
+    f = plt.figure(figsize=figsize)
     f.set_facecolor('none')
     ax = f.add_subplot(111)
+    ax.tick_params(axis='both',which='major',labelsize=ticklabelsize)
     width = 1.0
     logbool = False
     if logbool:
         ax.set_yscale("log")
         ax.bar(x_pos,delay_likelihood*100.,width,color='red',alpha=0.5,log=True)
     else:
-        ax.bar(x_pos,delay_likelihood*100.,width,color='red',alpha=0.5)
+        barlist = ax.bar(x_pos,delay_likelihood*100.,width)
+        for i,bar in enumerate(barlist):
+            bar.set_color(colorlist[i])
     ax.set_ylim(ax.get_ylim()[0],100)
-    ax.set_title("Predicted Delay for Selected Itinerary",fontsize=16)
-    ax.set_ylabel("Probability (%)",fontsize=14)
-    ax.set_xlabel("Delay (minutes)",fontsize=14)
+    ax.set_title("Predicted Delay for Selected Itinerary",fontsize=titlesize,fontname=fontname)
+    ax.set_ylabel("Probability (%)",fontsize=axlabelsize,fontname=fontname)
+    ax.set_xlabel("Delay (minutes)",fontsize=axlabelsize,fontname=fontname)
     ax.set_xticks(x_pos+width/2.)
     ax.set_xticklabels(delay_bins)
     ax.yaxis.set_major_formatter(ScalarFormatter())
     
     canvas = FigureCanvasAgg(f)
     response = HttpResponse(content_type='image/png')
-    canvas.print_png(response,bbox_inches='tight')
+    canvas.print_png(response)
     plt.close(f)
     return response

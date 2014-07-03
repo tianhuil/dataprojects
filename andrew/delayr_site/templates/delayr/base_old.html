@@ -59,27 +59,28 @@
     </div>
     
     <div class="container">
-      <!-- Main component for a primary marketing message or call to action -->
-	{% block body_block %}{% endblock %}
-      
 
-    <!--</div>--> <!-- /container -->
+      <!-- Main component for a primary marketing message or call to action -->
+      <div class="jumbotron">
+	{% block body_block %}{% endblock %}
+      </div>
+
+    </div> <!-- /container -->
 
     
     {% block result_block %}{% endblock %}
-    <div class="col-md-2"></div>
-      <div class="col-md-10">
-      <p>&copy;2014 Andrew Schechtman-Rook</p>
-	</div>
-    </div>
 
+    <div class="container">
+      <footer>
+      <p>&copy;2014 Andrew Schechtman-Rook</p>
+      </footer>
+    </div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>-->
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="{% static 'js/jquery-2.1.1.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
-    <script src="{% static 'js/docs.min.js' %}"></script>
     <script src="{% static 'js/bootstrap-datepicker.js' %}"></script>
     <script src="{% static 'js/bootstrap-timepicker.js' %}"></script>
     <script>
