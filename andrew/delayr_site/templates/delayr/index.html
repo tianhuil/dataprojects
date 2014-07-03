@@ -1,14 +1,37 @@
 {% extends 'delayr/base.html' %}
 
 {% block body_block %}
+{% if string_prediction or all_time_prediction or all_date_prediction or other_option_prediction %}
+<div class="col-md-2">
+<div class="bs-docs-sidebar hidden-print hidden-xs hidden-sm" role="complementary">
+  <ul class="nav bs-docs-sidenav">
+    <br>
+    <li class="active">
+    <a href="#search">Itinerary</a>
+    </li>
+    
+    {% if string_prediction or all_time_prediction or all_date_prediction %}
+    <li>
+    <a href="#plots">Predictions</a>
+    </li>
+    {% endif %}
+    {% if other_option_prediction %}
+    <li>
+    <a href="#otheroptions">Other Flights</a>
+    </li>
+    {% endif %}
+  </ul>
+</div>
+</div>
+<div class="col-md-10" role="main"><!--This spans blocks so maybe not the best idea-->
+{% endif %}
+<div id="search" class="jumbotron">
 {% if welcome_message %}
 <h2>{{ welcome_message }}</h2>
 {% endif %}
 {% if errmessage %}
 <h4>{{ errmessage }}</h4>
 {% endif %}
-
-
 <form id="search_form" method="post" action="/delayr/">
 <table>
 {% csrf_token %}
@@ -35,38 +58,51 @@
 {% for field in datetimeform.visible_fields %}
     <tr><td align="right">{{ field.help_text }}</td><td>{{ field }}</th></tr>
 {% endfor %}
-
 </table>
-
-<input type="submit" name="submit" value="Predict Delay">
+<br>
+<input type="submit" class="btn btn-primary btn-lg" name="submit" value="Predict Delay">
 </form>
-
+</div>
 {% endblock %}
 
 {% block result_block %}
 {% if string_prediction or all_time_prediction or all_date_prediction %}
-<div class="container">
-  <div class="jumbotron">
-    <h3> Predicted Delays for Your Itinerary</h3><br>
-    <table>
-      <tr>
-	{% if string_prediction %}
-	<td><img class="img-responsive" src="/delayr/user_prediction_{{ string_prediction }}.jpg"></td>
-	{% endif %}
-	{% if all_time_prediction %}
-	<td><img class="img-responsive" src="/delayr/all_time_prediction_{{ all_time_prediction }}.jpg"></td>
-	{% endif %}
-	{% if all_date_prediction %}
-	<td><img class="img-responsive" src="/delayr/all_date_prediction_{{ all_date_prediction }}.jpg"></td>
-	{% endif %}
-      </tr>
-    </table>
+  <div id="plots" class="jumbotron">
+    <h3> Predicted Delays</h3>
+    
+ <!-- Nav tabs -->
+<ul class="nav nav-tabs" role="tablist">
+  {% if string_prediction %}
+    <li><a href="#plots_userpred" role="tab" data-toggle="tab">Your Itinerary</a></li>
+  {% endif %}
+  {% if all_time_prediction %}
+  <li><a href="#plots_timeofday" role="tab" data-toggle="tab">During the Day</a></li>
+  {% endif %}
+  {% if all_date_prediction %}
+  <li><a href="#plots_nearbydays" role="tab" data-toggle="tab">Nearby Days</a></li>
+  {% endif %}
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+  {% if string_prediction %}
+    <div class="tab-pane active" id="plots_userpred"><img class="img-responsive" src="/delayr/user_prediction_{{ string_prediction }}.jpg" align="center"></div>
+  {% endif %}
+  {% if all_time_prediction %}
+  <div class="tab-pane" id="plots_timeofday"><img class="img-responsive" src="/delayr/all_time_prediction_{{ all_time_prediction }}.jpg"></div>
+  {% endif %}
+  {% if all_date_prediction %}
+  <div class="tab-pane" id="plots_nearbydays"><img class="img-responsive" src="/delayr/all_date_prediction_{{ all_date_prediction }}.jpg"></div>
+  {% endif %}
+</div>
+
   </div>
   {% if other_option_prediction %}
-  <div class="jumbotron">
+  <div id="otheroptions" class="jumbotron">
     <h3>Similar Itineraries with the Best On-Time Predictions</h3>
     <u1 class="list-group">
     {% for other_option in other_option_prediction %}
+    {% if not forloop.last %}
     <form id="search_form" method="post" action="/delayr/">
     {% csrf_token %}
     {% for field in datetimeform.visible_fields %}
@@ -77,10 +113,15 @@
     <input id="id_dest" name="dest" type="hidden" value="{{ other_option.dest }}" />
     <li class="list-group-item"><input type="submit" class="linkButton" name="submit" value="{{ forloop.counter }}:">{{ other_option.display_string }}</li>
     </form>
+    {% else %}
+    <li class="list-group-item list-group-item-{{ other_option_colorname }}"><span class="badge">Your Itinerary</span>{{ other_option.display_string }}</li>
+    {% endif %}
     {% endfor %}
     </u1>
-  </div>
   {% endif %}
 </div>
+{% if string_prediction or all_time_prediction or all_date_prediction or other_option_prediction %}
+</div>
+{% endif %}
 {% endif %}
 {% endblock %}
