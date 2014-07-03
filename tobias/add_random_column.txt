@@ -1,0 +1,3 @@
+ALTER TABLE arXivmeta ADD COLUMN Random double precision;
+SELECT setseed(0.57);
+UPDATE arXivmeta SET Random=random();

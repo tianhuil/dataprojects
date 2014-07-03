@@ -1,6 +1,30 @@
-#----------------------------
+#-----------------------------------------------
 #        README
-#----------------------------
+#-----------------------------------------------
 
 The Data Incubator project for Alan Meert.
-More details to follow.
+
+
+#-----------------------------------------------
+#       INSTALL
+#-----------------------------------------------
+
+Just run the Makefile in this directory to build 
+the code.
+
+NOTE:
+    The Gdelt download takes a very long time!!!
+    This is not included in the 
+#----------------------------------------------
+# Additional DATA Sources
+#---------------------------------------------
+trademap.org - import/export data
+The trademap data has no limited access that must
+be done manually. There is no api as far as I can
+tell, and scraping is prevented as well. So I am 
+including the trade data 
+
+#----------------------------------------------
+#        OTHER INFO
+#----------------------------------------------
+Nothing here yet....

@@ -1,0 +1,42 @@
+CREATE TABLE country_totals (SQLDATE int, country varchar(2), events int);
+alter table country_totals add unique key (SQLDATE, country);
+
+LOAD DATA INFILE '{gitdir}/data/gdelt_files/daily_country.csv' IGNORE INTO TABLE country_totals FIELDS TERMINATED BY ',';
+
+DROP TABLE IF EXISTS actor3codes;
+CREATE TABLE actor3codes (code varchar(4) primary key, description varchar(150));
+LOAD DATA INFILE '{gitdir}/data/gdelt_files/actor3codes.clean' IGNORE INTO TABLE  actor3codes  FIELDS TERMINATED BY ';' ;
+
+DROP TABLE IF EXISTS actorfullcodes;
+CREATE TABLE actorfullcodes (code varchar(13) primary key, description varchar(150));
+LOAD DATA INFILE '{gitdir}/data/gdelt_files/actorfullcodes.clean' IGNORE INTO TABLE  actorfullcodes  FIELDS TERMINATED BY ';' ;
+
+DROP TABLE IF EXISTS ethnicitycodes;
+CREATE TABLE ethnicitycodes (code varchar(4) primary key, description varchar(150));
+LOAD DATA INFILE '{gitdir}/data/gdelt_files/ethnicitycodes.clean' IGNORE INTO TABLE  ethnicitycodes  FIELDS TERMINATED BY ';' ;
+
+DROP TABLE IF EXISTS religioncodes;
+CREATE TABLE religioncodes (code varchar(7) primary key, description varchar(150));
+LOAD DATA INFILE '{gitdir}/data/gdelt_files/religioncodes.clean' IGNORE INTO TABLE  religioncodes  FIELDS TERMINATED BY ';' ;
+
+DROP TABLE IF EXISTS rolecodes;
+CREATE TABLE rolecodes (code varchar(7) primary key, description varchar(150));
+LOAD DATA INFILE '{gitdir}/data/gdelt_files/rolecodes.clean' IGNORE INTO TABLE  rolecodes  FIELDS TERMINATED BY ';' ;
+
+DROP TABLE IF EXISTS countrycodes;
+CREATE TABLE countrycodes (code varchar(4) primary key, description varchar(150));
+LOAD DATA INFILE '{gitdir}/data/gdelt_files/countrybycode.clean' IGNORE INTO TABLE  countrycodes  FIELDS TERMINATED BY ';' ;
+LOAD DATA INFILE '{gitdir}/data/gdelt_files/countrybyname.clean' IGNORE INTO TABLE  countrycodes  FIELDS TERMINATED BY ';' ;
+
+DROP TABLE IF EXISTS igocodes;
+CREATE TABLE igocodes (code varchar(13) primary key, description varchar(150));
+LOAD DATA INFILE '{gitdir}/data/gdelt_files/igocodes.clean' IGNORE INTO TABLE  igocodes  FIELDS TERMINATED BY ';' ;
+
+DROP TABLE IF EXISTS ngocodes;
+CREATE TABLE ngocodes (code varchar(13) primary key, description varchar(150));
+LOAD DATA INFILE '{gitdir}/data/gdelt_files/ngocodes.clean' IGNORE INTO TABLE  ngocodes  FIELDS TERMINATED BY ';' ;
+
+DROP TABLE IF EXISTS EventCodes;
+CREATE TABLE EventCodes (code float primary key, description varchar(150));
+LOAD DATA INFILE '{gitdir}/data/gdelt_files/EventCodes.clean' IGNORE INTO TABLE  EventCodes  FIELDS TERMINATED BY ';' ;
+

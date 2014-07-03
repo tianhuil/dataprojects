@@ -2,3 +2,7 @@
 *nogit.py
 *.pyc
 *.crap
+*.csv
+*jpg
+*pdf
+*pkl
