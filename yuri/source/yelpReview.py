@@ -47,7 +47,7 @@ def testCat(featuresTest, yTest, myClassifier, cats):
     return pr, aveScore
 
 def testSent(featuresTest, yTest, myClassifier, cats):
-    print "Testing......"
+    # print "Testing......"
     
     l = len(cats)    
     pred_prob = myClassifier.predict_proba(featuresTest)
@@ -155,6 +155,7 @@ def load():
     
     # bus     = pd.read_sql("SELECT * FROM bus;", conn)
     review  = pd.read_sql("""SELECT BUSINESS_ID, TEXT, STARS FROM review;""", conn)
+    tip     = pd.read_sql("""SELECT * FROM tip;""", conn)
     bus_cat = pd.read_sql("""SELECT * FROM bus_cat;""", conn)
     rev_cat = pd.merge(bus_cat, review, on='BUSINESS_ID')
     
@@ -170,29 +171,39 @@ def load():
                 ind = (ind) & (rev_cat[b] != 1)
         reviews.append(rev_cat[ind])
 
-    # # Number of reviews in smallest category ~7000
-    # # Keeping categories balanced for improved classifier performance
-    # kfold = cv.KFold(1000, n_folds=2)
-    # # scores = [classifier.score(f[test], np.array(y)[test]) for train, test in kfold]
-    # reviewsTrainCat, yTrainCat = [], []
-    # reviewsTestCat, yTestCat   = [], []
-    #
-    # for i in range(len(reviews)): reviews[i] = reviews[i].reset_index(drop=True)
-    #
-    # totalScore = []
-    # for trainSet, testSet in kfold:
-    #     for i in range(len(reviews)):
-    #         reviewsTrainCat.extend(reviews[i]['TEXT'][trainSet])
-    #         yTrainCat.extend([i]*len(trainSet))
-    #         reviewsTestCat.extend(reviews[i]['TEXT'][testSet])
-    #         yTestCat.extend([i]*len(testSet))
-    #     tfidf, myClassifierCat = train(reviewsTrainCat, yTrainCat)
-    #     featuresTestCat = tfidf.transform(reviewsTestCat).toarray()
-    #     pr, aveScore = testCat(featuresTestCat, yTestCat, myClassifierCat, categories)
-    #     print "CV Total Accuracy = %.4f" % (aveScore)
-    #     print pr
-    #     totalScore.append(aveScore)
-    # print "Mean score = ", sum(totalScore)/len(totalScore)
+    # Number of reviews in smallest category ~7000
+    # Keeping categories balanced for improved classifier performance
+    kfold = cv.KFold(7000, n_folds=2)
+    # scores = [classifier.score(f[test], np.array(y)[test]) for train, test in kfold]
+    reviewsTrainCat, yTrainCat = [], []
+    reviewsTestCat, yTestCat   = [], []
+
+    for i in range(len(reviews)): reviews[i] = reviews[i].reset_index(drop=True)
+
+    totalScore = []
+    for trainSet, testSet in kfold:
+        for i in range(len(reviews)):
+            reviewsTrainCat.extend(reviews[i]['TEXT'][trainSet])
+            yTrainCat.extend([i]*len(trainSet))
+            reviewsTestCat.extend(reviews[i]['TEXT'][testSet])
+            yTestCat.extend([i]*len(testSet))
+        tfidf, myClassifierCat = train(reviewsTrainCat, yTrainCat)
+        featuresTestCat = tfidf.transform(reviewsTestCat).toarray()
+        pr, aveScore = testCat(featuresTestCat, yTestCat, myClassifierCat, categories)
+        print "CV Total Accuracy = %.4f" % (aveScore)
+        print pr
+        totalScore.append(aveScore)
+    print "Mean score = ", sum(totalScore)/len(totalScore)
+    # CV Total Accuracy = 0.9746
+    #         Category  Precision    Recall
+    # 0    Restaurants      0.990  0.970588
+    # 1           Food      0.941  0.976141
+    # 2       Shopping      0.970  0.960396
+    # 3  BeautyandSpas      0.988  0.980159
+    # 4     ActiveLife      0.984  0.985972
+    
+    
+    
             
     # TRAINING AND TESTING THE SENTIMENT CLASSIFIER
     # Using "reviews" from above, have 2 classes: 5 stars = positive(1), 1 stars = negative (0)
@@ -205,9 +216,9 @@ def load():
         reviewsSent.append(pd.concat(temp))
     
     # for i in range(5): print reviewsSent[i].index[0:10]
-    kfold = cv.KFold(3000, n_folds=2)
+    kfold = cv.KFold(10000, n_folds=2)
     reviewsTrainSent, yTrainSent = [], []
-    reviewsTestSent, yTestSent   = [], []
+    
 
     for i in range(len(reviews)): reviewsSent[i] = reviewsSent[i].reset_index(drop=True)
 
@@ -224,7 +235,10 @@ def load():
         # Test on all 5 classes: 
         # 5 = class 1, 4 = class 1
         # 3 = class 0, 2 = class 0, 1 = class 0
+        print "Testing......"
+        cvScore = []
         for i in range(len(reviewsSent)):
+            reviewsTestSent, yTestSent   = [], []
             reviewsTestSent.extend(reviewsSent[i]['TEXT'][testSet])
             yTestSent.extend([i/3]*len(testSet))
         
@@ -232,12 +246,24 @@ def load():
             featuresTestSent = tfidf.transform(reviewsTestSent).toarray()
             if i < 3: c = "Negative"
             else: c = "Positive"
-            aveScore = testSent(featuresTestSent, yTestSent, myClassifierSent, [c])
-            print "%d Total Accuracy = %.4f" % (i, aveScore)
+            cvScore.append(testSent(featuresTestSent, yTestSent, myClassifierSent, [c]))
+            # print "%d Total Accuracy = %.4f" % (i+1, cvScore[i])
             # print pr
             # totalScore.append(aveScore)
-    # print "Mean score = ", sum(totalScore)/len(totalScore)
-
+        # print "Mean score = ", sum(totalScore)/len(totalScore)
+        totalScore.append(cvScore)
+    
+    # score = [[cats[x],met[0][x],met[1][x]] for x in range(len(met[0]))]
+    score = pd.DataFrame(np.mean(totalScore, axis = 0), columns=["Accuracy"])
+    print score
+    #    Accuracy
+    # 1    0.9614
+    # 2    0.8305
+    # 3    0.4418
+    # 4    0.8835
+    # 5    0.9499
+    
+    # Making cosine similarity matrix for reviews
     # cos = np.dot(train,train.T)
     #
     # print cos.shape
@@ -246,6 +272,12 @@ def load():
     #
     # plt.plot(np.arange(cos.shape[1]), cos[1])
     # plt.show()    
+    
+    # combine cosine similarity matrix with user tip history data
+    
+    
+    
+    
     
     cursor.close()
     conn.close()
