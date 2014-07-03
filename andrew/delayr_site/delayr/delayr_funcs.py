@@ -5,6 +5,7 @@ import datetime as dt
 import pandas as pd
 import importlib
 from django.db import connection
+from delayr.forms import AirportForm,AirlineForm,DateTimeForm
 
 #delayr_funcs contains a bunch of useful functions for getting between my web frontend and the ML backend.
 
@@ -39,6 +40,13 @@ def fix_weekday(dayofweek,offset=2):
     if dayofweek > 7:
         dayofweek -= 7
     return dayofweek
+
+#A kludge to map the choice values back to the full names:
+def get_full_names(origin,dest,uniquecarrier):
+    origin_full = [entry[1] for entry in AirportForm.airport_choice_tup if entry[0] == origin]
+    dest_full = [entry[1] for entry in AirportForm.airport_choice_tup if entry[0] == dest]
+    carrier_full = [entry[1] for entry in AirlineForm.airline_choice_tup if entry[0] == uniquecarrier]
+    return origin_full[0],dest_full[0],carrier_full[0]
 
 #Predict the user's itinerary, as well as some other interesting things:
 #This is the main function in the site, and it powers the calculations behind the data shown to the user.
@@ -160,8 +168,20 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
                 #Sort the predictions, take the N best:
                 sorted_result_df = result_df.sort(all_result_cols[-1],ascending=False)
                 trimmed_sorted_result_df = sorted_result_df[:other_options]
+                print "test1",trimmed_sorted_result_df
+                print "test2",user_output_df
+                #Get the full names for the itinerary the user searched for, add to the output dataframe:
+                user_origin,user_dest,user_carrier = get_full_names(inpdict['origin'][0],inpdict['dest'][0],inpdict['uniquecarrier'][0])
+                full_user_output_df = pd.DataFrame([[inpdict['origin'][0],inpdict['dest'][0],inpdict['uniquecarrier'][0],user_origin,user_dest,user_carrier,user_output_df[user_output_df.columns.values[0]].values[0]]],columns=trimmed_sorted_result_df.columns)
+                trimmed_sorted_result_df = trimmed_sorted_result_df.append(full_user_output_df,ignore_index=True)
+                #Determine what color to make the user's itinerary:
+                other_option_colorname = 'warning'
+                if trimmed_sorted_result_df[trimmed_sorted_result_df.columns.values[-1]].values[-1] > trimmed_sorted_result_df[trimmed_sorted_result_df.columns.values[-1]].values[0]:
+                    other_option_colorname = 'success'
+                elif trimmed_sorted_result_df[trimmed_sorted_result_df.columns.values[-1]].values[-2] > trimmed_sorted_result_df[trimmed_sorted_result_df.columns.values[-1]].values[-1]:
+                    other_option_colorname = 'danger'
+                return_dict['other_option_colorname'] = other_option_colorname
                 stringlist = []
-                #print "debug: ",trimmed_sorted_result_df
                 #fill out the list of the best alternate options, put it in the output dictionary:
                 for i in range(trimmed_sorted_result_df.shape[0]):
                     rowvals = trimmed_sorted_result_df.irow(i)
