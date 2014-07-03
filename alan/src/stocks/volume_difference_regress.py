@@ -20,8 +20,6 @@ sys.path.append('../')
 import settings
 from utils import *
 
-from stock_returns import load_stock, date_contract
-
 Conn = mysql.connect(host = settings.host,
                      user = settings.user,
                      db = settings.db)

@@ -18,7 +18,18 @@ sys.path.append('../')
 import settings
 from utils import *
 
-from stock_returns import load_stock, date_contract
+def date_contract(contract_dates, stock):
+    contract_ord = np.array([ a.date().toordinal() for a in contract_dates])
+    day_bins = np.digitize(stock['orddate'], contract_ord, right=True)
+    stock['day_bins'] = day_bins
+    trange = np.array([(contract_ord[x]-y)/float(contract_ord[x]-contract_ord[x-1]) for x,y in zip(day_bins, stock['orddate'])])
+    stock['time_remaining'] = trange
+    return
+
+def load_stock(comm_choice, start_date, end_date):
+    stock_data = pd.read_pickle('%s.pickle' %comm_choice)
+    stock_data = stock_data[pd.datetime(start_date.year,start_date.month,start_date.day):pd.datetime(end_date.year,end_date.month,end_date.day)]
+    return stock_data
 
 
 # Reporting function
