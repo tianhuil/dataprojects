@@ -83,19 +83,19 @@ if __name__ == "__main__":
                 currmodelstart = time.time()
                 #6c_a: Iterate through each model in that set:
                 for k,currmodel in enumerate(model_list):
-                    #6c_a_a: Load the model in:
-                    #f = open(model_fname,'rb')
-                    #currmodel = pickle.load(f)
-                    #f.close()
-                    #6c_a_b: Compute the score of the model:
-                    score = currmodel.score(predictor_arr,target_arr)
+                    #6c_a_a: Compute the score of the model:
+                    score = currmodel.score(predictor_arr,target_arr)#Can't use score_percentiles because it's ~50x slower. Lame.
                     #print "        ",k,predictor_arr.shape
                     cumscores[j] += score
                     scorecounter[j] += 1
                 print "        Model iteration {0:d} of {1:d}: Time = {2:.2f}s".format(j+1,len(model_filename_lists),time.time()-currmodelstart)
             print "    Time to do all models = {0:.2f}s".format(time.time()-allmodelstart)
         print "Total iteration time: {0:.3f} hours".format((time.time()-iterstart)/3600.)
-            
+
+        #7: Get the highest cumulative score:
+        scaled_scores = cumscores/scorecounter.astype(np.float)
+        for i in range(len(scaled_scores)):
+            print i,scaled_scores[i],model_lists[i][0].rforest.get_params()
         
     except mdb.Error, e:
         print "Error %d: %s" % (e.args[0],e.args[1])
