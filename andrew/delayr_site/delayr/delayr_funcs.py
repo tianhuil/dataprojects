@@ -141,7 +141,7 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
         cursor.execute("""select distinct fd.origin,fd.dest,fd.uniquecarrier,aorig.airportname,adest.airportname,aline.fullname from {0:s} as fd join airports as aorig on fd.origin=aorig.origin join airports as adest on fd.dest=adest.origin join airlinenames as aline on fd.uniquecarrier=aline.uniquecarrier where origincitymarketid={1:d} and destcitymarketid={2:d} and year(fd.flightdate) > 2012""".format(dbname_sql,origin_market_id,dest_market_id))
         result = list(cursor.fetchall())
         if len(result) > 0:
-            print len(result)
+            #print len(result)
             result_df = pd.DataFrame(result,columns=columns)
             #Cut out the itinerary that the user selected, if necessary:
             searched_itinerary = (result_df['origin'] == inpdict['origin'][0]) & (result_df['dest'] == inpdict['dest'][0]) & (result_df['uniquecarrier'] == inpdict['uniquecarrier'][0])
@@ -168,8 +168,8 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
                 #Sort the predictions, take the N best:
                 sorted_result_df = result_df.sort(all_result_cols[-1],ascending=False)
                 trimmed_sorted_result_df = sorted_result_df[:other_options]
-                print "test1",trimmed_sorted_result_df
-                print "test2",user_output_df
+                #print "test1",trimmed_sorted_result_df
+                #print "test2",user_output_df
                 #Get the full names for the itinerary the user searched for, add to the output dataframe:
                 user_origin,user_dest,user_carrier = get_full_names(inpdict['origin'][0],inpdict['dest'][0],inpdict['uniquecarrier'][0])
                 full_user_output_df = pd.DataFrame([[inpdict['origin'][0],inpdict['dest'][0],inpdict['uniquecarrier'][0],user_origin,user_dest,user_carrier,user_output_df[user_output_df.columns.values[0]].values[0]]],columns=trimmed_sorted_result_df.columns)

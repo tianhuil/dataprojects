@@ -68,20 +68,34 @@
 {% block result_block %}
 {% if string_prediction or all_time_prediction or all_date_prediction %}
   <div id="plots" class="jumbotron">
-    <h3> Predicted Delays</h3><br>
-    <table>
-      <tr>
-	{% if string_prediction %}
-	<td><img class="img-responsive" src="/delayr/user_prediction_{{ string_prediction }}.jpg"></td>
-	{% endif %}
-	{% if all_time_prediction %}
-	<td><img class="img-responsive" src="/delayr/all_time_prediction_{{ all_time_prediction }}.jpg"></td>
-	{% endif %}
-	{% if all_date_prediction %}
-	<td><img class="img-responsive" src="/delayr/all_date_prediction_{{ all_date_prediction }}.jpg"></td>
-	{% endif %}
-      </tr>
-    </table>
+    <h3> Predicted Delays</h3>
+    
+ <!-- Nav tabs -->
+<ul class="nav nav-tabs" role="tablist">
+  {% if string_prediction %}
+    <li><a href="#plots_userpred" role="tab" data-toggle="tab">Your Itinerary</a></li>
+  {% endif %}
+  {% if all_time_prediction %}
+  <li><a href="#plots_timeofday" role="tab" data-toggle="tab">During the Day</a></li>
+  {% endif %}
+  {% if all_date_prediction %}
+  <li><a href="#plots_nearbydays" role="tab" data-toggle="tab">Nearby Days</a></li>
+  {% endif %}
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+  {% if string_prediction %}
+    <div class="tab-pane active" id="plots_userpred"><img class="img-responsive" src="/delayr/user_prediction_{{ string_prediction }}.jpg" align="center"></div>
+  {% endif %}
+  {% if all_time_prediction %}
+  <div class="tab-pane" id="plots_timeofday"><img class="img-responsive" src="/delayr/all_time_prediction_{{ all_time_prediction }}.jpg"></div>
+  {% endif %}
+  {% if all_date_prediction %}
+  <div class="tab-pane" id="plots_nearbydays"><img class="img-responsive" src="/delayr/all_date_prediction_{{ all_date_prediction }}.jpg"></div>
+  {% endif %}
+</div>
+
   </div>
   {% if other_option_prediction %}
   <div id="otheroptions" class="jumbotron">

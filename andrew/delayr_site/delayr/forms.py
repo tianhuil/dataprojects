@@ -14,7 +14,7 @@ def getcurrdate():
 class AirportForm(forms.Form):
     airport_qset = Airports.objects.raw('''select distinct(airports.origin),airports.airportname from airports join flightdelays_apr_afternoon on flightdelays_apr_afternoon.origin = airports.origin where year(flightdelays_apr_afternoon.flightdate) >= 2013 order by airports.airportname''')
     airport_choice_tup = [(entry.origin,entry.airportname) for entry in airport_qset]
-    origin = forms.ChoiceField(choices = airport_choice_tup,help_text="Origin Airport:",initial='LGA')
+    origin = forms.ChoiceField(choices = airport_choice_tup,help_text="Origin Airport:",initial='SFO')
     dest = forms.ChoiceField(choices = airport_choice_tup,help_text="Destination Airport:",initial='ORD')
     # class Meta:
     #     model = Airports

@@ -5,6 +5,9 @@ from django.http import HttpResponse
 import pandas as pd
 import numpy as np
 import re
+import os
+import glob
+import cPickle as pickle
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.ticker import ScalarFormatter
@@ -23,7 +26,20 @@ axlabelsize = 20
 ticklabelsize = 20
 legendsize = 18
 fontname = 'Times New Roman Bold'
-figsize = (10,7.5)
+figsize = (8,6.5)
+
+#Can I preload all my pickled models here, and save runtime later?
+def load_pickles(pickle_dict):
+    projectdir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))#the main project directory
+    pkl_directory = os.path.join(projectdir,'saved_models/')
+    picklenames = glob.glob(pkl_directory+"*.pkl")
+    for name in picklenames:
+        f = open(name,'rb')
+        pickle_dict[name] = pickle.load(f)
+        f.close()
+pickle_dict = {}
+load_pickles(pickle_dict)
+print pickle_dict[pickle_dict.keys()[0]]
 
 #Simple test view, for trying out new things:
 def test(request):
