@@ -14,7 +14,7 @@ for zcnt in range(len(zones)):
     zonalLoad = []
     for yr in yrs:
         print yr
-        raw_csv =  'raw_csv/%s%i.csv' %(zones[zcnt],yr)
+        raw_csv =  'raw_lf_csv/%s%i.csv' %(zones[zcnt],yr)
         df = pd.read_csv(raw_csv)
         for cnt in range( 3,len(df),8):  #here I need to just get right days
             if zcnt == 0:
@@ -36,14 +36,3 @@ for row in comb_loads:
     print row
     writer.writerow(row)
 f.close()
-
-
-#snippit for putting the data into timeseries and plotting
-#import matplotlib.pyplot as plt
-#%matplotlib inline
-#df = pd.read_csv( 'lf_hist.csv')
-#a=  df.values[:][:,0]
-#b= (df.values[:][:,2].astype(int)-1).astype(str) #HE indexing
-#dt = pd.to_datetime( a +' ' +b + ':00')
-#ts = pd.Series( df.values[:][:,2], dt)
-#ts.plot()
