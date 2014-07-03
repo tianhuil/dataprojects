@@ -127,5 +127,5 @@ class TableAcc(object):
     self.__rows = { }
       
   def add_many(self, records):
-    self._exec_many_proc(self.__upsert_proc, records)
+    self._exec_many_procs(self.__upsert_proc, records)
 
