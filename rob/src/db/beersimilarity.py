@@ -48,7 +48,7 @@ def __asyncable_similarity(tup):
   bs, b_refs, X_t_ref, b_comps, X_t_comp, top = tup
 
   start = dt.now()
-  print 'Beers %s vs %s: Compute Similarity' % (b_refs,b_comps)
+  print 'Beer ct %s vs ct %s: Compute Similarity' % (len(b_refs),len(b_comps))
   try:
     for i in xrange(len(b_refs)):
       
