@@ -88,6 +88,7 @@
     <h3>Similar Itineraries with the Best On-Time Predictions</h3>
     <u1 class="list-group">
     {% for other_option in other_option_prediction %}
+    {% if not forloop.last %}
     <form id="search_form" method="post" action="/delayr/">
     {% csrf_token %}
     {% for field in datetimeform.visible_fields %}
@@ -98,6 +99,9 @@
     <input id="id_dest" name="dest" type="hidden" value="{{ other_option.dest }}" />
     <li class="list-group-item"><input type="submit" class="linkButton" name="submit" value="{{ forloop.counter }}:">{{ other_option.display_string }}</li>
     </form>
+    {% else %}
+    <li class="list-group-item list-group-item-{{ other_option_colorname }}"><span class="badge">Your Itinerary</span>{{ other_option.display_string }}</li>
+    {% endif %}
     {% endfor %}
     </u1>
   {% endif %}

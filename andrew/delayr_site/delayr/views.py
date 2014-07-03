@@ -51,7 +51,9 @@ def index(request):
         #return model_output(request)
         submittedform = AirportForm(request.POST)
         if submittedform.is_valid():
-            #Get the data, validate the date field (since somehow the widget I'm using isn't doing that part(!):
+            #Get the data, validate the date field (since somehow the widget I'm using isn't doing that part):
+            #print dir(submittedform)
+            #print dir(submittedform.visible_fields)
             valuedict = dict(submittedform.data)
             date_regexp = re.compile(r'^\d\d/\d\d/\d\d\d\d$')
             #print valuedict['date'][0],date_regexp.search(valuedict['date'][0])
@@ -81,6 +83,7 @@ def index(request):
                 #Prepare other similar itineraries
                 if 'other_option_prediction' in prediction_dict.keys():
                     context_dict['other_option_prediction'] = prediction_dict['other_option_prediction']
+                    context_dict['other_option_colorname'] = prediction_dict['other_option_colorname']
             #Set the form fields to contain the searched-for values, for easier searches of similar itineraries:
             airlineform.fields['uniquecarrier'].initial = valuedict['uniquecarrier'][0]
             airportform.fields['origin'].initial = valuedict['origin'][0]
