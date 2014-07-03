@@ -23,7 +23,7 @@ axlabelsize = 20
 ticklabelsize = 20
 legendsize = 18
 fontname = 'Times New Roman Bold'
-figsize = (8,6)
+figsize = (10,7.5)
 
 def test(request):
     context = RequestContext(request)
