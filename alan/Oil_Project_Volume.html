@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta http-equic="content-type" content="test/html; charset=encoding">
+<title> Alan Meert - Home </title>
+
+<link rel="stylesheet" type="text/css" href="./html/style.css">
+</head>
+
+<body>
+
+<div id="navbar">
+<ul class="nav">
+  <li id="Home"><a class="nounder" href="./Oil_Project_Home.html">Home</a></li>
+  <li id="Prices"><a class="nounder" href="./Oil_Project_Prices.html">Prices</a></li>
+  <li id="Volume"><a class="nounder" href="./Oil_Project_Volume.html">Volume</a></li>
+</ul>
+</div>
+
+<!--Now begins the main body text-->
+
+<div id="header">
+ <h1>Predicting Oil Trading Volume</h1>
+</div>
+
+<div id="content">
+<div id="main">
+<h1>Oil Volume</h1>
+<p>I used a similar process to model oil volume.</p>
+
+<h1>Volume Correlation</h1>
+<p>First, the autocorrelation and partial autocorrelation should reveal any major trends that we should remove from the time-series.</p>
+<img src="./html/volume_correlation.png" title="Autocorrelation and Partial Autocorrelation of Oil Volume"  height="400"/> 
+<p>
+The partial autocorrelation shows that there is a stong dependence on the most recent days. There is also a correlation at about 20 business days, which will be explained shortly. As our first prediction, we use an ARMA(1,1) model. This model has an autoregressive term for the most recent day in addition to the 1-day moving average (yesterday's volume value).
+</p> 
+<img src="./html/volume_ARMAresidcorr.png" title="Autocorrelation and Partial Autocorrelation of Oil Volume ARMA residuals"  height="400"/> 
+<p>
+The partial autocorrelation of the ARMA(1,1) model shows that the 20-day term remains. The 20-day lag corresponds to 1-month intervals (since trading takes place on business days and skips Saturday and Sunday). 
+</p> 
+
+<img src="./html/ARMA_stock_residual_panel.png" title="Volume predictions, residuals, and folded data"  height="400"/> 
+<p>
+If we express the residuals as a fraction of the remaining time in the contract, the data folds up on itself and we can see a trend toward negative residuals at the end of the contract when volume drops as contracts are closed out, which I call roll-off. I fit a decision tree to this behavior and use the resulting predictor to generate a correction term for the ARMA Model. After making this correction the trend is less obvious, although it is hard to remove completely.</p>
+<img src="./html/time_test_residual_panel.png" title="Data corrected for roll-off"  height="400"/> 
+ 
+
+<h1>Fitted Models</h1>
+<p>Using the same data sets, factors, and transformations used to predict price, I tried to predict volume. The benchmark model is again the 'dumb' prediction of the average residual value for the entire set. I fit a linear regression model, Decision Tree, Random Forest, and SVM model. The random forest and SVM models were cross-validated to optimize hyperparameters for each model using a grid search of the hyperspace. A comparison of each model is shown below.</p>
+<img src="./html/volcorr_Dummy.png" title="Dummy Prediction"  height="200"/> 
+<img src="./html/volcorr_linear.png" title="Linear Model Prediction"  height="200"/><img src="./html/volcorr_DecTree.png" title="Decision Tree Prediction"  height="200"/> 
+<img src="./html/volcorr_RandFor.png" title="Random Forest Prediction"  height="200"/>
+<img src="./html/volcorr_SVM.png" title="SVM Prediction"  height="200"/>
+<p>Here the linear and  SVM models beat the benchmark. The gain comes from properly identifying and correcting large positive outliers.</p>
+
+<h1>Results and Future Work</h1>
+<p>The volume is also difficult to predict in the case of oil futures. If there is some predictive power in GDelt, it is likely at a more refined level than what was used here. The limited descriptions of events (simply two actors and a general description like "US government uses conventional weapons to attack Iraqi rebels") is simply too course to infer the relavence to oil production. Additional information on the events would definitely be required to improve these results. Unfortuantely, the time limitations and computational limitations prevented a more in-depth exploration.
+</p>
+
+
+<p><br></p><p>
+</p><p><br></p><p>
+
+</p></div>
+</div>
+</div>
+</body></html>
