@@ -34,17 +34,10 @@ def train_log(tablename,continuous_predictors = [],discrete_predictors = ['origi
     print "Finished coding the predictors ({0:.2f}s)".format(time.time()-start)
 
     #Free up memory by chucking the data
-    data = None
+    del data
 
     #Train the logistic regression model:
-    # def test_scoring(estimator,X,y):
-    #     inty = y.astype(np.int16)
-    #     probs = estimator.predict_proba(X)[:,inty]
-        
-    #     #print inty[:4],probs[:4]
-    #     return np.sum(probs)
     logreg = sklearn.grid_search.GridSearchCV(sklearn.linear_model.LogisticRegression(),param_grid={'C':C_vals},scoring=ff.pdf_scoring,cv=2)
-    #logreg = sklearn.linear_model.LogisticRegression(penalty='l2',C=1.e5)
     logreg.fit(pred_code,coded_delays)
     print "Best C = {C}".format(**logreg.best_params_)
     print "Finished training the model ({0:.2f}s)".format(time.time()-start)
@@ -55,17 +48,6 @@ def train_log(tablename,continuous_predictors = [],discrete_predictors = ['origi
         regression_dict = {'model':logreg,'target_coder':tc,'predictor_coder':coder,'table_name':tablename,'subset':subset}
         pickle.dump(regression_dict,pklfile)
         pklfile.close()
-        
-    # #This is just some testing stuff to make sure I can get out probabilities that make sense. It'll go away soon, when I fully separate out the training from the testing.
-    # sampledict = {'origin': pd.Series(['MSN','DEN','LAX']),
-    #               'dest': pd.Series(['ORD','JFK','ORD']),
-    #               'uniquecarrier': pd.Series(['UA','UA','UA']),
-    #               'label': pd.Series(['United - MSN->ORD','United - DEN->JFK','United - LAX->ORD'])
-    #               }
-    # sampledf = pd.DataFrame(sampledict)
-    # sample_code = coder.code_data(sampledf)
-    # sample_probabilities = logreg.predict_proba(sample_code)
-    # print sample_probabilities
 
 def test_run(model_file):
     f = open(model_file,'rb')

@@ -47,6 +47,11 @@ def test(request):
     context_dict = {}
     return render_to_response('delayr/test.html',context_dict,context)
 
+def nitty_gritty(request):
+    context = RequestContext(request)
+    context_dict = {}
+    return render_to_response('delayr/nitty_gritty.html',context_dict,context)
+
 #The about page:
 def about(request):
     context = RequestContext(request)
@@ -68,11 +73,8 @@ def index(request):
         submittedform = AirportForm(request.POST)
         if submittedform.is_valid():
             #Get the data, validate the date field (since somehow the widget I'm using isn't doing that part):
-            #print dir(submittedform)
-            #print dir(submittedform.visible_fields)
             valuedict = dict(submittedform.data)
             date_regexp = re.compile(r'^\d\d/\d\d/\d\d\d\d$')
-            #print valuedict['date'][0],date_regexp.search(valuedict['date'][0])
             if valuedict['origin'][0] == valuedict['dest'][0]:
                 context_dict['welcome_message'] = "Welcome to Delayr!"
                 context_dict['errmessage'] = "Choose two different airports"
@@ -88,7 +90,6 @@ def index(request):
                     prediction_bins = list(prediction_df.columns)
                     prediction_values = list(prediction_df.irow(0))
                     prediction = zip(prediction_bins,prediction_values)
-                    #context_dict['prediction'] = prediction
                     context_dict['string_prediction'] = repr(prediction)
                 #prepare values relating to other times of that day:
                 if 'all_time_prediction' in prediction_dict.keys():
