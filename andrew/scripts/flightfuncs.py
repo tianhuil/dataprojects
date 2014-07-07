@@ -283,3 +283,7 @@ if __name__ == "__main__":
     con = mdb.connect(host=creds.host,user=creds.user,db=creds.database,passwd=creds.password,local_infile=1)
     df = query_into_pd(con,'flightdelays_mar_early',['origin','dest','uniquecarrier','arrdelay','cancelled','diverted'],subset=None)
     print df.shape
+
+#For compatibility with older versions:
+time_coder = TimeCoder
+predictor_coder = PredictorCoder

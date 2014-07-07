@@ -43,6 +43,7 @@ def load_pickles():
         f = open(name,'rb')
         pickle_dict[name] = pickle.load(f)
         f.close()
+    return pickle_dict
 pickle_dict = load_pickles()
 
 def test(request):

@@ -1,49 +1,19 @@
-{% extends 'delayr/base.html' %}
 
-{% block body_block %}
-<div class="col-md-2">
-<div class="bs-docs-sidebar hidden-print hidden-xs hidden-sm" role="complementary">
-  <ul class="nav bs-docs-sidenav">
-    <br>
-    <li class="active">
-    <a href="#nittygritty">The Nitty Gritty</a>
-    <ul class="nav">
-      <li>
-      <a href="#data">Getting the Data</a>
-      </li>
-      <li>
-      <a href="#sharding">Sharding</a>
-      </li>
-      <li>
-      <a href="#selection">Model Selection</a>
-      </li>
-      <li>
-      <a href="#training">Training the Model</a>
-      </li>
-      <li>
-      <a href="#site">The Site</a>
-      </li>
-      <li>
-      <a href="#viz">Visualization</a>
-      </li>
-    </ul>
-    </li>
-  </ul>
-</div>
-</div>
-<div class="col-md-10" role="main">
-<div class="jumbotron">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="nittygritty">The Nitty Gritty</h1>
-<h2 id="data">Getting the Data</h2>
+<h2>
+Getting the Data
+</h2>
 <p>
 The first step in the Delayr pipeline is to download the data from the BTS. The relevant files are split up by month and year on the BTS website, so I wrote a simple script to grab all the data I wanted:
 </p>
 </div>
 <div class="cell border-box-sizing code_cell vbox">
 <div class="input hbox">
+<div class="prompt input_prompt">
+In&nbsp;[2]:
+</div>
 <div class="input_area box-flex1">
-<div><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">csv</span>
 <span class="kn">import</span> <span class="nn">urllib</span>
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -71,15 +41,20 @@ The first step in the Delayr pipeline is to download the data from the BTS. The 
 <p>
 Even going back only 10 years results in ~75 <i>million</i> flights (an average of over 500,000 flights per month), with a fair amount of information for each flight. First I unzipped all the files and sequentially loaded them into a MySQL database. The resulting table is nearly 6 GB in size, and the combination of the number of flights and the raw size of the table make analysis quite challenging.
 </p>
-<h2 id="sharding">Sharding</h2>
+<h2>
+Sharding
+</h2>
 <p>
 To mitigate this issue I sharded my table, splitting the data up by month and time of day to keep things at a manageable size for later analyses. I chose to split the data on these features because it seemed unlikely that including flights at very different times of day or year would significantly improve the quality of my model, although it certainly isn't an ideal solution.
 </p>
 </div>
 <div class="cell border-box-sizing code_cell vbox">
 <div class="input hbox">
+<div class="prompt input_prompt">
+In&nbsp;[]:
+</div>
 <div class="input_area box-flex1">
-<div><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">MySQLdb</span> <span class="kn">as</span> <span class="nn">mdb</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">time</span>
@@ -139,7 +114,9 @@ To mitigate this issue I sharded my table, splitting the data up by month and ti
 <p>
 One other thing you may have noticed about the above script is that it takes a command line argument of a minimum flight threshold. That's because I realized that, while there are over 300 airports with flights in the data, most of those airports are very small. In fact, 85% of all the flights in my database are between just ~100 airports. Since I use origin and destination airports as features in my model, and scikit-learn uses one-hot coding for categorical features, cutting out all of the podunk little airports (sorry, Yakima Air Terminal and Shenandoah Valley Regional!) reduced my feature dimensionality by two-thirds, dramatically increasing the speed at which I could train my models without sacrificing significant predictive power.
 </p>
-<h2 id="selection">Model Selection and Feature Coding</h2>
+<h2>
+Model Selection and Feature Coding
+</h2>
 <p>
 With my data properly sharded and my feature list reduced, I could begin training a predictive model. I considered a few different machine learning models, but I ultimately settled on a multiclass logistic regression, both since it's a relatively computationally simple technique (and therefore runs quickly on larger data sets) and because it computes the probability of each class label rather than simply returning the single 'best' class. To convert my problem into one of classification, I binned my delay times into four buckets: delays &lt;15 minutes, between 15 and 45 minutes, &gt;45 minutes, and cancelled. I chose these bins because they broadly correspond to on-time, slightly delayed (but not enough to miss most connecting flights), and delayed enough that connections will start to become an issue – the delay categories that are relevant for most fliers.
 </p>
@@ -150,8 +127,11 @@ All of my features ended up being categorical, so I had to think a fair amount a
 </div>
 <div class="cell border-box-sizing code_cell vbox">
 <div class="input hbox">
+<div class="prompt input_prompt">
+In&nbsp;[]:
+</div>
 <div class="input_area box-flex1">
-<div><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
 
 <span class="k">class</span> <span class="nc">PredictorCoder</span><span class="p">:</span>
@@ -255,14 +235,19 @@ All of my features ended up being categorical, so I had to think a fair amount a
 <p>
 Unfortunately, in exchange for speed I have to trade efficiency – the coded predictors returned by <code>PredictorCoder</code> are in a full numpy array, and with a large number of categorical predictors like I have this array can take up quite a lot of RAM. Fortunately, my computer is fairly beefy, so this wasn't a huge issue. The predictor not only codes up the initial data (usually the model training, validation, and testing data) it is passed, it also stores the mapping between feature values and their coding so the class instance can be used to code up user-input data when the model is fully trained and in active use.
 </p>
-<h2 id="training">Training the Model</h2>
+<h2>
+Training the Model
+</h2>
 <p>
 <p>With all that prep work out of the way, I could train my logistic regression on all of my shards.</p>
 </div>
 <div class="cell border-box-sizing code_cell vbox">
 <div class="input hbox">
+<div class="prompt input_prompt">
+In&nbsp;[]:
+</div>
 <div class="input_area box-flex1">
-<div><pre><span class="kn">import</span> <span class="nn">sys</span>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">MySQLdb</span> <span class="kn">as</span> <span class="nn">mdb</span>
@@ -341,8 +326,11 @@ Because I'm interested in the probability of having a delay or cancellation rath
 </div>
 <div class="cell border-box-sizing code_cell vbox">
 <div class="input hbox">
+<div class="prompt input_prompt">
+In&nbsp;[]:
+</div>
 <div class="input_area box-flex1">
-<div><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
 <span class="k">def</span> <span class="nf">pdf_scoring</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
@@ -369,14 +357,19 @@ Because I'm interested in the probability of having a delay or cancellation rath
 <p>
 Once all the necessary models have been trained and saved to disk, making a prediction for a given itinerary is simply a matter of picking the correct model to load, coding up the itinerary, and then running it through the classifier. To streamline this process I wrapped that functionality inside a simple website - this website!
 </p>
-<h2 id="site">The Site</h2>
+<h2>
+The Site
+</h2>
 <p>
 <p>The Delayr site is written using the Django framework, which was probably overkill for this purpose but I'd already had some experience with Django so it wasn't too difficult to code up. The site has a couple of pages, but all the action (for now at least) happens on the index page, which contains both the form to enter an itinerary as well as shows the results of a query. Therefore the index view is (relatively) complex, to handle the logic of what to display (although a fair amount of the heavy lifting is offloaded to helper functions):</p>
 </div>
 <div class="cell border-box-sizing code_cell vbox">
 <div class="input hbox">
+<div class="prompt input_prompt">
+In&nbsp;[]:
+</div>
 <div class="input_area box-flex1">
-<div><pre><span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="kn">import</span> <span class="n">render_to_response</span>
+<div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="kn">import</span> <span class="n">render_to_response</span>
 <span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">RequestContext</span>
 <span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
 
@@ -468,14 +461,19 @@ Once all the necessary models have been trained and saved to disk, making a pred
 <p>
 Producing the delay prediction plots is quite difficult, largely because I construct them using matplotlib. In a perfect world I'd use something like nvd3, which I briefly looked into before deciding that teaching it to myself would take just a little too long given the time constraints of the Incubator.
 </p>
-<h2 id="viz">Visualization</h2>
+<h2>
+Visualization
+</h2>
 <p>
 <p>The plots actually work by converting the necessary python objects (usually a Pandas dataframe) into a string representation, which then gets appended onto the URL of the image. From there I can get access to the object in the view which actually creates the plot, one of which is shown here for illustration:</p>
 </div>
 <div class="cell border-box-sizing code_cell vbox">
 <div class="input hbox">
+<div class="prompt input_prompt">
+In&nbsp;[]:
+</div>
 <div class="input_area box-flex1">
-<div><pre><span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="kn">import</span> <span class="n">render_to_response</span>
+<div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="kn">import</span> <span class="n">render_to_response</span>
 <span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">RequestContext</span>
 <span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
 
@@ -530,7 +528,3 @@ Producing the delay prediction plots is quite difficult, largely because I const
 </div>
 
 </div>
-<a href="index">Back to Delayr</a>
-</div>
-</div>
-{% endblock %}
