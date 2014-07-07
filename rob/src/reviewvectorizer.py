@@ -6,6 +6,7 @@ import re
 import nltk.tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
+
 default_tokenizer = TfidfVectorizer().build_tokenizer()
 stemmer = nltk.stem.SnowballStemmer("english", ignore_stopwords=True)
 
@@ -15,6 +16,7 @@ base_stop_words = nltk.corpus.stopwords.words('english') + \
     'ever','sure','want','review','got','somewhat','along',
     'see','know','something','beer'
   ]
+  
 
 def nonnum_stem_tokenizer(text):
     """
@@ -54,6 +56,13 @@ class ReviewTfidf(TfidfVectorizer):
       binary=binary,
       vocabulary=vocabulary,
       **kwargs)
+      
+      
+  def feature_vals(self):
+    idf = self._tfidf.idf_
+    w_lst = zip(self.get_feature_names(), idf)
+        
+    return { w[0]: w[1] for w in w_lst }
       
 
 # count vectorizer

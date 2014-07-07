@@ -11,6 +11,7 @@
 
     <!-- Bootstrap -->
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/docs.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/datepicker.css' %}" rel="stylesheet">
     <link href="{% static 'css/bootstrap-timepicker.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/navbar-fixed-top.css' %}" rel="stylesheet">
@@ -21,6 +22,19 @@
       <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<style type="text/css">
+.linkButton { 
+     background: none;
+     border: none;
+     color: #0066ff;
+     text-decoration: underline;
+     cursor: pointer; 
+}
+
+
+
+.bs-docs-sidebar { padding-top: 10px; }
+</style>
   </head>
   <body>
 
@@ -50,28 +64,27 @@
     </div>
     
     <div class="container">
-
       <!-- Main component for a primary marketing message or call to action -->
-      <div class="jumbotron">
 	{% block body_block %}{% endblock %}
-      </div>
+      
 
-    </div> <!-- /container -->
+    <!--</div>--> <!-- /container -->
 
     
     {% block result_block %}{% endblock %}
-
-    <div class="container">
-      <footer>
+    <div class="col-md-9"></div>
+      <div class="col-md-3">
       <p>&copy;2014 Andrew Schechtman-Rook</p>
-      </footer>
+	</div>
     </div>
+
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>-->
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="{% static 'js/jquery-2.1.1.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/docs.min.js' %}"></script>
     <script src="{% static 'js/bootstrap-datepicker.js' %}"></script>
     <script src="{% static 'js/bootstrap-timepicker.js' %}"></script>
     <script>

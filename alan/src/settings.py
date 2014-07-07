@@ -1,20 +1,21 @@
 ### General Paths ####
 from pypaths import *
 
+### GDelt ###
+gdelt_downstatus = 'GDeltDownStatus.txt'
+gdelt_sql = 'GDeltSQLStatus.txt'
+
 ### QUANDL Stock date range info
 start_date = '2000-01-01'
-#start_date = '2004-01-01'
-#end_date = '2005-12-31'
-end_date = '2010-12-31'
-authtoken="ZwZp5EomA34QgSDRezss" #this is optional
+end_date = '2012-12-31' 
+stock_downstatus = 'StockDownStatus.txt'
+stock_sql = 'StockSQLStatus.txt'
 
-host = 'localhost'
-user = 'incubator'
-db = 'Commodities'
-
-to_use = ['oil','natural_gas', 'corn', 'wheat']#,'gold','silver']
+# there is potential to add more in commodities in the future
+to_use = ['oil',]#'natural_gas', 'corn', 'wheat']
 
 #Quandl info
+authtoken="ZwZp5EomA34QgSDRezss" #this is optional
 stockpath = 'quandl'
 
 indicators = { 'oil':'CHRIS/CME_CL1',
@@ -23,6 +24,7 @@ indicators = { 'oil':'CHRIS/CME_CL1',
                'wheat':'CHRIS/CME_W1',
                }
 
+# Not currently implemented 
 baskets = {'oil':'energy',
            'natural_gas':'energy',
            'corn':'food',
@@ -41,17 +43,28 @@ end_day = {'wheat':15,
             'natural_gas': 28
     }
 
-
+#St Louis Fed info
+fed_api_key = '5a0f30658c0004e7a5d5a3e473101452'
+fed_series = {'CPIAUCNS':'CPI','GDPCA':'GDP','RECPROUSM156N':'RecProb',
+              'UMCSENT':'umSent','FEDFUNDS':'FedFundsRate','POP':'Population',
+              'STLFSI':'stressInd'}
+fed_downstatus = 'FedDownStatus.txt'
+fed_sql = 'FedSQLStatus.txt'
 
 
 ##### SQL INFO  ######
-
-sql_info = {'usr':'incubator',
-            'pwd':'',
-            'dba':'Commodities'
-            }
+host = 'localhost'
+user = 'incubator'
+pwd = ''
+db = 'Commodities'
 
 ####  Learner Info #####
+train_start_date = '2000-01-01'
+train_end_date = '2006-12-31'
+
+test_start_date = '2009-01-01'
+test_end_date = '2012-12-31'
+
 pred_list = ['time_remaining','CPI','GDP','stress_ind']
 maxdays=31
 comm_choice = 'oil'

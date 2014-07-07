@@ -13,19 +13,16 @@ Just run the Makefile in this directory to build
 the code.
 
 NOTE:
-	There is a 'make learn' command that 
-	allows you to download all the gdelt 
-	files for 2000-2013. It also bulds 
-	the database and other things. This 
-	is only useful for retraining. Don't 
-	do this unless you are prepared to 
-	wait through the long download process!
-
+    The Gdelt download takes a very long time!!!
+    This is not included in the 
 #----------------------------------------------
-# DATA Sources
+# Additional DATA Sources
 #---------------------------------------------
 trademap.org - import/export data
-
+The trademap data has no limited access that must
+be done manually. There is no api as far as I can
+tell, and scraping is prevented as well. So I am 
+including the trade data 
 
 #----------------------------------------------
 #        OTHER INFO

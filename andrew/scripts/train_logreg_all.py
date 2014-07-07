@@ -69,7 +69,6 @@ if __name__ == "__main__":
                 d_preds = predictors[predictor_types == 1]
 
                 #Create a pickle filename based on the predictors and month/hour:
-                # filename = "../saved_models/{table}_{preds}.pkl".format(table=tablename,preds='-'.join(np.sort(predictors)).replace('(','~').replace(')','~'))
                 filename = ff.make_model_pickle_filename(tablename,predictors,dir_structure="../saved_models/")
 
                 #Test if pickle file exists already:

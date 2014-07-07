@@ -5,7 +5,6 @@ mydir='/alan/'
 gitdir=$gitdir$mydir
 
 sed_str="s|{gitdir}|${gitdir}|"
-echo $sed_str
 
 sed $sed_str <$gitdir/src/mysql/load_CAMEO.raw >$gitdir/src/mysql/load_CAMEO.mysql
 

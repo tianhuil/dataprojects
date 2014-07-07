@@ -3,3 +3,8 @@
 *.pyc
 *.crap
 *.csv
+*jpg
+*pdf
+*pkl
+*ipynb
+*~

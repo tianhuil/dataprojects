@@ -24,7 +24,6 @@ def main():
         for row in mydata:
             row[0] = row[0].replace('-','')
             outstr = str(row)
-            print outstr
             for bad,good in [('(',''),(')',''),("'",''),('-',','),
                              ('False','NULL')]:
                 outstr = outstr.replace(bad,good)
@@ -33,3 +32,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+    statusfile = open(settings.stock_downstatus, 'w')
+    statusfile.write('Stock data Successfully downloaded!')
+    statusfile.close()

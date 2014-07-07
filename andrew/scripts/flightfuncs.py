@@ -35,7 +35,7 @@ class time_coder:
         else:
             raise ValueError("time_coder.timebins is empty!")
 
-#Prepping a dataframe of predictors, including doing (hopefully) fast one-hot encoding of categorical variables. Like time_coder, this is a class and not a function to improve portability between training and actually using the model.
+#Prepping a dataframe of predictors, including doing fast one-hot encoding of categorical variables. Like time_coder, this is a class and not a function to improve portability between training and actually using the model.
 class predictor_coder:
     def __init__(self):
         self.continuous_predictors = None
@@ -148,6 +148,7 @@ def get_month_name(datetime_obj):
 def pdf_scoring(estimator, X, y):
     integer_y = y.astype(np.int16)
     probs = estimator.predict_proba(X)[range(len(integer_y)),integer_y]
+    #print "Debug:",probs.min(),probs.max()
     return np.sum(probs**2)
 
 #Get selected columns and put them into a Pandas Dataframe:

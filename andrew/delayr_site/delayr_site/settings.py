@@ -25,11 +25,11 @@ STATIC_PATH = os.path.join(BASE_DIR,'static')
 #SECRET_KEY = in credentials_nogit.py
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 TEMPLATE_DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['107.170.190.132','127.0.0.1']
 
 TEMPLATE_DIRS = (
     TEMPLATE_PATH,
