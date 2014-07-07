@@ -18,8 +18,20 @@ import predict_delays_logreg as pdl
 import global_vars as gv
 #import login_credentials as creds
 
-#Reads a df passed as a json string (to pass info through urls):
 def prep_passed_df(input_string,row_order_column=None,column_order_row=None,remove_row_order_column=True,remove_column_order_row=True):
+    '''
+    Converts a dataframe passed as json back into a dataframe.
+
+    Arguments:
+    input_string -- the input json.
+    row_order_column -- if there is a column which contains how the rows should be ordered, name it (default = None).
+    column_order_row -- if there is a row which contains how the columns should be ordered, name it (default = None).
+    remove_row_order_column -- strip the row ordering column after using it (default = True).
+    remove_column_order_row -- strip the column ordering row after using it (default = True).
+
+    Returns:
+    df -- the dataframe.
+    '''
     #Get the string into a pandas dataframe:
     df = pd.read_json(eval(input_string))
 
@@ -34,23 +46,49 @@ def prep_passed_df(input_string,row_order_column=None,column_order_row=None,remo
             df = df[df.index.values != column_order_row]
     return df
 
-#Convert between datetime's notion of the day of the week and MySQL's:
 def fix_weekday(dayofweek,offset=2):
+    '''
+    Converts between datetime's notion of the day of the week and MySQL's:
+    '''
     dayofweek += offset
     if dayofweek > 7:
         dayofweek -= 7
     return dayofweek
 
-#A kludge to map the choice values back to the full names:
 def get_full_names(origin,dest,uniquecarrier):
+    '''
+    A kludge to map the values of the select choiceboxes back to full names.
+
+    Arguments:
+    origin -- the 3 character origin airport code.
+    dest -- the 3 character destination airport code.
+    uniquecarrier -- the 2 character carrier code.
+
+    Returns:
+    a tuple containing the full names of the origin airport, destination airport, and carrier.
+
+    '''
     origin_full = [entry[1] for entry in AirportForm.airport_choice_tup if entry[0] == origin]
     dest_full = [entry[1] for entry in AirportForm.airport_choice_tup if entry[0] == dest]
     carrier_full = [entry[1] for entry in AirlineForm.airline_choice_tup if entry[0] == uniquecarrier]
     return origin_full[0],dest_full[0],carrier_full[0]
 
-#Predict the user's itinerary, as well as some other interesting things:
-#This is the main function in the site, and it powers the calculations behind the data shown to the user.
 def make_predictions(inpdict,pickle_dict,other_times=True,date_range=3,other_options=3):
+    '''
+    Predict the user's itinerary, as well as itineraries at nearby times/dates, and if similar
+    itineraries exist predict them too. This is the main function in the site, and it powers
+    the calculations behind the data shown to the user.
+
+    Arguments:
+    inpdict -- a dictionary containing the parameters of the user's search.
+    pickle_dict -- a dictionary containing the model pickles, keyed on the filenames of the pickles.
+    other_times -- Predict delays for other times-of-day (default=True).
+    date_range -- how many days before/after the selected day to predict (default = 3).
+    other_options -- maximum number of alternative itineraries to display (default = 3).
+
+    Returns:
+    return_dict -- a dictionary containing all the results of the predictions.
+    '''
     #Some prepwork, with the location of the learned models (the pickles) hardcoded in:
     tableprefix = 'flightdelays'
     pkl_directory = os.path.join(projectdir,'saved_models/')
@@ -192,6 +230,15 @@ def make_predictions(inpdict,pickle_dict,other_times=True,date_range=3,other_opt
     return return_dict
 
 def combo_dfs(*args):
+    '''
+    Combine multiple dataframes with identical column headings.
+
+    Arguments:
+    *args -- individual dataframes.
+
+    Returns:
+    out_df -- a combined dataframe.
+    '''
     if args:
         #print 'debug',args[0]
         out_df = pd.DataFrame(columns=args[0].columns.values)
@@ -206,6 +253,16 @@ def combo_dfs(*args):
 
 
 def make_predictor_df(predictorlist,predictorvals):
+    '''
+    Prepare a dataframe of all the predictors.
+
+    Arguments:
+    predictorlist -- a list of predictor names.
+    predictorvals -- a list of predictor values.
+
+    Returns:
+    predictor_df -- a 1-row dataframe of the predictors.
+    '''
     predictordict = {predictorlist[i]:pd.Series(predictorvals[i]) for i in range(len(predictorlist))}
     predictor_df = pd.DataFrame(predictordict)
     try:
@@ -217,6 +274,15 @@ def make_predictor_df(predictorlist,predictorvals):
 
 #Predict what the user wants:
 def make_prediction(inpdict):
+    '''
+    Run the predictive model on a user's input. I believe this has been superseded by make_predictions.
+
+    Arguments:
+    inpdict -- a dictionary containing the parameters of the user's search.
+
+    Returns:
+    return_dict -- a dictionary containing the result of the prediction.
+    '''
     #print inpdict
     datestring = inpdict['date'][0]
     timestring = inpdict['time'][0]
