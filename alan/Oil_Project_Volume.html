@@ -15,6 +15,7 @@
   <li id="Home"><a class="nounder" href="./Oil_Project_Home.html">Home</a></li>
   <li id="Prices"><a class="nounder" href="./Oil_Project_Prices.html">Prices</a></li>
   <li id="Volume"><a class="nounder" href="./Oil_Project_Volume.html">Volume</a></li>
+  <li id="Resume"><a class="nounder" href="./resume.html">Resume</a></li>
 </ul>
 </div>
 
@@ -33,7 +34,7 @@
 <p>First, the autocorrelation and partial autocorrelation should reveal any major trends that we should remove from the time-series.</p>
 <img src="./html/volume_correlation.png" title="Autocorrelation and Partial Autocorrelation of Oil Volume"  height="400"/> 
 <p>
-The partial autocorrelation shows that there is a stong dependence on the most recent days. There is also a correlation at about 20 business days, which will be explained shortly. As our first prediction, we use an ARMA(1,1) model. This model has an autoregressive term for the most recent day in addition to the 1-day moving average (yesterday's volume value).
+The partial autocorrelation shows that there is a strong dependence on the most recent days. There is also a correlation at about 20 business days, which will be explained shortly. As our first prediction, we use an ARMA(1,1) model. This model has an autoregressive term for the most recent day in addition to the 1-day moving average (yesterday's volume value).
 </p> 
 <img src="./html/volume_ARMAresidcorr.png" title="Autocorrelation and Partial Autocorrelation of Oil Volume ARMA residuals"  height="400"/> 
 <p>
@@ -55,7 +56,7 @@ If we express the residuals as a fraction of the remaining time in the contract,
 <p>Here the linear and  SVM models beat the benchmark. The gain comes from properly identifying and correcting large positive outliers. There may be value in exploring these correctly predicted outliers to see what factor or factors made them predicable events. Any predictive elements could then be incorporated into a trading model.</p>
 
 <h1>Results and Future Work</h1>
-<p>The volume is also difficult to predict in the case of oil futures. If there is some predictive power in GDelt, it is likely at a more refined level than what was used here. The limited descriptions of events (simply two actors and a general description like "US government uses conventional weapons to attack Iraqi rebels") is simply too course to infer the relavence to oil production. Additional information on the events would definitely be required to improve these results. Unfortuantely, the time limitations and computational limitations prevented a more in-depth exploration.
+<p>The volume is also difficult to predict in the case of oil futures. If there is some predictive power in GDelt, it is likely at a more refined level than what was used here. The limited descriptions of events (simply two actors and a general description like "US government uses conventional weapons to attack Iraqi rebels") is simply too course to infer the relevance to oil production. Additional information on the events would definitely be required to improve these results. Unfortunately, the time limitations and computational limitations prevented a more in-depth exploration.
 </p>
 
 
