@@ -28,7 +28,7 @@ legendsize = 18
 fontname = 'Times New Roman Bold'
 figsize = (8,6.5)
 
-#Can I preload all my pickled models here, and save runtime later?
+#Caching the pickled models now, to hopefully save some loading time later (although it doesn't seem to make a ton of difference).
 def load_pickles(pickle_dict):
     projectdir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))#the main project directory
     pkl_directory = os.path.join(projectdir,'saved_models/')
@@ -39,7 +39,7 @@ def load_pickles(pickle_dict):
         f.close()
 pickle_dict = {}
 load_pickles(pickle_dict)
-print pickle_dict[pickle_dict.keys()[0]]
+#print pickle_dict[pickle_dict.keys()[0]]
 
 #Simple test view, for trying out new things:
 def test(request):
@@ -83,7 +83,7 @@ def index(request):
                 context_dict['errmessage'] = "Incorrect date format"
             else:
                 #Display the prediction results:
-                prediction_dict = df.make_predictions(valuedict)
+                prediction_dict = df.make_predictions(valuedict,pickle_dict)
                 #prepare values relating to the requested prediction
                 if 'user_prediction' in prediction_dict.keys():
                     prediction_df = prediction_dict['user_prediction']

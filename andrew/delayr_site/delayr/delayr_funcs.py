@@ -50,7 +50,7 @@ def get_full_names(origin,dest,uniquecarrier):
 
 #Predict the user's itinerary, as well as some other interesting things:
 #This is the main function in the site, and it powers the calculations behind the data shown to the user.
-def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
+def make_predictions(inpdict,pickle_dict,other_times=True,date_range=3,other_options=3):
     #Some prepwork, with the location of the learned models (the pickles) hardcoded in:
     tableprefix = 'flightdelays'
     pkl_directory = os.path.join(projectdir,'saved_models/')
@@ -67,8 +67,8 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
     user_predictor_df = make_predictor_df(predictorlist,user_predictorvals)
     #Get the filename of the pickle we should be using:
     user_pkl_filename = ff.get_model_filename(date,predictorlist,tableprefix=tableprefix,dir_structure=pkl_directory)
-
-    user_output_df = pdl.predict_delay(user_predictor_df,user_pkl_filename)
+    
+    user_output_df = pdl.predict_delay(user_predictor_df,user_pkl_filename,pickle_obj=pickle_dict[user_pkl_filename])
 
     return_dict['user_prediction'] = user_output_df
 
@@ -84,7 +84,7 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
         for i,time_period in enumerate(sorted_time_keys):
             time_table_name = tableprefix+"_"+ff.get_month_name(date)+"_"+time_period
             time_pkl_filename = ff.make_model_pickle_filename(time_table_name,predictorlist,dir_structure=pkl_directory)
-            time_df = pdl.predict_delay(user_predictor_df,time_pkl_filename)
+            time_df = pdl.predict_delay(user_predictor_df,time_pkl_filename,pickle_obj=pickle_dict[time_pkl_filename])
             all_time_df_list.append(time_df)
         #Put the predictions all together into a dataframe, add it to the returned dictionary:
         all_time_df = combo_dfs(*all_time_df_list)
@@ -105,7 +105,7 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
             date_predictor_df = make_predictor_df(predictorlist,time_predictorvals)
             date_pkl_filename = ff.get_model_filename(offsetdate,predictorlist,tableprefix=tableprefix,dir_structure=pkl_directory)
 
-            date_df = pdl.predict_delay(date_predictor_df,date_pkl_filename)
+            date_df = pdl.predict_delay(date_predictor_df,date_pkl_filename,pickle_obj=pickle_dict[date_pkl_filename])
             all_date_df_list.append(date_df)
             #all_date_strings.append(offsetdate.strftime('%B'))
             all_date_strings.append(offsetdate.strftime('%m-%d'))
@@ -159,7 +159,7 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
                     temp_predictor_df.xs('origin',axis=1,copy=False)[0] = result_df.xs('origin',axis=1,copy=False)[i]
                     temp_predictor_df.xs('dest',axis=1,copy=False)[0] = result_df.xs('dest',axis=1,copy=False)[i]
                     temp_predictor_df.xs('uniquecarrier',axis=1,copy=False)[0] = result_df.xs('uniquecarrier',axis=1,copy=False)[i]
-                    temp_output_df = pdl.predict_delay(temp_predictor_df,user_pkl_filename)
+                    temp_output_df = pdl.predict_delay(temp_predictor_df,user_pkl_filename,pickle_obj=pickle_dict[user_pkl_filename])
                     result_df.xs('delay',axis=1,copy=False)[i] = temp_output_df.icol(0)
                 #Adjust the naming of the dataframe columns:
                 all_result_cols = result_df.columns.values
