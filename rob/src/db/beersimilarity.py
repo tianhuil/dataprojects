@@ -15,7 +15,7 @@ class BeerSimilarity(TableAcc):
     super(BeerSimilarity, self).__init__(
       table_name='beersimilarity',
       cols=['beer_id_ref', 'beer_id_comp', 'similarity'],
-      upsert_proc='featureupsert')
+      upsert_proc='similarityupsert')
 
   def similarity(self, beer_id_ref, beer_id_comp):
     return self._select(
@@ -60,9 +60,11 @@ def __asyncable_similarity(tup):
       kp = min(top, n)
       m_ixs = lk.argsort()[-kp:]
       
-      sims = [ (b_refs[i], b_comps[j], lk[j]) for j in m_ixs ]
-      bs.smooth_similarity(sims)
-    
+      sims = [ (b_refs[i], b_comps[j], lk[j]) for j in m_ixs if b_refs[i] != b_comps[j] ]
+      
+      #bs.smooth_similarity(sims)
+      bs.add_many(sims)
+      
     print 'Comparison Complete: %s' % (dt.now() - start)
     return (b_refs, None)
   except Exception as e:
@@ -161,7 +163,7 @@ if __name__ == "__main__":
         
     print 'Truncating similarity table'
     bs = BeerSimilarity()
-    bs.remove_all()
+#    bs.remove_all()
     
     dim1 = sum(v['X_t'].shape[0] for k,v in res_t.iteritems())
     dim2 = sum(len(v['X_t'].data) for k,v in res_t.iteritems())
@@ -170,8 +172,8 @@ if __name__ == "__main__":
     
     # set style RU
     # will account for symmetry in the database
-    ru_sids = [ (top_sy[i], top_sy[j]) for i in xrange(len(top_sy)) for j in xrange(i+1,len(top_sy)) ]
-    
+#    ru_sids = [ (top_sy[i], top_sy[j]) for i in xrange(len(top_sy)) for j in xrange(i,len(top_sy)) ]
+    ru_sids = [ (top_sy[i], top_sy[i]) for i in xrange(len(top_sy)) ]
     pool_inp = []
     for ruc in ru_sids:
       X_t_ref = res_t[ruc[0]]['X_t']
@@ -187,7 +189,7 @@ if __name__ == "__main__":
             
     for res in b_id_res:
       if res[1] is not None:
-        print '%s %s' % (', '.join(str(r) for r in res[0].values.ravel()), res[1])
+        print '%s %s' % (', '.join(str(r) for r in res[0]), res[1])
     
     
   

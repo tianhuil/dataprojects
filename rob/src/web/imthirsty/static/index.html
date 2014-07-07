@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html ng-app="imthirsty">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ImThirsty: Find your new favorite beer</title>
+    
+    <!-- needs to make the main.css -->
+    <link rel="stylesheet" href="main.css">
+
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular-resource.js"></script>
+    <script src="menus.js"></script>
+    
+    <!-- get the bootstrap.css -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+  </head>
+  
+  <body>
+    
+    <div class="header_row">
+      <ul class="nav nav-pills">
+    	  <li><a href="active">Recommendations</a></li>
+    	  <li class="#"><a href="#">Style Map</a></li>
+    	  <li><a href="#">About</a></li>
+      </ul>
+    
+      <div class="jumbotron">
+    	  <h1>ImThirsty: Find your new favorite beer.</h1>
+    	  <p>Search for the beer you've been drinking and let ImThirsty find you a new one.</p>
+      </div>
+    </div>
+    
+    
+    <!-- BeerMenu Navigation and Selection -->
+    <div ng-controller="BeerMenu">
+    
+      <!-- Region Split button -->
+      <div id="brewer_reg" class="btn-group" dropdown>
+        <button type="button" class="btn btn-danger">Region</button>
+        <button type="button" class="btn btn-danger dropdown-toggle">
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+          <li ng-repeat="reg in data.regions">
+            <a href="#" ng-click="setBrewers(reg.region_id)">{{reg.name}}</a>
+          </li>
+        </ul>
+      </div>
+      
+      <!-- Brewer List -->
+      <div id="brewers" class="container">
+        <ul class="dropdown-menu" role="menu">
+          <li ng-repeat="brewer in data.brewers">
+            <a href="#" ng-click="setBeers(brewer.brewer_id)">{{brewer.name}}</a>
+          </li>
+        </ul>
+      </div>
+      
+      <!-- Beer List -->
+      <div id="beers" class="container">
+        <ul class="dropdown-menu" role="menu">
+          <li ng-repeat="brewer in data.brewers">
+            <a href="#" ng-click="setRecs(beer.brewer_id, beer.style_id)">{{brewer.name}}</a>
+          </li>
+        </ul>
+      </div>
+      
+    </div>
+    <!-- End BeerMenu Navigation and Selection -->
+
+
+
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+
+  </body>
+</html>
