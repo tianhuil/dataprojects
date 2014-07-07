@@ -26,7 +26,7 @@ axlabelsize = 20
 ticklabelsize = 20
 legendsize = 18
 fontname = 'Times New Roman Bold'
-figsize = (8,6.6)
+figsize = (8,7.5)
 
 #Caching the pickled models now, to hopefully save some loading time later (although it doesn't seem to make a ton of difference).
 def load_pickles(pickle_dict):
