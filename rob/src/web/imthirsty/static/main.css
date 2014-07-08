@@ -1,0 +1,23 @@
+
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+
+
+body {
+  /*background-color : #ffffff;*/
+  color : #000000;
+  margin : 0px 0px 0px 0px;
+}
+
+
+.panel-title {
+  padding-top: 7.5px;
+}
+
+.panel-heading {
+  overflow: hidden;
+}
+
+#style_btn {
+  background: #E0E0E0;
+  color: black;
+}

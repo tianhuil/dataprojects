@@ -5,6 +5,7 @@ import datetime as dt
 import pandas as pd
 import importlib
 from django.db import connection
+from delayr.forms import AirportForm,AirlineForm,DateTimeForm
 
 #delayr_funcs contains a bunch of useful functions for getting between my web frontend and the ML backend.
 
@@ -17,8 +18,20 @@ import predict_delays_logreg as pdl
 import global_vars as gv
 #import login_credentials as creds
 
-#Reads a df passed as a json string (to pass info through urls):
 def prep_passed_df(input_string,row_order_column=None,column_order_row=None,remove_row_order_column=True,remove_column_order_row=True):
+    '''
+    Converts a dataframe passed as json back into a dataframe.
+
+    Arguments:
+    input_string -- the input json.
+    row_order_column -- if there is a column which contains how the rows should be ordered, name it (default = None).
+    column_order_row -- if there is a row which contains how the columns should be ordered, name it (default = None).
+    remove_row_order_column -- strip the row ordering column after using it (default = True).
+    remove_column_order_row -- strip the column ordering row after using it (default = True).
+
+    Returns:
+    df -- the dataframe.
+    '''
     #Get the string into a pandas dataframe:
     df = pd.read_json(eval(input_string))
 
@@ -33,16 +46,49 @@ def prep_passed_df(input_string,row_order_column=None,column_order_row=None,remo
             df = df[df.index.values != column_order_row]
     return df
 
-#Convert between datetime's notion of the day of the week and MySQL's:
 def fix_weekday(dayofweek,offset=2):
+    '''
+    Converts between datetime's notion of the day of the week and MySQL's:
+    '''
     dayofweek += offset
     if dayofweek > 7:
         dayofweek -= 7
     return dayofweek
 
-#Predict the user's itinerary, as well as some other interesting things:
-#This is the main function in the site, and it powers the calculations behind the data shown to the user.
-def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
+def get_full_names(origin,dest,uniquecarrier):
+    '''
+    A kludge to map the values of the select choiceboxes back to full names.
+
+    Arguments:
+    origin -- the 3 character origin airport code.
+    dest -- the 3 character destination airport code.
+    uniquecarrier -- the 2 character carrier code.
+
+    Returns:
+    a tuple containing the full names of the origin airport, destination airport, and carrier.
+
+    '''
+    origin_full = [entry[1] for entry in AirportForm.airport_choice_tup if entry[0] == origin]
+    dest_full = [entry[1] for entry in AirportForm.airport_choice_tup if entry[0] == dest]
+    carrier_full = [entry[1] for entry in AirlineForm.airline_choice_tup if entry[0] == uniquecarrier]
+    return origin_full[0],dest_full[0],carrier_full[0]
+
+def make_predictions(inpdict,pickle_dict,other_times=True,date_range=3,other_options=3):
+    '''
+    Predict the user's itinerary, as well as itineraries at nearby times/dates, and if similar
+    itineraries exist predict them too. This is the main function in the site, and it powers
+    the calculations behind the data shown to the user.
+
+    Arguments:
+    inpdict -- a dictionary containing the parameters of the user's search.
+    pickle_dict -- a dictionary containing the model pickles, keyed on the filenames of the pickles.
+    other_times -- Predict delays for other times-of-day (default=True).
+    date_range -- how many days before/after the selected day to predict (default = 3).
+    other_options -- maximum number of alternative itineraries to display (default = 3).
+
+    Returns:
+    return_dict -- a dictionary containing all the results of the predictions.
+    '''
     #Some prepwork, with the location of the learned models (the pickles) hardcoded in:
     tableprefix = 'flightdelays'
     pkl_directory = os.path.join(projectdir,'saved_models/')
@@ -59,8 +105,8 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
     user_predictor_df = make_predictor_df(predictorlist,user_predictorvals)
     #Get the filename of the pickle we should be using:
     user_pkl_filename = ff.get_model_filename(date,predictorlist,tableprefix=tableprefix,dir_structure=pkl_directory)
-
-    user_output_df = pdl.predict_delay(user_predictor_df,user_pkl_filename)
+    
+    user_output_df = pdl.predict_delay(user_predictor_df,user_pkl_filename,pickle_obj=pickle_dict[user_pkl_filename])
 
     return_dict['user_prediction'] = user_output_df
 
@@ -76,7 +122,7 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
         for i,time_period in enumerate(sorted_time_keys):
             time_table_name = tableprefix+"_"+ff.get_month_name(date)+"_"+time_period
             time_pkl_filename = ff.make_model_pickle_filename(time_table_name,predictorlist,dir_structure=pkl_directory)
-            time_df = pdl.predict_delay(user_predictor_df,time_pkl_filename)
+            time_df = pdl.predict_delay(user_predictor_df,time_pkl_filename,pickle_obj=pickle_dict[time_pkl_filename])
             all_time_df_list.append(time_df)
         #Put the predictions all together into a dataframe, add it to the returned dictionary:
         all_time_df = combo_dfs(*all_time_df_list)
@@ -97,7 +143,7 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
             date_predictor_df = make_predictor_df(predictorlist,time_predictorvals)
             date_pkl_filename = ff.get_model_filename(offsetdate,predictorlist,tableprefix=tableprefix,dir_structure=pkl_directory)
 
-            date_df = pdl.predict_delay(date_predictor_df,date_pkl_filename)
+            date_df = pdl.predict_delay(date_predictor_df,date_pkl_filename,pickle_obj=pickle_dict[date_pkl_filename])
             all_date_df_list.append(date_df)
             #all_date_strings.append(offsetdate.strftime('%B'))
             all_date_strings.append(offsetdate.strftime('%m-%d'))
@@ -133,7 +179,7 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
         cursor.execute("""select distinct fd.origin,fd.dest,fd.uniquecarrier,aorig.airportname,adest.airportname,aline.fullname from {0:s} as fd join airports as aorig on fd.origin=aorig.origin join airports as adest on fd.dest=adest.origin join airlinenames as aline on fd.uniquecarrier=aline.uniquecarrier where origincitymarketid={1:d} and destcitymarketid={2:d} and year(fd.flightdate) > 2012""".format(dbname_sql,origin_market_id,dest_market_id))
         result = list(cursor.fetchall())
         if len(result) > 0:
-            print len(result)
+            #print len(result)
             result_df = pd.DataFrame(result,columns=columns)
             #Cut out the itinerary that the user selected, if necessary:
             searched_itinerary = (result_df['origin'] == inpdict['origin'][0]) & (result_df['dest'] == inpdict['dest'][0]) & (result_df['uniquecarrier'] == inpdict['uniquecarrier'][0])
@@ -151,7 +197,7 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
                     temp_predictor_df.xs('origin',axis=1,copy=False)[0] = result_df.xs('origin',axis=1,copy=False)[i]
                     temp_predictor_df.xs('dest',axis=1,copy=False)[0] = result_df.xs('dest',axis=1,copy=False)[i]
                     temp_predictor_df.xs('uniquecarrier',axis=1,copy=False)[0] = result_df.xs('uniquecarrier',axis=1,copy=False)[i]
-                    temp_output_df = pdl.predict_delay(temp_predictor_df,user_pkl_filename)
+                    temp_output_df = pdl.predict_delay(temp_predictor_df,user_pkl_filename,pickle_obj=pickle_dict[user_pkl_filename])
                     result_df.xs('delay',axis=1,copy=False)[i] = temp_output_df.icol(0)
                 #Adjust the naming of the dataframe columns:
                 all_result_cols = result_df.columns.values
@@ -160,8 +206,20 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
                 #Sort the predictions, take the N best:
                 sorted_result_df = result_df.sort(all_result_cols[-1],ascending=False)
                 trimmed_sorted_result_df = sorted_result_df[:other_options]
+                #print "test1",trimmed_sorted_result_df
+                #print "test2",user_output_df
+                #Get the full names for the itinerary the user searched for, add to the output dataframe:
+                user_origin,user_dest,user_carrier = get_full_names(inpdict['origin'][0],inpdict['dest'][0],inpdict['uniquecarrier'][0])
+                full_user_output_df = pd.DataFrame([[inpdict['origin'][0],inpdict['dest'][0],inpdict['uniquecarrier'][0],user_origin,user_dest,user_carrier,user_output_df[user_output_df.columns.values[0]].values[0]]],columns=trimmed_sorted_result_df.columns)
+                trimmed_sorted_result_df = trimmed_sorted_result_df.append(full_user_output_df,ignore_index=True)
+                #Determine what color to make the user's itinerary:
+                other_option_colorname = 'warning'
+                if trimmed_sorted_result_df[trimmed_sorted_result_df.columns.values[-1]].values[-1] > trimmed_sorted_result_df[trimmed_sorted_result_df.columns.values[-1]].values[0]:
+                    other_option_colorname = 'success'
+                elif trimmed_sorted_result_df[trimmed_sorted_result_df.columns.values[-1]].values[-2] > trimmed_sorted_result_df[trimmed_sorted_result_df.columns.values[-1]].values[-1]:
+                    other_option_colorname = 'danger'
+                return_dict['other_option_colorname'] = other_option_colorname
                 stringlist = []
-                #print "debug: ",trimmed_sorted_result_df
                 #fill out the list of the best alternate options, put it in the output dictionary:
                 for i in range(trimmed_sorted_result_df.shape[0]):
                     rowvals = trimmed_sorted_result_df.irow(i)
@@ -172,6 +230,15 @@ def make_predictions(inpdict,other_times=True,date_range=3,other_options=3):
     return return_dict
 
 def combo_dfs(*args):
+    '''
+    Combine multiple dataframes with identical column headings.
+
+    Arguments:
+    *args -- individual dataframes.
+
+    Returns:
+    out_df -- a combined dataframe.
+    '''
     if args:
         #print 'debug',args[0]
         out_df = pd.DataFrame(columns=args[0].columns.values)
@@ -186,6 +253,16 @@ def combo_dfs(*args):
 
 
 def make_predictor_df(predictorlist,predictorvals):
+    '''
+    Prepare a dataframe of all the predictors.
+
+    Arguments:
+    predictorlist -- a list of predictor names.
+    predictorvals -- a list of predictor values.
+
+    Returns:
+    predictor_df -- a 1-row dataframe of the predictors.
+    '''
     predictordict = {predictorlist[i]:pd.Series(predictorvals[i]) for i in range(len(predictorlist))}
     predictor_df = pd.DataFrame(predictordict)
     try:
@@ -197,6 +274,15 @@ def make_predictor_df(predictorlist,predictorvals):
 
 #Predict what the user wants:
 def make_prediction(inpdict):
+    '''
+    Run the predictive model on a user's input. I believe this has been superseded by make_predictions.
+
+    Arguments:
+    inpdict -- a dictionary containing the parameters of the user's search.
+
+    Returns:
+    return_dict -- a dictionary containing the result of the prediction.
+    '''
     #print inpdict
     datestring = inpdict['date'][0]
     timestring = inpdict['time'][0]

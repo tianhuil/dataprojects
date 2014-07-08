@@ -23,6 +23,20 @@ class TableAcc(object):
   def _enc(self, s):
     return ''.join([x for x in s if ord(x) < 128])
   
+  def _view(self, view_name, **kwargs):
+    res = None
+    if not any(s in view_name for s in ['drop', 'truncate']):
+      old = self.__table_name
+      try:
+        self.__table_name = view_name
+        res = self._select(**kwargs)
+      except Exception as e:
+        print e
+      
+      self.__table_name = old
+      
+    return res
+  
   # not intended for outside use
   def _select(self, distinct=False, cols="", where="", order_by="", limit=0, param = []):
     """ query builder """
@@ -41,7 +55,8 @@ class TableAcc(object):
       sel.append("distinct")
     
     cols = cols if cols != "" else self.__cols
-    sel.append(", ".join(cols))
+    if len(cols) > 1:
+      sel.append(", ".join(cols))
     
     sel.append("from")
     sel.append(self.__table_name)
@@ -72,7 +87,25 @@ class TableAcc(object):
       cur.close()
       
     return res
+  
+  def _exec_proc(self, proc, inputs):
+    qry = ["call", proc, "("]
+    ps = ', '.join('%s' for i in range(len(inputs)))
+    qry.append(ps)
+    qry.append(')')
     
+    res = None
+    with Beerad() as dbc:
+      cur = dbc.cursor()
+      
+      cur.execute(' '.join(qry), inputs)
+      res = cur.fetchall()
+      
+      #dbc.commit()
+      cur.close()
+      
+    return res
+      
   def _exec_many_procs(self, proc, records):
     qry = ["call", proc, "("]
     ps = ', '.join('%s' for i in range(len(records[0])))
@@ -127,5 +160,5 @@ class TableAcc(object):
     self.__rows = { }
       
   def add_many(self, records):
-    self._exec_many_proc(self.__upsert_proc, records)
+    self._exec_many_procs(self.__upsert_proc, records)
 

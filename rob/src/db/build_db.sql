@@ -277,16 +277,27 @@ where review_ct > 1 ;
 
 
 
-
 delimiter //
-drop procedure if exists similarityscores ;
-create procedure similarityscores (in in_beer_id int)
+drop procedure if exists similarbeersbystyle ;
+create procedure similarbeersbystyle (in in_beer_id int, in in_style_id int, in in_limit int)
 begin
-  select style_id, beer_id, similarity_score
+  if in_limit < 0 then
+    set in_limit = 1000000 ;
+  end if ;
+
+  select
+    t.style_id,
+    s.name as style_name,
+    t.brewer_id,
+    br.name as brewer_name,
+    t.beer_id,
+    b.name as beer_name,
+    similarity_score
   from
   (
     select
       b.style_id,
+      b.brewer_id,
       r2.beer_id,
       bs.similarity * avg(r2.overall - (urs.sum_overall/urs.review_ct)) as similarity_score
     from
@@ -302,11 +313,17 @@ begin
       and bs.beer_id_ref = in_beer_id
       and r1.beer_id <> r2.beer_id
       and r2.beer_id = b.id
-      and bs.similarity > 0.35
-    group by style_id, r2.beer_id
-  ) t
-  where similarity_score > 0;
-#  order by similarity_score desc
+      and b.style_id = in_style_id
+    group by style_id, b.brewer_id, r2.beer_id
+  ) t inner join beers b
+    on t.beer_id = b.id
+  inner join brewers br
+    on b.brewer_id = br.id
+  inner join styles s
+    on t.style_id = s.id
+  where similarity_score > 0
+  order by similarity_score desc
+  limit in_limit ;
 end //
 delimiter ;
 
@@ -332,5 +349,87 @@ begin
     sum_sq_appearance = sum_sq_appearance + new.appearance,
     sum_sq_overall = sum_sq_overall + new.overall
   where user_id = new.user_id ;
+end //
+delimiter ;
+
+
+
+alter table brewers add location_id int;
+
+drop table if exists locations;
+create table locations (
+  id int not null,
+  name varchar(100),
+  primary key (id),
+  unique (name)
+);
+
+set @curRow := 0;
+insert into locations (id, name)
+SELECT @curRow := @curRow + 1 as id, location
+from (
+  select distinct location
+  from brewers
+) l;
+
+update brewers b inner join locations l
+  on b.location = l.name
+set b.location_id = l.id ;
+
+alter table brewers drop location;
+alter table brewers modify location_id int(10) not null;
+alter table brewers add constraint brewer_loc_id_fk
+  foreign key (location_id)
+  references locations (id)
+    on update cascade
+    on delete cascade;
+    
+
+delimiter //
+drop procedure if exists brewerupsert ;
+create procedure brewerupsert (in new_brewer_id int, in new_brewer_name varchar(200), in new_brewer_loc int)
+begin
+  INSERT INTO brewers (id, name, location_id)
+  VALUES (new_brewer_id, new_brewer_name, new_brewer_loc)
+  ON DUPLICATE KEY UPDATE
+    name = new_brewer_name,
+    location_id = new_brewer_loc;
+end //
+delimiter ;
+
+delimiter //
+drop procedure if exists locationupsert ;
+create procedure locationupsert (in new_loc_id int, in new_loc varchar(200))
+begin
+  if not exists (select 1 from locations where name = new_loc) then
+    INSERT INTO locations (id, name)
+    VALUES (new_loc_id, new_loc)
+    ON DUPLICATE KEY UPDATE
+      name = new_loc;
+  end if ;
+end //
+delimiter ;
+
+
+
+drop view if exists brewerswithrecs;
+create view brewerswithrecs as
+select distinct b.id, b.name, b.location_id
+from
+  brewers b inner join beers be
+    on b.id = be.brewer_id
+  inner join beersimilarity bs
+    on be.id = bs.beer_id_ref;
+
+
+delimiter //
+drop procedure if exists beerswithrecs;
+create procedure beerswithrecs(in in_brewer_id int)
+begin
+  select distinct be.brewer_id, be.id, be.name
+  from
+    beers be inner join beersimilarity bs
+      on be.id = bs.beer_id_ref
+  where be.brewer_id = in_brewer_id ;
 end //
 delimiter ;
