@@ -4,10 +4,10 @@ $(document).ready(function(){
 
   var set_rating = function(value){
     for (var i=1; i<=value; ++i){
-      $(".star-"+i).css('background-position-x', '-20px');
+      $(".star-"+i).css('background-position-x', '');
     }
     for (var i=value+1; i<=5; ++i){
-      $(".star-"+i).css('background-position-x', '');
+      $(".star-"+i).css('background-position-x', '-20px');
     }
 
     $("#radio"+value).prop("checked", true);

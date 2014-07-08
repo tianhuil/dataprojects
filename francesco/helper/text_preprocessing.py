@@ -1,3 +1,7 @@
+from nltk.stem import SnowballStemmer
+
+
+stemmer = SnowballStemmer('english')
 
 
 def _coll_neg(text):
@@ -20,3 +24,9 @@ def _coll_neg(text):
 
 def add_negation(texts):
     return map(_coll_neg, texts)
+
+
+def stem(text):
+    text = text.lower()
+    text = [' '.join(map(stemmer.stem, text.split()))]
+    return add_negation(text)
