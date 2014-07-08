@@ -195,30 +195,74 @@ def calc_sample_stats(sample):
     st = this_slice.min(0)['start_tick']
     et = this_slice.max(0)['start_tick']
     totaldown = 0
-    totalticks = et-st
+    totalticks = (et-st)/5
+    lenslice = et-st
     nonzeroticks = 0
     this_slice['Norm note'] = this_slice['note_val'] % 12
+
+    this_slice['Nlength']=this_slice['end_tick']-this_slice['start_tick']
+    ngrace = this_slice[this_slice['Nlength']<28]['Nlength'].count()
+
+    res = this_slice.sort('start_tick')
+    res['tdiff'] = res['start_tick']-res['start_tick'].shift()
+    nnotelens = len(res.groupby('tdiff').start_tick.nunique())
+
+    mc_count = 0
+    mc_num = 0
     chord_list = []
+    folded_chord_list = []
     old_notes = []
-    for tk in range(st,et):
-        #Keys down at once part
-        ndown = len(this_slice[(this_slice.start_tick < tk) & (this_slice.end_tick > tk)])
+    this_int = []
+    largestinterval = 0
+    for tk in range(st,et,5):
+	notes = this_slice[(this_slice.start_tick <= tk) & (this_slice.end_tick > tk)]['note_val'].ravel()
+        notes.sort()
+        ndown = len(notes)
         #print "tick = " + str(tk)
         #print str(ndown) + "keys down"
         totaldown += ndown
         if ndown != 0:
             nonzeroticks += 1
-        
-        #Chord-to-string conversion
-        notes = this_slice[(this_slice.start_tick < tk) & (this_slice.end_tick > tk)]['Norm note'].ravel()
-        notes.sort()
         if (not np.array_equal(notes,old_notes)) and (not np.array_equal(notes,np.array([]))):
             f = list(set(notes))
             f.sort()
-            g = [format(i,'x') for i in f]
+            #print f
+            if len(f)>1:
+                for i in range(len(f)):
+                    this_int.append(f[(i+1)%len(f)]-f[i])
+                    if this_int[i] > largestinterval:
+                        largestinterval = this_int[i]
+		    if this_int[i]<0:
+                        this_int[i] += 128
+            else:
+                this_int = [0]
+            #print this_int
+            g = [("%x" % i).zfill(2) for i in this_int]
+            #print g
             h = "".join(g)
+            #print h
             chord_list.append(h)
+            
+            mc_count += max(len(notes),len(old_notes))-len(set(notes).intersection(old_notes))
+            mc_num += 1
+            
+            folded_notes = this_slice[(this_slice.start_tick <= tk) & (this_slice.end_tick > tk)]['Norm note'].ravel()
+            folded_notes.sort()
+            j = list(set(folded_notes))
+            j.sort()
+            k = [format(i,'x') for i in j]
+            l = "".join(k)
+            folded_chord_list.append(l)
         old_notes = notes
+        this_int = []
+        folded_notes = []
+        
+    cstring = " ".join(chord_list)
+
+    if mc_num > 0:
+        mc = float(mc_count)/float(mc_num)
+    else:
+        mc = 1
         
     if totalticks != 0:
         avedown = float(totaldown)/float(totalticks)
@@ -229,11 +273,9 @@ def calc_sample_stats(sample):
     else:
         avenonzero = 0
         
-    cstring = " ".join(chord_list)
+    fstring = " ".join(folded_chord_list)
     
-    
-    return [avedown,avenonzero,cstring]
-
+    return [mc,avedown,avenonzero,cstring,fstring,lenslice,ngrace,nnotelens,largestinterval]
 
 def build_sample_frame(filedir,process_array):
     #processing_frame = pd.DataFrame(np.array([]),columns=['Composer','Time sig num','Time sig den','Key sig','Highest note','Lowest note'])    
@@ -250,17 +292,15 @@ def build_sample_frame(filedir,process_array):
                         
                         for i in slice_list:
                             tf = i[1]
-                            tf['Nlength']=tf['end_tick']-tf['start_tick']
-                            ngrace = tf[tf['Nlength']<28]['Nlength'].count()
-                            [avedown_zeros,avedown_nozero,cstring] = calc_sample_stats(i)
+                            k = calc_sample_stats(i)
                             #a = to_next(tf)
                             #ngrace = np.count_nonzero(np.logical_and(a>5,a<25))
-                            process_array.append([composer,max(i[1]['note_val']),min(i[1]['note_val']),ngrace,avedown_zeros,avedown_nozero,fn,cstring])
+                            process_array.append([composer,max(i[1]['note_val']),min(i[1]['note_val']),fn]+k)
 
 
 process_array = []
 build_sample_frame(filedir,process_array)
-processing_frame = pd.DataFrame(process_array,columns=['Composer','Highest note','Lowest note','Num ornament','Avg simul notes','Avg simul nonzero notes','fname','Chord string'])
+processing_frame = pd.DataFrame(process_array,columns=['Composer','Highest note','Lowest note','Fname','Ave moving notes','Ave notes sounding', 'Ave notes no zeros','Chord string','Folded chord string', 'Ticks in slice', 'Num ornaments', 'Num note spacings','Largest interval'])
 
 
 def colors(com):
