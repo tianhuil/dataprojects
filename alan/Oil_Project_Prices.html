@@ -15,6 +15,7 @@
   <li id="Home"><a class="nounder" href="./Oil_Project_Home.html">Home</a></li>
   <li id="Prices"><a class="nounder" href="./Oil_Project_Prices.html">Prices</a></li>
   <li id="Volume"><a class="nounder" href="./Oil_Project_Volume.html">Volume</a></li>
+  <li id="Resume"><a class="nounder" href="./resume.html">Resume</a></li>
 </ul>
 </div>
 
@@ -27,13 +28,13 @@
 <div id="content">
 <div id="main">
 <h1>Oil Prices</h1>
-<p>The simplest explantion of oil prices is that they are driven by supply and demand. Events that impact the availability of oil (supply) or the desire for oil (demand) should change the price. Using the front month contract, I examined the changes in price, attempting to determine whether daily movements are predictably correlated with geopolitical events.</p>
+<p>The simplest explanation of oil prices is that they are driven by supply and demand. Events that impact the availability of oil (supply) or the desire for oil (demand) should change the price. Using the front month contract, I examined the changes in price, attempting to determine whether daily movements are predictably correlated with geopolitical events.</p>
 
 <h1>Price Correlation</h1>
 <p>First, the autocorrelation and partial autocorrelation should reveal any major trends that we should remove from the time-series.</p>
 <img src="./html/stock_corr.png" title="Autocorrelation and Partial Autocorrelation of Stock Prices"  height="400"/> 
 <p>
-The correlations show that there is a stong dependence on yesterday's price. So we can use yesterday's price as our first prediction. Then we can predict the residual using more advanced methods.
+The correlations show that there is a strong dependence on yesterday's price. So we can use yesterday's price as our first prediction. Then we can predict the residual using more advanced methods.
 </p> 
 
 <h1>Predicting the Residuals</h1>
@@ -49,11 +50,11 @@ Instead of examining the residual directly, I define a transformed percent error
 I included these factors in an attempt to model the residuals:
 <dl>
 <dt>CPI</dt>
-<dd>- The Comsumer Price Index is a common measure of inflation.</dd>
+<dd>- The Consumer Price Index is a common measure of inflation.</dd>
 <dt>GDP</dt>
-<dd>- Gross Domestic Product provides a measure of the size of the economy. A larger economy generally requires more enegy, although technological advances can mitigate this.</dd>
+<dd>- Gross Domestic Product provides a measure of the size of the economy. A larger economy generally requires more energy, although technological advances can mitigate this.</dd>
 <dt>Population</dt>
-<dd>- US Population provides another measure of the size of the energy demand. A larger population generally requires more enegy, although technological advances can also mitigate this.</dd>
+<dd>- US Population provides another measure of the size of the energy demand. A larger population generally requires more energy, although technological advances can also mitigate this.</dd>
 <dt>Recession Probability</dt>
 <dd>- The St. Louis Fed provides a measure of recession probability that may correlate with oil prices. If the likelihood of recession increases and the economy slows down, there will be downward pressure on prices.</dd>
 <dt>Stress Index</dt>
@@ -65,10 +66,10 @@ I included these factors in an attempt to model the residuals:
 </dl>
 
 <h1>Political Factors Affecting the Residuals</h1>
-<p>Political events may also affect oil prices, since conflict, especially in oil producing countries, can increase the uncertainty in the future availability of oil. To represent this, we examing the general number of events, the number of unconventional (terrorist-like) attacks, and conventional fighting in the top 5 oil exporters (Saudi Arabia, Russia, Iran, Nigeria, and Norway) and the top 5 oil importers (US, Japan, South Korea, Germany, and France).</p>
+<p>Political events may also affect oil prices, since conflict, especially in oil producing countries, can increase the uncertainty in the future availability of oil. To represent this, we examine the general number of events, the number of unconventional (terrorist-like) attacks, and conventional fighting in the top 5 oil exporters (Saudi Arabia, Russia, Iran, Nigeria, and Norway) and the top 5 oil importers (US, Japan, South Korea, Germany, and France).</p>
  
 <p>
-Conflict in oil exporters can directly reduce supply. Conflict involving the more poitically and economically stable importers is a more general measure of the poitical instability of the world, which also may directly limit supply or give the perception of potential future supply problems.</p> 
+Conflict in oil exporters can directly reduce supply. Conflict involving the more politically and economically stable importers is a more general measure of the political instability of the world, which also may directly limit supply or give the perception of potential future supply problems.</p> 
 <br>
 
 <h1>Transformation of the Factors</h1>

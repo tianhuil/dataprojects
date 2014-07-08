@@ -26,10 +26,16 @@ axlabelsize = 20
 ticklabelsize = 20
 legendsize = 18
 fontname = 'Times New Roman Bold'
-figsize = (8,6.5)
+figsize = (8,7.5)
 
-#Can I preload all my pickled models here, and save runtime later?
-def load_pickles(pickle_dict):
+def load_pickles():
+    '''
+    Loads the pickled models all at once when the site is first accessed, allowing them to be cached to improve loading times.
+
+    Returns:
+    pickle_dict -- a dictionary of loaded pickles, keyed by their filenames.
+    '''
+    pickle_dict = {}
     projectdir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))#the main project directory
     pkl_directory = os.path.join(projectdir,'saved_models/')
     picklenames = glob.glob(pkl_directory+"*.pkl")
@@ -37,24 +43,37 @@ def load_pickles(pickle_dict):
         f = open(name,'rb')
         pickle_dict[name] = pickle.load(f)
         f.close()
-pickle_dict = {}
-load_pickles(pickle_dict)
-print pickle_dict[pickle_dict.keys()[0]]
+    return pickle_dict
+pickle_dict = load_pickles()
 
-#Simple test view, for trying out new things:
 def test(request):
+    '''
+    Simple test view, for trying out new things.
+    '''
     context = RequestContext(request)
     context_dict = {}
     return render_to_response('delayr/test.html',context_dict,context)
 
-#The about page:
+def nitty_gritty(request):
+    '''
+    View for the page giving some more details of my model.
+    '''
+    context = RequestContext(request)
+    context_dict = {}
+    return render_to_response('delayr/nitty_gritty.html',context_dict,context)
+
 def about(request):
+    '''
+    The about page.
+    '''
     context = RequestContext(request)
     context_dict = {}
     return render_to_response('delayr/about.html',context_dict,context)
 
-#The index is both the homepage of Delayr and also where results are posted to, so it's naturally a lot more complex than the above functions:
 def index(request):
+    '''
+    View for the index, which is both the homepage of Delayr and also where prediction outputs are displayed. 
+    '''
     context = RequestContext(request)
     context_dict = {}
     #Initialize the forms
@@ -68,11 +87,8 @@ def index(request):
         submittedform = AirportForm(request.POST)
         if submittedform.is_valid():
             #Get the data, validate the date field (since somehow the widget I'm using isn't doing that part):
-            #print dir(submittedform)
-            #print dir(submittedform.visible_fields)
             valuedict = dict(submittedform.data)
             date_regexp = re.compile(r'^\d\d/\d\d/\d\d\d\d$')
-            #print valuedict['date'][0],date_regexp.search(valuedict['date'][0])
             if valuedict['origin'][0] == valuedict['dest'][0]:
                 context_dict['welcome_message'] = "Welcome to Delayr!"
                 context_dict['errmessage'] = "Choose two different airports"
@@ -81,14 +97,13 @@ def index(request):
                 context_dict['errmessage'] = "Incorrect date format"
             else:
                 #Display the prediction results:
-                prediction_dict = df.make_predictions(valuedict)
+                prediction_dict = df.make_predictions(valuedict,pickle_dict)
                 #prepare values relating to the requested prediction
                 if 'user_prediction' in prediction_dict.keys():
                     prediction_df = prediction_dict['user_prediction']
                     prediction_bins = list(prediction_df.columns)
                     prediction_values = list(prediction_df.irow(0))
                     prediction = zip(prediction_bins,prediction_values)
-                    #context_dict['prediction'] = prediction
                     context_dict['string_prediction'] = repr(prediction)
                 #prepare values relating to other times of that day:
                 if 'all_time_prediction' in prediction_dict.keys():
@@ -118,9 +133,14 @@ def index(request):
 
     return render_to_response('delayr/index.html',context_dict,context)
 
-#This function returns a matplotlib png image displaying the predictions as a function of nearby days:
 #There's a fair amount of overlap on the plotting functions, which could probably be pulled into its own function to remove repetition in a world with eternal time.
 def show_all_date_prediction(request,prediction):
+    '''
+    View which returns a matplotlib png image displaying the predictions as a function of nearby days.
+
+    Arguments:
+    prediction -- a string containing a json-encoded dataframe of prediction results.
+    '''
     context = RequestContext(request)
     prediction_df = df.prep_passed_df(prediction,row_order_column='order',column_order_row='col_order')
     column_names = prediction_df.columns.values[1:]#Only plotting delays and cancellations
@@ -154,8 +174,13 @@ def show_all_date_prediction(request,prediction):
     plt.close(fig)
     return response
 
-#Visualize the prediction at different times of day:
 def show_all_time_prediction(request,prediction):
+    '''
+    View which returns a matplotlib png image displaying the predictions as a function of time of day.
+
+    Arguments:
+    prediction -- a string containing a json-encoded dataframe of prediction results.
+    '''
     context = RequestContext(request)
     prediction_df = df.prep_passed_df(prediction,row_order_column='order',column_order_row='col_order')
     column_names = prediction_df.columns.values[1:]#Only plotting delays and cancellations
@@ -190,8 +215,13 @@ def show_all_time_prediction(request,prediction):
     plt.close(fig)
     return response
 
-#Actually plot what the user asked for:
 def show_user_prediction(request,string_prediction):
+    '''
+    View which returns a matplotlib png image displaying the prediction that the user searched for.
+
+    Arguments:
+    string_prediction -- a string containing lists of bin names and percentages for different delay times.
+    '''
     #This works slightly differently than the other plotting functions, because I hadn't hit upon the pandas->json trick yet when I wrote this, and haven't yet gotten around to standardizing everything.
     context = RequestContext(request)
     prediction = eval(string_prediction)

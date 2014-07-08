@@ -1,6 +1,4 @@
-from __future__ import division
 import numpy as np
-
 """
 Define metrics to be used for cross validation in scikit-learn.
 
@@ -14,18 +12,7 @@ values, returns a prediction score.
 """
 
 
-def mean_square_error(ground_truth, predicted):
-    """
-    Evaluate mean square error.
-    :param ground_truth:
-    :param predicted:
-    :return:
-    """
-    n = len(ground_truth)
-    return sum((ground_truth - predicted)**2) / n
-
-
-def mean_abs_error(ground_truth, predicted):
+def abs_mean_error(ground_truth, predicted):
     """
     Evaluate mean distance between true and predicted.
     :param ground_truth: numpy 1D array of true labels
