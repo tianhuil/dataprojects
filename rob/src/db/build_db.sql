@@ -351,3 +351,85 @@ begin
   where user_id = new.user_id ;
 end //
 delimiter ;
+
+
+
+alter table brewers add location_id int;
+
+drop table if exists locations;
+create table locations (
+  id int not null,
+  name varchar(100),
+  primary key (id),
+  unique (name)
+);
+
+set @curRow := 0;
+insert into locations (id, name)
+SELECT @curRow := @curRow + 1 as id, location
+from (
+  select distinct location
+  from brewers
+) l;
+
+update brewers b inner join locations l
+  on b.location = l.name
+set b.location_id = l.id ;
+
+alter table brewers drop location;
+alter table brewers modify location_id int(10) not null;
+alter table brewers add constraint brewer_loc_id_fk
+  foreign key (location_id)
+  references locations (id)
+    on update cascade
+    on delete cascade;
+    
+
+delimiter //
+drop procedure if exists brewerupsert ;
+create procedure brewerupsert (in new_brewer_id int, in new_brewer_name varchar(200), in new_brewer_loc int)
+begin
+  INSERT INTO brewers (id, name, location_id)
+  VALUES (new_brewer_id, new_brewer_name, new_brewer_loc)
+  ON DUPLICATE KEY UPDATE
+    name = new_brewer_name,
+    location_id = new_brewer_loc;
+end //
+delimiter ;
+
+delimiter //
+drop procedure if exists locationupsert ;
+create procedure locationupsert (in new_loc_id int, in new_loc varchar(200))
+begin
+  if not exists (select 1 from locations where name = new_loc) then
+    INSERT INTO locations (id, name)
+    VALUES (new_loc_id, new_loc)
+    ON DUPLICATE KEY UPDATE
+      name = new_loc;
+  end if ;
+end //
+delimiter ;
+
+
+
+drop view if exists brewerswithrecs;
+create view brewerswithrecs as
+select distinct b.id, b.name, b.location_id
+from
+  brewers b inner join beers be
+    on b.id = be.brewer_id
+  inner join beersimilarity bs
+    on be.id = bs.beer_id_ref;
+
+
+delimiter //
+drop procedure if exists beerswithrecs;
+create procedure beerswithrecs(in in_brewer_id int)
+begin
+  select distinct be.brewer_id, be.id, be.name
+  from
+    beers be inner join beersimilarity bs
+      on be.id = bs.beer_id_ref
+  where be.brewer_id = in_brewer_id ;
+end //
+delimiter ;
