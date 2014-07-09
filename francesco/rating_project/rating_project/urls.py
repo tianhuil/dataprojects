@@ -3,7 +3,7 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 admin.autodiscover()
 
-from static_pages import views
+from rate import views
 
 urlpatterns = patterns('',
     # Examples:

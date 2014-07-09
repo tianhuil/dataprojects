@@ -10,6 +10,23 @@ demo
 {% endblock %}
 
 {% block content %}
+
+<div class="description">
+    <h1>Classifier in Action</h1>
+    <p>
+        My project for The Data Incubator program involves online restaurant reviews;
+        more specifically, my goal is to predict the star rating from the written review.
+    </p>
+    <p>
+        Here you can try my classifier. Write your own review in the box below.
+        The rating will change according to what the algorithm believes to be the best answer.
+    </p>
+    <p>
+        For a number of reasons, it is very easy to fool the classifier!
+    </p>
+</div>
+
+
 <div class="review-input">
     <textarea class="review-box" cols="80" rows="15">
 Grew up in Japan and sad to say this curry is terrible by comparison. Everything is too salty, by charging to add pickles as an add on (which should just be included) they end up giving you too much, which disrupts the balance of flavors. Also, too greasy. Meat cuts were overcooked and thin and dry. Will just go back to making this at home. This is not a hard dish to get right...lame that a store that specializes in just one thing can't get it right.
@@ -32,6 +49,11 @@ Grew up in Japan and sad to say this curry is terrible by comparison. Everything
         -->
     </div>
 </div>
+
+<h3>To be added...</h3>
+<p>best features, reinforcement learning</p>
+
+
 {% endblock %}
 
 {% block scripts %}
