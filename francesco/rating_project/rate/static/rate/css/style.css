@@ -4,11 +4,16 @@
   width: 75%;
   margin: auto;
   margin-top: 2em;
-  margin-bottom: 2em;
+  margin-bottom: 5em;
 }
 
 .review-box{
   width: 100%;
+  resize: none;
+}
+
+.rating {
+  float: right;
 }
 
 .rating input[type=radio] {

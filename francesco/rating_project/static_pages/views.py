@@ -9,3 +9,9 @@ def index(request):
     template = loader.get_template("static_pages/base.html")
     context = RequestContext(request)
     return HttpResponse(template.render(context))
+
+
+def project(request):
+    template = loader.get_template("static_pages/project.html")
+    context = RequestContext(request)
+    return HttpResponse(template.render(context))

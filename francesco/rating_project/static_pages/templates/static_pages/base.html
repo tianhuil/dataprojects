@@ -3,8 +3,10 @@
 <html lang="eng">
     <head>
         <title>{% block title %}Rating project{% endblock %}</title>
-        <link rel="stylesheet" href="{% static 'static_pages/css/base.css' %}"/>
         {% block style %}
+        {% endblock %}
+        <link rel="stylesheet" href="{% static 'static_pages/css/base.css' %}"/>
+        {% block style2 %}
         {% endblock %}
     </head>
     <body>
@@ -15,10 +17,10 @@
                     <nav>
                         <ul id="menu">
                             <li class="menu-item">
-                                <a href="rate"><div class="li-content"><span>Demo</span></div></a>
+                                <a href="../rate"><div class="li-content"><span>Demo</span></div></a>
                             </li>
                             <li class="menu-item">
-                                <a href=""><div class="li-content"><span>Project Info</span></div></a>
+                                <a href="../project"><div class="li-content"><span>Project Info</span></div></a>
                             </li>
                             <li class="menu-item">
                                 <a href=""><div class="li-content"><span>About...</span></div></a>
