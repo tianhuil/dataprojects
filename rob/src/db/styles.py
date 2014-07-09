@@ -66,6 +66,17 @@ class Styles(object):
       qry = '{0} {1}'.format(qry, 'limit %s')
     s = self.__select(qry, param)
     return self.__res_as_dict(s)
+    
+  def top_reviewed_styles(self, limit = 0):
+    qry = """select s.id, s.name
+      from reviewctbystyle r inner join styles s
+        on r.style_id = s.id"""
+    
+    param = self.__limit_param_tup(limit)
+    if len(param):
+      qry = '{0} {1}'.format(qry, 'limit %s')
+      
+    return self.__select(qry, param)
 
   def style_name(self, style_id):
     qry = "select name from styles where id = %s"

@@ -2,53 +2,37 @@
 # restful resource api that pulls db info
 
 from imthirsty import app
+from imthirsty.dbwrapper import PageData
+
 from flask.ext import restful
 
 api = restful.Api(app)
 
+disp = PageData()
+
 class Regions(restful.Resource):
   def get(self):
-    return [
-      {'region_id':1, 'name':'region 1'},
-      {'region_id':2, 'name':'region 2'},
-      {'region_id':3, 'name':'region 3'}
-    ]
+    return disp.brewer_regions()
     
 
 class Styles(restful.Resource):
   def get(self):
-    return [
-      {'style_id':1, 'name':'style 1'},
-      {'style_id':2, 'name':'style 2'},
-      {'style_id':3, 'name':'style 3'}
-    ]
+    return disp.styles()
 
 
 class Brewers(restful.Resource):
   def get(self, region_id):
-    return [
-      {'brewer_id':1, 'name':'brewer 1'},
-      {'brewer_id':2, 'name':'brewer 2'},
-      {'brewer_id':3, 'name':'brewer 3'}
-    ]
+    return disp.brewers_by_region(region_id)
 
 
 class Beers(restful.Resource):
   def get(self, brewer_id):
-    return [
-      {'beer_id':1, 'style_id':1, 'name':'beer 1'},
-      {'beer_id':2, 'style_id':2, 'name':'beer 2'},
-      {'beer_id':3, 'style_id':3, 'name':'beer 3'}
-    ]
+    return disp.beers_by_brewer(brewer_id)
 
 
 class Recommendations(restful.Resource):
   def get(self, beer_id, style_id):
-    return [
-      {'beer_id':1, 'name':'beer rec 1'},
-      {'beer_id':2, 'name':'beer rec 2'},
-      {'beer_id':3, 'name':'beer rec 3'}
-    ]
+    return disp.recommendations(beer_id, style_id)
 
 
 

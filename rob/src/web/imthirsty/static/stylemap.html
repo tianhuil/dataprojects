@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="stylemap">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ImThirsty: Find your new favorite beer</title>
+    
+    <!-- needs to make the main.css -->
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="styleplottabs.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular.js"></script>
+    <script src="ui-bootstrap-tpls-0.11.0.min.js" type="text/javascript"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular-resource.js"></script>
+    <script src="iframetoggle.js"></script>
+    
+  </head>
+  
+  <body>
+    <div class="header_row">
+      <nav class="navbar navbar-inverse" role="navigation">
+      <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">ImThirsty</a>
+        </div>
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav">
+            <li id="index"><a href="index.html">Recommendations</a></li>
+            <li id="stylemap" class="active"><a href="stylemap.html">Style Map</a></li>
+            <li id="about"><a href="#">About</a></li>
+          </ul>
+        </div>
+      </div>
+      </nav>
+    </div>
+    
+    <div class="container centered" ng-controller="StyleMap">
+    
+    <div class="row">
+      <div class="">
+        <ul class="nav nav-tabs nav-justified">
+          <li id="tab_item" ng-repeat="sheet in data.sheets" ng-if="$index < 5">
+          <!--ng-class="{active: $index == 0}">-->
+            <a href="#{{sheet.name}}" data-toggle="tab">{{sheet.disp}}</a>
+          </li>
+        </ul>
+        <ul class="nav nav-tabs nav-justified">
+          <li id="tab_item" ng-repeat="sheet in data.sheets" ng-if="$index > 4">
+          <!--ng-class="{active: $index == 0}">-->
+            <a href="#{{sheet.name}}" data-toggle="tab">{{sheet.disp}}</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <!--<div class="tab-pane" id="{{sheet.name}}" ng-repeat="sheet in data.sheets" ng-class="{active: $index == 0}">
+            <iframe height=497 width=1366 ng-src="{{sheet.src}}" seamless frameborder=0 scrolling=no></iframe>
+          </div>-->
+          <div class="tab-pane active" id="amport">
+            <iframe height=497 width=1366 src="//docs.google.com/spreadsheets/d/1RtZdyKQrRTKIZIN8dzjS9Y0r0wJjoA2wyhGoA3Szyxc/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
+          </div>
+          <div class="tab-pane" id="russimp">
+            <iframe height=497 width=1366 src="//docs.google.com/spreadsheets/d/18ekSiXu_FpfklUPhunYEIqm422FVAHd7tlNHC79CVWI/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
+          </div>
+          <div class="tab-pane" id="amimp">
+            <iframe height=497 width=1366 src="//docs.google.com/spreadsheets/d/18uAOCwONEEj4v7_ARL8k8T-Kc2X0vpkcvGeGs6zmOHE/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
+          </div>
+          <div class="tab-pane" id="bsda">
+            <iframe height=497 width=1366 src="//docs.google.com/spreadsheets/d/1nuh0Tg5-F-Zkztr7hkccyVU3m__ksSFz8Za8gQdoWyo/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
+          </div>
+          <div class="tab-pane" id="tripel">
+            <iframe height=497 width=1366 src="//docs.google.com/spreadsheets/d/1-lZW4NqJjMnrI_rqL81V-wlDykAmr8Eb9m1rSc8W5yI/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
+          </div>
+          <div class="tab-pane" id="fruitveg">
+            <iframe height=497 width=1366 src="//docs.google.com/spreadsheets/d/13Pl8OGfDE3mhZ-SNHmb_Mja_Kxt2pXN35U-7dSZ8QqA/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
+          </div>
+          <div class="tab-pane" id="amred">
+            <iframe height=497 width=1366 src="//docs.google.com/spreadsheets/d/1F-jAIduE3zp5fWUFGSNROsrfzsEA7qeL7kgUtZoabys/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
+          </div>
+          <div class="tab-pane" id="apa">
+            <iframe height=497 width=1366 src="//docs.google.com/spreadsheets/d/1LnBLiHYvvRhmcrwLKWVt64QR_PUB3G5B5aSSjHs8XoM/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
+          </div>
+          <div class="tab-pane" id="aipa">
+            <iframe height=497 width=1366 src="//docs.google.com/spreadsheets/d/1Kql7uFdcGuqUW8-PJfODA69PSwbpbmnQI9r2_MXX1A8/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
+          </div>
+          <div class="tab-pane" id="adipa">
+            <iframe height=497 width=1366 src="//docs.google.com/spreadsheets/d/1AAedrbv7Vbei5y5LEKjCRWz3uLbks-WYADm_IpKO7YA/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    </div>
+    
+  </body>
+</html>

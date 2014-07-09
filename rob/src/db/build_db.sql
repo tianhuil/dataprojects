@@ -433,3 +433,15 @@ begin
   where be.brewer_id = in_brewer_id ;
 end //
 delimiter ;
+
+
+drop view if exists beerctbyloc;
+create view beerctbyloc as
+select b.location_id, l.name, count(*) as beer_ct
+from
+  locations l inner join brewers b
+    on b.location_id = l.id
+  inner join beers be
+    on b.id = be.brewer_id
+group by b.location_id, l.name
+order by beer_ct desc ;

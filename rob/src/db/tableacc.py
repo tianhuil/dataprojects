@@ -23,13 +23,20 @@ class TableAcc(object):
   def _enc(self, s):
     return ''.join([x for x in s if ord(x) < 128])
   
-  def _view(self, view_name, **kwargs):
+  def _view(self, view_name, distinct=False, cols="", where="", order_by="", limit=0, param = []):
     res = None
     if not any(s in view_name for s in ['drop', 'truncate']):
       old = self.__table_name
       try:
         self.__table_name = view_name
-        res = self._select(**kwargs)
+        
+        res = self._select(
+          distinct=distinct,
+          cols=cols,
+          where=where,
+          order_by=order_by,
+          limit=limit,
+          param=param)
       except Exception as e:
         print e
       
@@ -40,6 +47,10 @@ class TableAcc(object):
   # not intended for outside use
   def _select(self, distinct=False, cols="", where="", order_by="", limit=0, param = []):
     """ query builder """
+    
+    # prevent out of scope update
+    # python default values are dumb
+    alt_param = param[:]
     
     # check for injection
     inj_keys = ['drop', 'truncate']
@@ -71,18 +82,18 @@ class TableAcc(object):
       
     if limit:
       sel.append('limit %s')
-      param.append(limit)
-    
-    if param and len(param) == 1:
-      param = (param[0],)
+      alt_param.append(limit)
+      
+    if alt_param and len(alt_param) == 1:
+      alt_param = (alt_param[0],)
     else:
-      param = tuple(param)
-    
+      alt_param = tuple(alt_param)
+      
     res = None
     sel = ' '.join(s for s in sel)
     with Beerad() as dbc:
       cur = dbc.cursor()
-      cur.execute(sel, param)
+      cur.execute(sel, alt_param)
       res = cur.fetchall()
       cur.close()
       
