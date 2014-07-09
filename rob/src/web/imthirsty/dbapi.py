@@ -33,6 +33,10 @@ class Beers(restful.Resource):
 class Recommendations(restful.Resource):
   def get(self, beer_id, style_id):
     return disp.recommendations(beer_id, style_id)
+    
+class BeerMeta(restful.Resource):
+  def get(self, beer_id):
+    return disp.beer_meta(beer_id)
 
 
 
@@ -41,3 +45,4 @@ api.add_resource(Styles, '/styles')
 api.add_resource(Brewers, '/brewers/<string:region_id>')
 api.add_resource(Beers, '/beers/<string:brewer_id>')
 api.add_resource(Recommendations, '/recommend/<string:beer_id>/<string:style_id>')
+api.add_resource(BeerMeta, '/beer_meta/<string:beer_id>')

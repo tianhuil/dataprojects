@@ -59,3 +59,5 @@ class PageData(object):
       { 'brewer_id': 2, 'brewer_name': 3, 'beer_id': 4, 'name': 5, 'score': 6 },
       self.beer.recommendations(beer_id, style_id, 10))
   
+  def beer_meta(self, beer_id):
+    return [self.beer.meta_dict(beer_id)]

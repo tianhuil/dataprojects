@@ -430,7 +430,8 @@ begin
   from
     beers be inner join beersimilarity bs
       on be.id = bs.beer_id_ref
-  where be.brewer_id = in_brewer_id ;
+  where be.brewer_id = in_brewer_id
+  order by be.name ;
 end //
 delimiter ;
 
@@ -445,3 +446,22 @@ from
     on b.id = be.brewer_id
 group by b.location_id, l.name
 order by beer_ct desc ;
+
+
+delimiter //
+drop procedure if exists beermeta;
+create procedure beermeta(in in_beer_id int)
+begin
+  select distinct be.id, be.name, be.brewer_id, br.name as brewer_name,
+    br.location_id, l.name as location, be.style_id, s.name as style_name,
+    be.abv, be.ibu, be.notes
+  from
+    beers be inner join brewers br
+      on be.brewer_id = br.id
+    inner join styles s
+      on be.style_id = s.id
+    inner join locations l
+      on br.location_id = l.id
+  where be.id = in_beer_id ;
+end //
+delimiter ;

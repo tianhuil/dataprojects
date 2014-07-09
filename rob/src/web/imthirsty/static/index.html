@@ -9,6 +9,7 @@
     
     <!-- needs to make the main.css -->
     <link rel="stylesheet" href="main.css">
+    <link href="http://s3.amazonaws.com/codecademy-content/courses/ltp/css/shift.css" rel="stylesheet">
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
@@ -25,10 +26,11 @@
     
     <div class="header_row">
       <nav class="navbar navbar-inverse" role="navigation">
-      <div class="container-fluid">
+      <div class="container pull-left">
         <!-- Brand and toggle get grouped for better mobile display -->
         <div class="navbar-header">
           <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
@@ -39,94 +41,131 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav">
             <li class="active"><a href="#">Recommendations</a></li>
+            <li id="method"><a href="method.html">Methodology</a></li>
             <li><a href="stylemap.html">Style Map</a></li>
-            <li><a href="#">About</a></li>
+            <li><a href="about.html">About</a></li>
           </ul>
         </div>
       </div>
       </nav>
+    </div>
     
-      <div class="jumbotron">
+    <div class="jumbotron">
+      <div class="container">
     	  <h1>ImThirsty: Find your new favorite beer.</h1>
     	  <p>Search for the beer you've been drinking and let ImThirsty find you a new one.</p>
       </div>
     </div>
     
-    
-    <div class="row" ng-controller="BeerMenu">
-    
-    <!-- BeerMenu Navigation and Selection -->
-    <div id="beer_select" class="col-md-3">
-
-      <!-- Region Split button -->
-      <div id="brewer_reg" class="btn-group" dropdown>
-        <button id="reg_disp" type="button" class="btn btn-primary">Brewer Regions</button>
-        <button type="button" class="btn btn-primary dropdown-toggle">
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu" role="menu">
-          <li ng-repeat="reg in data.regions">
-            <a href="#" ng-click="setBrewers(reg)">{{reg.name}}</a>
-          </li>
-        </ul>
+    <div class="instructions">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-3"><h2>Instructions</h2></div>
+        </div>
+        <div class="row">
+        <div class="col-md-3" id="step1">
+          <h3>Select a region.</h3>
+          <p>Use the Brewer Region dropdown to select the region of your favorite beer.</p>
+        </div>
+        <div class="col-md-3" id="step2">
+          <h3>Select a brewer.</h3>
+          <p>In the list of Brewers that appear, find the maker of interest.</p>
+        </div>
+        <div class="col-md-3" id="step3">
+          <h3>Select a beer.</h3>
+          <p>Find the beer in your hand on the list that appears below the selected brewer.</p>
+        </div>
+        <div class="col-md-3" id="step4">
+          <h3>Select a style.</h3>
+          <p>On the right select the style of beer you'd like ImThirsty to recommend.</p>
+        </div>
+        </div>
       </div>
-  
-      <!--<div id="reg_selected">
-        <span class="pull-left"><h4><pre>Region: {{data.regionDisp}}</pre></h4></span>
-      </div>-->
-      
-      <!-- Brewer/Beer Accordion List -->
-      <div id="brewer_acc">
-        <accordion close-others="oneAtATime">
-          <accordion-group heading="{{brewer.name}}" is-open="isopen" ng-click="setBeers(brewer.brewer_id)" ng-repeat="brewer in data.brewers">
-            <div id="beer_list" ng-if="isopen">
-              <ul class="nav nav-pills nav-stacked">
-                <li ng-repeat="beer in data.beers">
-                  <a href="#" ng-click="recsByBeer(beer.beer_id)">{{beer.name}}</a>
-                </li>
-              </ul>
-            </div>
-          </accordion-group>
-        </accordion>
-      </div>
-      
     </div>
-    <!-- End BeerMenu Navigation and Selection -->
     
-    <!-- Recommendation Column -->
-    <div id="rec_col" class="col-md-8">
     
-      <!-- Style of recommended beers -->
-        <div id="style_rec" class="panel panel-primary">
-          <div class="panel-heading clearfix">
-            <h1 class="panel-title pull-left">Recommended Beers by Style</h1>
-            <div id="style_drop" class="btn-group pull-right" dropdown>
-              <button id="style_btn" type="button" class="btn btn-primary">Beer Style</button>
-              <button id="style_btn" type="button" class="btn btn-primary dropdown-toggle">
-                <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu" role="menu">
-                <li ng-repeat="style in data.styles">
-                  <a href="#" ng-click="recsByStyle(style.style_id)">{{style.name}}</a>
-                </li>
-              </ul>
-            </div>
-          </div>
-      
-          <!-- Recommended beers -->
-          <div id="beer_recs" class="panel-body">
-            <ul class="nav nav-pills nav-stacked">
-              <li ng-repeat="beer in data.recs[data.current_style]">
-                <a href="#">{{beer.name}}</a>
-              </li>
-            </ul>
-          </div>
-              
+    <div class="container pull-left" ng-controller="BeerMenu" id="beer_select">
+    <div class="row">
+      <!-- BeerMenu Navigation and Selection -->
+      <div class="col-md-4">
+        <!-- Region Split button -->
+        <div id="brewer_reg" class="btn-group" dropdown>
+          <button id="reg_disp" type="button" class="btn btn-primary">Brewer Regions</button>
+          <button type="button" class="btn btn-primary dropdown-toggle">
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <li ng-repeat="reg in data.regions">
+              <a href="#" ng-click="setBrewers(reg)">{{reg.name}}</a>
+            </li>
+          </ul>
+        </div>
+    
+        <!--<div id="reg_selected">
+          <span class="pull-left"><h4><pre>Region: {{data.regionDisp}}</pre></h4></span>
+        </div>-->
+        
+        <!-- Brewer/Beer Accordion List -->
+        <div id="brewer_acc">
+          <accordion close-others="oneAtATime">
+            <accordion-group heading="{{brewer.name}}" is-open="isopen" ng-click="setBeers(brewer.brewer_id)" ng-repeat="brewer in data.brewers">
+              <div id="beer_list" ng-if="isopen">
+                <ul class="nav nav-pills nav-stacked">
+                  <li ng-repeat="beer in data.beers">
+                    <a href="#" ng-click="recsByBeer(beer.beer_id)">{{beer.name}}</a>
+                  </li>
+                </ul>
+              </div>
+            </accordion-group>
+          </accordion>
+        </div>
+        
       </div>
-      
-    </div>
-    <!-- End Recommendation Column -->
+      <!-- End BeerMenu Navigation and Selection -->
     
+      <!-- Recommendation Column -->
+      <div id="rec_col" class="col-md-8">
+      
+        <!-- Style of recommended beers -->
+          <div id="style_rec" class="panel panel-primary">
+            <div class="panel-heading clearfix">
+              <h1 class="panel-title pull-left">Recommended Beers by Style</h1>
+              <div id="style_drop" class="btn-group pull-right" dropdown>
+                <button id="style_btn" type="button" class="btn btn-primary">Beer Style</button>
+                <button id="style_btn" type="button" class="btn btn-primary dropdown-toggle">
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                  <li ng-repeat="style in data.styles">
+                    <a href="#" ng-click="recsByStyle(style.style_id)">{{style.name}}</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+        
+            <!-- Recommended beers -->
+            <div id="rec_acc" class="panel-body">
+              <accordion close-others="oneAtATime">
+                <accordion-group heading="{{beer.name}}" is-open="isopen" ng-click="setBeerMeta(beer.beer_id)" ng-repeat="beer in data.recs">
+                  <div id="beer_meta" ng-if="isopen">
+                    <ul class="list-group">
+                      <li class="list-group-item">Brewer   : {{data.rec_meta[0].brewer_name}}</li>
+                      <li class="list-group-item">Location : {{data.rec_meta[0].location_name}}</li>
+                      <li class="list-group-item">Style    : {{data.rec_meta[0].style_name}}</li>
+                      <li class="list-group-item">ABV      : {{data.rec_meta[0].abv}}</li>
+                      <li class="list-group-item">IBU      : {{data.rec_meta[0].ibu}}</li>
+                      <li class="list-group-item">Notes    : {{data.rec_meta[0].notes}}</li>
+                    </ul>
+                  </div>
+                </accordion-group>
+              </accordion>
+            </div>
+                
+        </div>
+        
+      </div>
+      <!-- End Recommendation Column -->
+    </div>
     </div>
 
   </body>

@@ -3,8 +3,8 @@ var app = angular.module('imthirsty', ['ngResource', 'ui.bootstrap']);
 
 
 app.controller('BeerMenu',
-  ['$scope', 'Regions', 'Styles', 'Brewers', 'Beers', 'Recommendations',
-  function($scope, Regions, Styles, Brewers, Beers, Recommendations) {
+  ['$scope', 'Regions', 'Styles', 'Brewers', 'Beers', 'Recommendations', 'BeerMeta',
+  function($scope, Regions, Styles, Brewers, Beers, Recommendations, BeerMeta) {
     // brewer/beer accordion shows one at a time
     $scope.oneAtATime = true;
     
@@ -43,25 +43,33 @@ app.controller('BeerMenu',
       
       beer_id = $scope.data.current_beer
       if (beer_id) {
-        $scope.data.recs[style_id] = Recommendations.query({}, { beer_id: beer_id, style_id: style_id },
+        $scope.data.recs = Recommendations.query({}, { beer_id: beer_id, style_id: style_id },
           function(res) {
             console.log(res);
           });
       }
     };
     
-    $scope.data.recs = { 1: [], 2: [], 3: [] }
     $scope.recsByBeer = function(beer_id) {
       console.log("! " + beer_id);
       $scope.data.current_beer = beer_id;
       
       style_id = $scope.data.current_style;
       if (style_id) {
-        $scope.data.recs[style_id] = Recommendations.query({}, { beer_id: beer_id, style_id: style_id },
+        $scope.data.recs = Recommendations.query({}, { beer_id: beer_id, style_id: style_id },
           function(res) {
             console.log(res);
           });
       }
+    };
+    
+    $scope.setBeerMeta = function(beer_id) {
+      console.log("! " + beer_id);
+      
+      $scope.data.rec_meta = BeerMeta.query({}, { beer_id: beer_id },
+        function(res) {
+          console.log(res);
+        });
     };
 
 }]);
@@ -98,6 +106,13 @@ app.factory('Recommendations', function($resource){
   return $resource(
       'http://107.170.156.226:5000/recommend/:beer_id/:style_id',
       { beer_id: '@beer_id', style_id: '@style_id' }
+    );
+});
+
+app.factory('BeerMeta', function($resource){
+  return $resource(
+      'http://107.170.156.226:5000/beer_meta/:beer_id',
+      { beer_id: '@beer_id' }
     );
 });
 

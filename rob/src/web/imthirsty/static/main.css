@@ -5,9 +5,47 @@
 body {
   /*background-color : #ffffff;*/
   color : #000000;
-  margin : 0px 0px 0px 0px;
+  margin : 10px 10px 10px 10px;
 }
 
+.navbar {
+  margin-bottom:0;
+}
+
+
+.jumbotron {
+  position:relative;
+  float:left;
+  margin-right:auto;
+}
+
+.jumbotron .container h1 {
+  font-size: 48px;
+  /*font-weight: bold;*/
+  font-family: 'Shift', sans-serif;
+}
+
+.instructions {
+  position:relative;
+  float:left;
+}
+
+.instructions .container .row {
+  margin:0;
+  padding:0;
+}
+
+.instructions h2 {
+    font-family: 'Shift', sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.instructions h3 {
+    font-family: 'Shift', sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+}
 
 .panel-title {
   padding-top: 7.5px;
