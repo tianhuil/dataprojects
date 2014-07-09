@@ -34,6 +34,9 @@ def merge():
 
 
 def _add_line(cursor, values):
+    """
+    Insert a line in the database
+    """
     values['votes'] = values['votes'].replace("'", '"')
     values['votes'] = values['votes'].replace('u"', '"')
     cursor.execute("""INSERT INTO review (business_id, date, review_id, stars, text, type, votes)
@@ -43,7 +46,7 @@ def _add_line(cursor, values):
 
 def create_db(database, user, password):
     """
-    write data into postgres database
+    Write data into postgres database
     """
     source = pkg_resources.resource_filename(__name__, "data/training_review.csv")
     df = pd.read_csv(source)
@@ -119,11 +122,16 @@ def read_yelp_set(columns=None, data='training', stem=False, preprocess=False):
 def training_set():
     """
     :return: a DataFrame consisting of stemmed text reviews and star ratings
+    from the training set
     """
     return read_yelp_set(['text', 'stars'], stem=True, preprocess=True)
 
 
 def test_set():
+    """
+    :return: a DataFrame consisting of stemmed text reviews and ratings
+    from the test set.
+    """
     return read_yelp_set(['text', 'stars'], data='test', stem=True, preprocess=True)
 
 if __name__ == "__main__":

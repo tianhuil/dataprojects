@@ -7,7 +7,7 @@ from helper.text_preprocessing import add_negation
 from nltk.stem import SnowballStemmer
 
 """
-Train classifiers
+A class wrapper for vectorizer-stemmer-preprocessing-classifier pipeline
 """
 
 classifiers = {'logistic': LogisticRegression,
@@ -67,3 +67,4 @@ class TextClassifier():
         """
         text_gen = add_negation((self._stem(text) for text in X))
         return self._vectorizer.transform(text_gen)
+

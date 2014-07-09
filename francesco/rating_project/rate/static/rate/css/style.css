@@ -1,5 +1,7 @@
 .review-input {
-  width: 600px;
+  max-width: 600px;
+  min-width: 200px;
+  width: 75%;
   margin: auto;
 }
 
@@ -28,5 +30,5 @@ ul.stars {
   display: inline-block;
   width: 20px;
   height: 20px;
-  background-image: url('../images/stars.png');
+  background-image: url('../images/stars2.png');
 }
