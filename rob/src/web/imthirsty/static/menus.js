@@ -1,6 +1,7 @@
 
 var app = angular.module('imthirsty', ['ngResource', 'ui.bootstrap']);
 
+
 app.controller('BeerMenu',
   ['$scope', 'Regions', 'Styles', 'Brewers', 'Beers', 'Recommendations',
   function($scope, Regions, Styles, Brewers, Beers, Recommendations) {
@@ -99,3 +100,4 @@ app.factory('Recommendations', function($resource){
       { beer_id: '@beer_id', style_id: '@style_id' }
     );
 });
+

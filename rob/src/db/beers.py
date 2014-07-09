@@ -7,7 +7,7 @@ class Beers(TableAcc):
   def __init__(self):
     
     super(Beers, self).__init__(
-      table_name='Beers',
+      table_name='beers',
       cols=['id', 'name', 'location_id'],
       upsert_proc='brewerupsert')
 

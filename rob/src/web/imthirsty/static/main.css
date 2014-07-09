@@ -14,10 +14,20 @@ body {
 }
 
 .panel-heading {
-  overflow: hidden;
+  overflow: visible;
 }
 
 #style_btn {
   background: #E0E0E0;
   color: black;
 }
+
+/*div #beer_select {
+  position: relative;
+}
+
+#reg_lab {
+  display: inline-block;
+}*/
+
+.label { vertical-align: bottom; }
