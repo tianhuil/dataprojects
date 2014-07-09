@@ -25,7 +25,6 @@ div.text_cell_render ul li {
 }
 
 div.show-code-box{
-
 }
 
 div.code-toggle {
@@ -34,9 +33,16 @@ div.code-toggle {
   height: 20px;
   border: 1px solid black;
   border-radius: 3px;
+  vertical-align: middle;
   text-align: center;
+  background-image: url('../images/onoff.png');
+  background-position: 40px 0;
+  margin-top: -1px;
+  margin-left: 3px;
+  cursor: pointer;
+  cursor: hand;
 }
 
-.code-toggle-on {
-
+div.code-toggle-on {
+  background-position: initial;
 }

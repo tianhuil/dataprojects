@@ -1,7 +1,7 @@
 $(document).ready(function(){
 
   $('.code-toggle').click(function(){
-    $(this).toggleClass('.code-toggle-on');
+    $(this).toggleClass('code-toggle-on');
     $('div.input.hbox').toggle();
   });
 
