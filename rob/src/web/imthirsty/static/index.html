@@ -35,7 +35,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">ImThirsty</a>
+          <a class="navbar-brand" href="index.html">ImThirsty</a>
         </div>
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -95,8 +95,8 @@
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" role="menu">
-            <li ng-repeat="reg in data.regions">
-              <a href="#" ng-click="setBrewers(reg)">{{reg.name}}</a>
+            <li class="dropdown" ng-repeat="reg in data.regions">
+              <a class="dropdown-toggle" data-toggle="dropdown" ng-click="setBrewers(reg)">{{reg.name}}</a>
             </li>
           </ul>
         </div>
@@ -109,13 +109,15 @@
         <div id="brewer_acc">
           <accordion close-others="oneAtATime">
             <accordion-group heading="{{brewer.name}}" is-open="isopen" ng-click="setBeers(brewer.brewer_id)" ng-repeat="brewer in data.brewers">
-              <div id="beer_list" ng-if="isopen">
-                <ul class="nav nav-pills nav-stacked">
-                  <li ng-repeat="beer in data.beers">
-                    <a href="#" ng-click="recsByBeer(beer.beer_id)">{{beer.name}}</a>
-                  </li>
-                </ul>
-              </div>
+              <ul class="nav nav-pills nav-stacked" ng-if="isopen">
+                <li ng-click="recsByBeer(beer.beer_id)" ng-repeat="beer in data.beers"><a>{{beer.name}}</a></li>
+              </ul>
+            <!--
+              <div id="beer_list" class="btn-group-vertical" ng-if="isopen">
+                <div class="btn-group" ng-repeat="beer in data.beers">
+                  <button type="button" class="btn btn-default" ng-click="recsByBeer(beer.beer_id)" >{{beer.name}}</button>
+                </div>
+              </div>-->
             </accordion-group>
           </accordion>
         </div>
@@ -125,19 +127,35 @@
     
       <!-- Recommendation Column -->
       <div id="rec_col" class="col-md-8">
+        <div id="sel_beer" class="panel panel-primary">
+          <div class="panel-heading clearfix">
+            <h1 class="panel-title pull-left">Selected Beer: {{data.curr_beer_meta[0].name}}</h1>
+          </div>
+          <div class="panel-body">
+            <ul class="list-group">
+              <li class="list-group-item">Brewer   : {{data.curr_beer_meta[0].brewer_name}}</li>
+              <li class="list-group-item">Location : {{data.curr_beer_meta[0].location_name}}</li>
+              <li class="list-group-item">Style    : {{data.curr_beer_meta[0].style_name}}</li>
+              <li class="list-group-item">ABV      : {{data.curr_beer_meta[0].abv}}</li>
+              <li class="list-group-item">IBU      : {{data.curr_beer_meta[0].ibu}}</li>
+              <li class="list-group-item">Notes    : {{data.curr_beer_meta[0].notes}}</li>
+            </ul>
+          </div>
+            
+        </div>
       
         <!-- Style of recommended beers -->
           <div id="style_rec" class="panel panel-primary">
             <div class="panel-heading clearfix">
-              <h1 class="panel-title pull-left">Recommended Beers by Style</h1>
+              <h1 class="panel-title pull-left">Style: {{data.current_style.name}}</h1>
               <div id="style_drop" class="btn-group pull-right" dropdown>
                 <button id="style_btn" type="button" class="btn btn-primary">Beer Style</button>
                 <button id="style_btn" type="button" class="btn btn-primary dropdown-toggle">
                   <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" role="menu">
-                  <li ng-repeat="style in data.styles">
-                    <a href="#" ng-click="recsByStyle(style.style_id)">{{style.name}}</a>
+                  <li class="dropdown" ng-repeat="style in data.styles">
+                    <a class="dropdown-toggle" data-toggle="dropdown" ng-click="recsByStyle(style)">{{style.name}}</a>
                   </li>
                 </ul>
               </div>
@@ -145,6 +163,10 @@
         
             <!-- Recommended beers -->
             <div id="rec_acc" class="panel-body">
+              <div ng-if="!data.loading_rec && data.recs.length == 0">
+                <h3>Sorry.</h3>
+                <p>The people have spoken. No good recommendations to offer for this beer/style combo.</p>
+              </div>
               <accordion close-others="oneAtATime">
                 <accordion-group heading="{{beer.name}}" is-open="isopen" ng-click="setBeerMeta(beer.beer_id)" ng-repeat="beer in data.recs">
                   <div id="beer_meta" ng-if="isopen">

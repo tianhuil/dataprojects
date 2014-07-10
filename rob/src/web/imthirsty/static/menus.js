@@ -12,7 +12,9 @@ app.controller('BeerMenu',
     $scope.data = {};
    
     $scope.data.current_region = null;
+    $scope.data.current_style = null;
     $scope.data.regionDisp = "";
+    $scope.data.loading_rec = false;
     
     $scope.data.regions = Regions.query();
     $scope.data.styles = Styles.query();
@@ -37,10 +39,12 @@ app.controller('BeerMenu',
         });
     };
     
-    $scope.recsByStyle = function(style_id) {
-      console.log("! " + style_id);
-      $scope.data.current_style = style_id;
+    $scope.recsByStyle = function(style) {
+      console.log("! " + style.style_id);
+      $scope.data.loading_rec = true;
+      $scope.data.current_style = style;
       
+      style_id = style.style_id
       beer_id = $scope.data.current_beer
       if (beer_id) {
         $scope.data.recs = Recommendations.query({}, { beer_id: beer_id, style_id: style_id },
@@ -48,19 +52,27 @@ app.controller('BeerMenu',
             console.log(res);
           });
       }
+      $scope.data.loading_rec = false;
     };
     
     $scope.recsByBeer = function(beer_id) {
       console.log("! " + beer_id);
+      $scope.data.loading_rec = true;
       $scope.data.current_beer = beer_id;
       
-      style_id = $scope.data.current_style;
+      $scope.data.curr_beer_meta = BeerMeta.query({}, { beer_id: beer_id },
+        function(res) {
+          console.log(res);
+        });
+      
+      style_id = $scope.data.current_style.style_id;
       if (style_id) {
         $scope.data.recs = Recommendations.query({}, { beer_id: beer_id, style_id: style_id },
           function(res) {
             console.log(res);
           });
       }
+      $scope.data.loading_rec = false;
     };
     
     $scope.setBeerMeta = function(beer_id) {
