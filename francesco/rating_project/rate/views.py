@@ -26,6 +26,7 @@ def predict(request):
     message = {}
     if request.method == 'POST':
         data = stem(request.POST['text'])
+        print(data)
         value = classifier.predict(vectorizer.transform(data))[0]
         message['value'] = value
     json = simplejson.dumps(message)

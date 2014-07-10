@@ -1,0 +1,48 @@
+body {
+  padding: 5px;
+}
+
+h1 {
+  font-size: 32px;
+}
+
+#content{
+  margin-top: 3.5em;
+}
+
+div.input_prompt{
+  width: 15px;
+  color: transparent;
+  display: none;
+}
+
+div.input.hbox{
+  display: none;
+}
+
+div.text_cell_render ul li {
+  font-size: 15px;
+}
+
+div.show-code-box{
+}
+
+div.code-toggle {
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  border: 1px solid black;
+  border-radius: 3px;
+  vertical-align: middle;
+  text-align: center;
+  background-image: url('../images/onoff.png');
+  background-position: 40px 0;
+  margin-top: -1px;
+  margin-left: 3px;
+  cursor: pointer;
+  cursor: hand;
+}
+
+div.code-toggle-on {
+  background-position: initial;
+}
