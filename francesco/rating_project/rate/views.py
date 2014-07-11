@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 #from helper.text_preprocessing import add_negation
 from helper.text_preprocessing import stem
 import pickle
+import string
 
 
 # Create your views here.
@@ -25,9 +26,15 @@ def index(request):
 def predict(request):
     message = {}
     if request.method == 'POST':
-        data = stem(request.POST['text'])
-        print(data)
-        value = classifier.predict(vectorizer.transform(data))[0]
+        text = request.POST['text']
+        exclude = set(string.punctuation)
+        text = ''.join(ch for ch in text if ch not in exclude)
+        data = stem(text)
+        vectdata = vectorizer.transform(data)
+        if not vectdata.getnnz() and len(data) < 5:
+            value = 0
+        else:
+            value = classifier.predict(vectdata)[0]
         message['value'] = value
     json = simplejson.dumps(message)
     return HttpResponse(json, mimetype='application/json')
