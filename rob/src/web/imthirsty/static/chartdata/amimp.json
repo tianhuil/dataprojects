@@ -1,0 +1,24 @@
+{
+  "title": "American Imperial Stout Style Confusion: Distribution of Predicted Styles",
+  "hAxis": { "title": "", "slantedText":true, "slantedTextAngle":45 },
+  "vAxis": { "title": "% of Labels", "format":"0%" },
+  "cols": [
+    { "name":"Predicted Style", "type":"string" },
+    { "name":"", "type":"number" }
+  ],
+  "arrayRows": [
+    ["Amer Porter", 0.3822751323],
+    ["Russ Imp Stout", 0.1944444444],
+    ["Amer Imp Stout", 0.3121693122],
+    ["Belgian SDA", 0.01851851852],
+    ["Tripel", 0.005291005291],
+    ["Fruit/Veg Beer", 0.01851851852],
+    ["Amer Red Ale", 0.02248677249],
+    ["Amer Pale Ale", 0.007936507937],
+    ["Amer IPA", 0.03571428571],
+    ["Amer DIPA", 0.002645502646]
+  ],
+  "numFt": { "pattern": ["0.0%", 1] },
+  "legend": "none"
+}
+  
