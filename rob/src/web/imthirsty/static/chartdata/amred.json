@@ -1,0 +1,24 @@
+{
+  "title": "American Amber / Red Ale Style Confusion: Distribution of Predicted Styles",
+  "hAxis": { "title": "", "slantedText":true, "slantedTextAngle":45 },
+  "vAxis": { "title": "% of Labels", "format":"0%" },
+  "cols": [
+    { "name":"Predicted Style", "type":"string" },
+    { "name":"", "type":"number" }
+  ],
+  "arrayRows": [
+    ["Amer Porter", 0.03439035284],
+    ["Russ Imp Stout", 0.0004466279589],
+    ["Amer Imp Stout", 0.001339883877],
+    ["Belgian SDA", 0.004912907548],
+    ["Tripel", 0.006699419384],
+    ["Fruit/Veg Beer", 0.02724430549],
+    ["Amer Red Ale", 0.1054041983],
+    ["Amer Pale Ale", 0.6150066994],
+    ["Amer IPA", 0.1996426976],
+    ["Amer DIPA", 0.004912907548]
+  ],
+  "numFt": { "pattern": ["0.0%", 1] },
+  "legend": "none"
+}
+  

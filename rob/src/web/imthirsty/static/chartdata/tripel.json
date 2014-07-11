@@ -1,0 +1,24 @@
+{
+  "title": "Tripel Style Confusion: Distribution of Predicted Styles",
+  "hAxis": { "title": "", "slantedText":true, "slantedTextAngle":45 },
+  "vAxis": { "title": "% of Labels", "format":"0%" },
+  "cols": [
+    { "name":"Predicted Style", "type":"string" },
+    { "name":"", "type":"number" }
+  ],
+  "arrayRows": [
+    ["Amer Porter", 0.02612481858],
+    ["Russ Imp Stout", 0.00435413643],
+    ["Amer Imp Stout", 0.01306240929],
+    ["Belgian SDA", 0.05079825835],
+    ["Tripel", 0.7764876633],
+    ["Fruit/Veg Beer", 0.03483309144],
+    ["Amer Red Ale", 0.03338171263],
+    ["Amer Pale Ale", 0.02612481858],
+    ["Amer IPA", 0.03338171263],
+    ["Amer DIPA", 0.00145137881]
+  ],
+  "numFt": { "pattern": ["0.0%", 1] },
+  "legend": "none"
+}
+  

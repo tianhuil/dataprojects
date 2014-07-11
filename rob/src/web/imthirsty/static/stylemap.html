@@ -16,7 +16,12 @@
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular.js"></script>
     <script src="ui-bootstrap-tpls-0.11.0.min.js" type="text/javascript"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular-resource.js"></script>
-    <script src="iframetoggle.js"></script>
+    
+    
+    <!--Load the AJAX API-->
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src="stymap.js"></script>
+    <script src="gchart.js"></script>
     
   </head>
   
@@ -47,60 +52,49 @@
       </nav>
     </div>
     
+    <!-- Old faulty double tab structure
     <div class="container centered" ng-controller="StyleMap">
-    
     <div class="row">
       <div class="">
         <ul class="nav nav-tabs nav-justified">
-          <li id="tab_item" ng-repeat="sheet in data.sheets" ng-if="$index < 5">
-          <!--ng-class="{active: $index == 0}">-->
+          <li id="tab_item1" ng-click='plot(sheet.data,sheet.name)' ng-repeat="sheet in data.sheets" ng-if="$index < 5">
             <a href="#{{sheet.name}}" data-toggle="tab">{{sheet.disp}}</a>
           </li>
         </ul>
         <ul class="nav nav-tabs nav-justified">
-          <li id="tab_item" ng-repeat="sheet in data.sheets" ng-if="$index > 4">
-          <!--ng-class="{active: $index == 0}">-->
+          <li id="tab_item2"  ng-repeat="sheet in data.sheets" ng-if="$index > 4">
             <a href="#{{sheet.name}}" data-toggle="tab">{{sheet.disp}}</a>
           </li>
         </ul>
         <div class="tab-content">
-          <!--<div class="tab-pane" id="{{sheet.name}}" ng-repeat="sheet in data.sheets" ng-class="{active: $index == 0}">
-            <iframe height=497 width=1366 ng-src="{{sheet.src}}" seamless frameborder=0 scrolling=no></iframe>
-          </div>-->
-          <div class="tab-pane active" id="amport">
-            <iframe id="gsheet" height=497 width=1366 src="//docs.google.com/spreadsheets/d/1RtZdyKQrRTKIZIN8dzjS9Y0r0wJjoA2wyhGoA3Szyxc/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
-          </div>
-          <div class="tab-pane" id="russimp">
-            <iframe id="gsheet" height=497 width=1366 src="//docs.google.com/spreadsheets/d/18ekSiXu_FpfklUPhunYEIqm422FVAHd7tlNHC79CVWI/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
-          </div>
-          <div class="tab-pane" id="amimp">
-            <iframe id="gsheet" height=497 width=1366 src="//docs.google.com/spreadsheets/d/18uAOCwONEEj4v7_ARL8k8T-Kc2X0vpkcvGeGs6zmOHE/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
-          </div>
-          <div class="tab-pane" id="bsda">
-            <iframe id="gsheet" height=497 width=1366 src="//docs.google.com/spreadsheets/d/1nuh0Tg5-F-Zkztr7hkccyVU3m__ksSFz8Za8gQdoWyo/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
-          </div>
-          <div class="tab-pane" id="tripel">
-            <iframe id="gsheet" height=497 width=1366 src="//docs.google.com/spreadsheets/d/1-lZW4NqJjMnrI_rqL81V-wlDykAmr8Eb9m1rSc8W5yI/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
-          </div>
-          <div class="tab-pane" id="fruitveg">
-            <iframe id="gsheet" height=497 width=1366 src="//docs.google.com/spreadsheets/d/13Pl8OGfDE3mhZ-SNHmb_Mja_Kxt2pXN35U-7dSZ8QqA/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
-          </div>
-          <div class="tab-pane" id="amred">
-            <iframe id="gsheet" height=497 width=1366 src="//docs.google.com/spreadsheets/d/1F-jAIduE3zp5fWUFGSNROsrfzsEA7qeL7kgUtZoabys/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
-          </div>
-          <div class="tab-pane" id="apa">
-            <iframe id="gsheet" height=497 width=1366 src="//docs.google.com/spreadsheets/d/1LnBLiHYvvRhmcrwLKWVt64QR_PUB3G5B5aSSjHs8XoM/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
-          </div>
-          <div class="tab-pane" id="aipa">
-            <iframe id="gsheet" height=497 width=1366 src="//docs.google.com/spreadsheets/d/1Kql7uFdcGuqUW8-PJfODA69PSwbpbmnQI9r2_MXX1A8/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
-          </div>
-          <div class="tab-pane" id="adipa">
-            <iframe id="gsheet" height=497 width=1366 src="//docs.google.com/spreadsheets/d/1AAedrbv7Vbei5y5LEKjCRWz3uLbks-WYADm_IpKO7YA/gviz/chartiframe?oid=89332469" seamless frameborder=0 scrolling=no></iframe>
-          </div>
+          <div class="tab-pane" id="{{sheet.name}}" ng-repeat="sheet in data.sheets"></div>
         </div>
       </div>
     </div>
+    </div> -->
     
+    <div class="container centered" ng-controller="StyleMap">
+    <div class="row">
+      <div id="style_rec" class="panel panel-default">
+        <div class="panel-heading clearfix">
+          <h1 class="panel-title pull-left">Style Confusion: {{data.curr_style}}</h1>
+          <div id="style_drop" class="btn-group pull-right" dropdown>
+            <button id="style_btn" type="button" class="btn btn-primary">Beer Style</button>
+            <button id="style_btn" type="button" class="btn btn-primary dropdown-toggle">
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+              <li class="dropdown" id="sheet.name" ng-repeat="sheet in data.sheets">
+                <a class="dropdown-toggle" data-toggle="dropdown" ng-click='plot($index,"plot_panel")'>{{sheet.disp}}</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="panel-body" id="plot_panel"></div>
+      
+      </div>
+    </div>
     </div>
     
   </body>

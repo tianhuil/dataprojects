@@ -1,0 +1,24 @@
+{
+  "title": "Style Confusion: Marginal distribution of style classification",
+  "hAxis": { "title": "", "slantedText":true, "slantedTextAngle":45 },
+  "vAxis": { "title": "% of Labels", "format":"0%" },
+  "cols": [
+    { "name":"True Style", "type":"string" },
+    { "name":"", "type":"number" },
+    { "name":"", "type":"number" },
+    { "name":"", "type":"number" },
+    { "name":"", "type":"number" },
+    { "name":"", "type":"number" }
+  ],
+  "arrayRows": [
+    ["Russ Imp Stout", 0.5546666667,0.3786666667,0.02133333333,0.03733333333,0.008],
+    ["Amer Porter", 0.08439897698,0.7455242967,0.08248081841,0.08439897698,0.003196930946],
+    ["Amer Pale Ale", 0.003221352968,0.04417855499,0.7427519558,0.2024850437,0.007363092499],
+    ["Amer IPA", 0.00252616384,0.01226993865,0.08913749549,0.8661133165,0.02995308553],
+    ["Amer DIPA", 0.01359084406,0.01502145923,0.04864091559,0.3190271817,0.6037195994]
+  ],
+  "numFt": { "pattern": ["0.0%", 1] },
+  "legend":{ "position":"bottom" },
+  "isStacked":true
+}
+  
