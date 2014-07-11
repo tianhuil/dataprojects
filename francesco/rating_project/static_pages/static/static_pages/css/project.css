@@ -46,3 +46,18 @@ div.code-toggle {
 div.code-toggle-on {
   background-position: initial;
 }
+
+.static-img {
+  text-align: center;
+}
+
+.next-button-float {
+  background-color: white;
+  border-radius: 18px;
+  width: 90px;
+  height: 45px;
+  position: fixed;
+  bottom: -14px;
+  right: -20px;
+  display: none;
+}

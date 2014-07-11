@@ -1,1 +1,43 @@
 {% extends "static_pages/base.html" %}
+{% load staticfiles %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'static_pages/css/about.css' %}"/>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="about-photo">
+    <img src="" alt="" size="50x50"/>
+</div>
+
+
+<div class="description about-text">
+    <h1>About Me</h1>
+
+    <p>
+        I am Francesco, a Ph.D. candidate in the Math Department at Rutgers University.
+        My resarch there deals with the mathematical structures that form the foundation
+        of Two Dimensional Conformal Field Theory.
+    </p>
+
+    <p>
+        I am interested in programming, data sciences, machine learning and math finance.
+    </p>
+
+    <p>
+        In my spare time I like running, swimming, biking, hiking and traveling.
+    </p>
+
+    <h2>The project</h2>
+
+    <p>
+        The project was realized using the python data science and machine learning stack
+        - numpy, pandas, scikit-learn, nltk.
+    </p>
+    <p>This page is developed with Django web framework.</p>
+</div>
+
+
+{% endblock %}
