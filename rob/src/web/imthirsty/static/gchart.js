@@ -23,7 +23,7 @@ function drawChart(data_source, dest_id, size) {
   
   // Create the data table.
   var data = new google.visualization.DataTable();
-  for (i=0; i<cj.cols.length; i++) {
+  for (i = 0; i < cj.cols.length; i++) {
     data.addColumn(cj.cols[i].type, cj.cols[i].name)
   }
   
@@ -31,7 +31,14 @@ function drawChart(data_source, dest_id, size) {
   
   var formatter = new google.visualization.NumberFormat(
       { "pattern": cj.numFt.pattern[0] });
-  formatter.format(data, cj.numFt.pattern[1]);
+
+  if (cj.numFt.pattern[1].length === undefined) {
+    formatter.format(data, cj.numFt.pattern[1]);
+  } else {
+    for (i = 0; i < cj.numFt.pattern[1].length; i++) {
+      formatter.format(data, cj.numFt.pattern[1][i]);
+    }
+  }
   
   isStacked = false;
   if ("isStacked" in cj) {

@@ -1,0 +1,34 @@
+
+#gsheet {
+  /*
+    position: relative;
+    padding-bottom: 56.25%;
+    padding-top: 35px;
+    height: 0;
+    overflow: hidden;
+  */
+  margin-right:auto;
+  margin-left:auto;
+}
+
+
+.container .row h2 {
+  font-family: 'Shift', sans-serif;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.container .row p {
+  font-family:'Shift', sans-serif;
+  font-size:18px;
+}
+
+.container .row hr {
+  margin: 8px 0;
+}
+
+.panel-title {
+  padding-top: 7.5px;
+  font-family:'Shift', sans-serif;
+  font-weight:bold;
+}

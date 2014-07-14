@@ -5,17 +5,18 @@
 body {
   /*background-color : #ffffff;*/
   color : #000000;
-  margin : 10px 10px 10px 10px;
+  /*margin : 10px 10px 10px 10px;*/
 }
 
 .navbar {
   margin-bottom:0;
 }
 
-
-.jumbotron {
+.jumbotron .container {
+  /*
   position:relative;
-  float:left;
+  float:left;*/
+  margin-left:0;
 }
 
 .jumbotron .container h1 {
@@ -25,57 +26,48 @@ body {
 }
 
 .instructions .container {
-  position:relative;
-  float:left;
-}
-
-.instructions .container .row {
   margin:0;
-  padding:0;
+  padding:5;
 }
 
-.instructions h2 {
+#in_head {
     font-family: 'Shift', sans-serif;
     font-size: 24px;
     font-weight: bold;
 }
 
-.instructions h3 {
+h3 {
     font-family: 'Shift', sans-serif;
     font-size: 18px;
     font-weight: bold;
 }
 
-.instructions p {
+p {
   font-family:'Shift', sans-serif;
 }
 
 .panel-title {
-  padding-top: 7.5px;
+  padding-top: 7.0px;
+  font-family:'Shift', sans-serif;
+  font-weight:bold;
 }
 
 .panel-heading {
   overflow: visible;
 }
-/*
-#beer_list {
-  position:relative;
-  margin-left:auto;
-  margin-right:auto;
-}
-*/
 
-#style_btn {
-  background: #E0E0E0;
-  color: black;
-}
 
-/*div #beer_select {
-  position: relative;
+.btn {
+  font-family:'Shift', sans-serif;
+  font-weight:bold;
 }
-
-#reg_lab {
-  display: inline-block;
-}*/
 
 .label { vertical-align: bottom; }
+
+#steps {
+  padding-left:2;
+  padding-right:0;
+  margin-left:0;
+  margin-right:0;
+}
+

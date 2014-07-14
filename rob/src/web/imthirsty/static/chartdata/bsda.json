@@ -18,7 +18,7 @@
     ["Amer IPA", 0.01954887218],
     ["Amer DIPA", 0.001503759398]
   ],
-  "numFt": { "pattern": ["0.0%", 1] },
+  "numFt": { "pattern": ["0.0%", [1]] },
   "legend": "none"
 }
   

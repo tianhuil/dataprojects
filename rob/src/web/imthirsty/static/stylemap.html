@@ -6,9 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ImThirsty: Find your new favorite beer</title>
     
-    <!-- needs to make the main.css -->
-    <link rel="stylesheet" href="main.css">
-    <link rel="stylesheet" href="styleplottabs.css">
+    <link rel="stylesheet" href="styleplots.css">
+    <link href="http://s3.amazonaws.com/codecademy-content/courses/ltp/css/shift.css" rel="stylesheet">
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
@@ -52,47 +51,30 @@
       </nav>
     </div>
     
-    <!-- Old faulty double tab structure
-    <div class="container centered" ng-controller="StyleMap">
+    <div class="container" ng-controller="StyleMap">
     <div class="row">
-      <div class="">
-        <ul class="nav nav-tabs nav-justified">
-          <li id="tab_item1" ng-click='plot(sheet.data,sheet.name)' ng-repeat="sheet in data.sheets" ng-if="$index < 5">
-            <a href="#{{sheet.name}}" data-toggle="tab">{{sheet.disp}}</a>
-          </li>
-        </ul>
-        <ul class="nav nav-tabs nav-justified">
-          <li id="tab_item2"  ng-repeat="sheet in data.sheets" ng-if="$index > 4">
-            <a href="#{{sheet.name}}" data-toggle="tab">{{sheet.disp}}</a>
-          </li>
-        </ul>
-        <div class="tab-content">
-          <div class="tab-pane" id="{{sheet.name}}" ng-repeat="sheet in data.sheets"></div>
-        </div>
-      </div>
+      <h2>A snapshot of style classification.</h2><hr>
+      <p>The full style spectrum of the recommender currently uses the top ten most popular styles in the database as measured by number of reviews. In the <a href="method.html">Methodolgy</a> the quality of the features was demonstrated by looking at the distribution of classification predictions for a beer in a given style. For a little glimpse into the full ten style case the marginal histograms have been plotted.</p>
     </div>
-    </div> -->
     
-    <div class="container centered" ng-controller="StyleMap">
     <div class="row">
       <div id="style_rec" class="panel panel-default">
         <div class="panel-heading clearfix">
           <h1 class="panel-title pull-left">Style Confusion: {{data.curr_style}}</h1>
           <div id="style_drop" class="btn-group pull-right" dropdown>
-            <button id="style_btn" type="button" class="btn btn-primary">Beer Style</button>
-            <button id="style_btn" type="button" class="btn btn-primary dropdown-toggle">
+            <button id="style_btn" type="button" class="btn btn-default">Beer Style</button>
+            <button id="style_btn" type="button" class="btn btn-default dropdown-toggle">
               <span class="caret"></span>
             </button>
             <ul class="dropdown-menu" role="menu">
-              <li class="dropdown" id="sheet.name" ng-repeat="sheet in data.sheets">
-                <a class="dropdown-toggle" data-toggle="dropdown" ng-click='plot($index,"plot_panel")'>{{sheet.disp}}</a>
+              <li role="presentation" id="sheet.name" ng-repeat="sheet in data.sheets">
+                <a href="" role="menuitem" ng-click='plot($index,"plot_panel")'>{{sheet.disp}}</a>
               </li>
             </ul>
           </div>
         </div>
         
         <div class="panel-body" id="plot_panel"></div>
-      
       </div>
     </div>
     </div>

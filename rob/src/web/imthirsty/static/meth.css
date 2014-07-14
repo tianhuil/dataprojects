@@ -23,3 +23,7 @@
   margin-left:auto;
   margin-right:auto;
 }
+
+.panel-body {
+  margin:0;
+}

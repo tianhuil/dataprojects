@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ImThirsty: Find your new favorite beer</title>
     
-    <!-- needs to make the main.css -->
     <link rel="stylesheet" href="main.css">
     <link href="http://s3.amazonaws.com/codecademy-content/courses/ltp/css/shift.css" rel="stylesheet">
 
@@ -24,9 +23,8 @@
   
   <body>
     
-    <div class="header_row">
+    <div id="header_row">
       <nav class="navbar navbar-inverse" role="navigation">
-      <div class="container pull-left">
         <!-- Brand and toggle get grouped for better mobile display -->
         <div class="navbar-header">
           <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
@@ -38,7 +36,7 @@
           <a class="navbar-brand" href="index.html">ImThirsty</a>
         </div>
         <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <div class="collapse navbar-collapse navbar-left" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav">
             <li class="active"><a href="#">Recommendations</a></li>
             <li id="method"><a href="method.html">Methodology</a></li>
@@ -46,48 +44,60 @@
             <li><a href="about.html">About</a></li>
           </ul>
         </div>
-      </div>
       </nav>
     </div>
     
     <div class="jumbotron">
       <div class="container">
-    	  <h1>ImThirsty: Find your new favorite beer.</h1>
+        <div class="row">
+    	  <h1><b>ImThirsty</b>: Find your new favorite beer.</h1>
     	  <p>Search for the beer you've been drinking and let ImThirsty find you a new one.</p>
+    	  </div>
       </div>
     </div>
     
     <div class="instructions">
-      <div class="container">
-        <div class="row">
-          <div class="col-md-3"><h2>Instructions</h2></div>
+    <div class="container">
+    <div class="row">
+    <div class="col-md-12">
+
+      <div id="sel_beer" class="panel panel-default">
+          <div class="panel-heading clearfix">
+            <h2 class="panel-title" id="in_head">Instructions</h2>
+          </div>
+          <div class="panel-body">
+              <div class="row">
+              <div class="col-md-3" id="steps">
+                <h3>Select a region.</h3>
+                <p>Use the Brewer Region dropdown to select the region of your favorite beer.</p>
+              </div>
+              <div class="col-md-3" id="steps">
+                <h3>Select a brewer.</h3>
+                <p>In the list of Brewers that appear, find the maker of interest.</p>
+              </div>
+              <div class="col-md-3" id="steps">
+                <h3>Select a beer.</h3>
+                <p>Find the beer in your hand on the list that appears below the selected brewer.</p>
+              </div>
+              <div class="col-md-3" id="steps">
+                <h3>Select a style.</h3>
+                <p>On the right select the style of beer you'd like ImThirsty to recommend.</p>
+              </div>
+              </div>
+
+          </div>
+            
         </div>
-        <div class="row">
-        <div class="col-md-3" id="step1">
-          <h3>Select a region.</h3>
-          <p>Use the Brewer Region dropdown to select the region of your favorite beer.</p>
-        </div>
-        <div class="col-md-3" id="step2">
-          <h3>Select a brewer.</h3>
-          <p>In the list of Brewers that appear, find the maker of interest.</p>
-        </div>
-        <div class="col-md-3" id="step3">
-          <h3>Select a beer.</h3>
-          <p>Find the beer in your hand on the list that appears below the selected brewer.</p>
-        </div>
-        <div class="col-md-3" id="step4">
-          <h3>Select a style.</h3>
-          <p>On the right select the style of beer you'd like ImThirsty to recommend.</p>
-        </div>
-        </div>
-      </div>
+    </div>
+    </div>
+    </div>
     </div>
     
-    
     <div class="container pull-left" ng-controller="BeerMenu" id="beer_select">
-    <div class="row">
+    <div class="row" id="reg_drop">
       <!-- BeerMenu Navigation and Selection -->
       <div class="col-md-4">
+        
         <!-- Region Split button -->
         <div id="brewer_reg" class="btn-group" dropdown>
           <button id="reg_disp" type="button" class="btn btn-primary">Brewer Regions</button>
@@ -96,15 +106,11 @@
           </button>
           <ul class="dropdown-menu" role="menu">
             <li class="dropdown" ng-repeat="reg in data.regions">
-              <a class="dropdown-toggle" data-toggle="dropdown" ng-click="setBrewers(reg)">{{reg.name}}</a>
+              <a href="" role="menuitem" class="dropdown-toggle" data-toggle="dropdown" ng-click="setBrewers(reg)">{{reg.name}}</a>
             </li>
           </ul>
         </div>
     
-        <!--<div id="reg_selected">
-          <span class="pull-left"><h4><pre>Region: {{data.regionDisp}}</pre></h4></span>
-        </div>-->
-        
         <!-- Brewer/Beer Accordion List -->
         <div id="brewer_acc">
           <accordion close-others="oneAtATime">
@@ -112,12 +118,6 @@
               <ul class="nav nav-pills nav-stacked" ng-if="isopen">
                 <li ng-click="recsByBeer(beer.beer_id)" ng-repeat="beer in data.beers"><a>{{beer.name}}</a></li>
               </ul>
-            <!--
-              <div id="beer_list" class="btn-group-vertical" ng-if="isopen">
-                <div class="btn-group" ng-repeat="beer in data.beers">
-                  <button type="button" class="btn btn-default" ng-click="recsByBeer(beer.beer_id)" >{{beer.name}}</button>
-                </div>
-              </div>-->
             </accordion-group>
           </accordion>
         </div>
@@ -149,13 +149,13 @@
             <div class="panel-heading clearfix">
               <h1 class="panel-title pull-left">Style: {{data.current_style.name}}</h1>
               <div id="style_drop" class="btn-group pull-right" dropdown>
-                <button id="style_btn" type="button" class="btn btn-primary">Beer Style</button>
-                <button id="style_btn" type="button" class="btn btn-primary dropdown-toggle">
+                <button id="style_btn" type="button" class="btn btn-default">Beer Style</button>
+                <button id="style_btn" type="button" class="btn btn-default dropdown-toggle">
                   <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" role="menu">
                   <li class="dropdown" ng-repeat="style in data.styles">
-                    <a class="dropdown-toggle" data-toggle="dropdown" ng-click="recsByStyle(style)">{{style.name}}</a>
+                    <a ahref="" role="menuitem" class="dropdown-toggle" data-toggle="dropdown" ng-click="recsByStyle(style)">{{style.name}}</a>
                   </li>
                 </ul>
               </div>
