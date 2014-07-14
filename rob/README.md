@@ -1,7 +1,7 @@
 [ImThirsty](http://107.170.156.226:5000/index.html): Find your new favorite beer.
 ========================================
 
-This is Rob Howley's project for the Summer 2014 [Data Incubator](www.thedataincubator.com/) program. The goal was to create a beer recommendation engine using written and numeric beer review data from [BeerAdvocate.com](www.beeradvocate.com). There project files have four primary components:
+This is Rob Howley's project for the Summer 2014 [Data Incubator](www.thedataincubator.com/) program. The goal was to create a beer recommendation engine using written and numeric beer review data from [BeerAdvocate.com](www.beeradvocate.com). The project directory has three primary components:
 
 1. Data Gathering and Organization
   * web scrapers for beer, brewer and user information (stored in JSON)
