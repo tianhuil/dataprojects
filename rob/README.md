@@ -2,17 +2,18 @@
 ========================================
 
 This is Rob Howley's project for the Summer 2014 [Data Incubator](www.thedataincubator.com/) program. The goal was to create a beer recommendation engine using written and numeric beer review data from [BeerAdvocate.com](www.beeradvocate.com). There project files have four primary components:
+
 1. Data Gathering and Organization
-..* web scrapers for beer, brewer and user information (stored in JSON)
-..* MySQL database design
-..* database filler that uploaded scraped JSON data into MySQL
+  * web scrapers for beer, brewer and user information (stored in JSON)
+  * MySQL database design
+  * database filler that uploaded scraped JSON data into MySQL
 2. Analysis
-..* Python based NLP
-..* Extract beer style vobalary from written reviews
-..* Compute and upload similarities to database
-..* MySQL implementation of item based filtering
+  * Python based NLP
+  * Extract beer style vobalary from written reviews
+  * Compute and upload similarities to database
+  * MySQL implementation of item based filtering
 3. ImThirsty Website
-..* Python Restful Flask Server
-..* Bootstrap and AngularJS dynamically loaded UI components
+  * Python Restful Flask Server
+  * Bootstrap and AngularJS dynamically loaded UI components
 
 Please contact Rob at (howley dot robert at gmail dot com) for any questions/comments/concerns.
