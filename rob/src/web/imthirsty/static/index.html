@@ -1,0 +1,194 @@
+
+<!DOCTYPE html>
+<html lang="en" ng-app="imthirsty">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ImThirsty: Find your new favorite beer</title>
+    
+    <link rel="stylesheet" href="main.css">
+    <link href="http://s3.amazonaws.com/codecademy-content/courses/ltp/css/shift.css" rel="stylesheet">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular.js"></script>
+    <script src="ui-bootstrap-tpls-0.11.0.min.js" type="text/javascript"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular-resource.js"></script>
+    <script src="menus.js"></script>
+    
+    
+  </head>
+  
+  <body>
+    
+    <div id="header_row">
+      <nav class="navbar navbar-inverse" role="navigation">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">ImThirsty</a>
+        </div>
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse navbar-left" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Recommendations</a></li>
+            <li id="method"><a href="method.html">Methodology</a></li>
+            <li><a href="stylemap.html">Style Map</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+    
+    <div class="jumbotron">
+      <div class="container">
+        <div class="row">
+    	  <h1><b>ImThirsty</b>: Find your new favorite beer.</h1>
+    	  <p>Search for the beer you've been drinking and let ImThirsty find you a new one.</p>
+    	  </div>
+      </div>
+    </div>
+    
+    <div class="instructions">
+    <div class="container">
+    <div class="row">
+    <div class="col-md-12">
+
+      <div id="sel_beer" class="panel panel-default">
+          <div class="panel-heading clearfix">
+            <h2 class="panel-title" id="in_head">Instructions</h2>
+          </div>
+          <div class="panel-body">
+              <div class="row">
+              <div class="col-md-3" id="steps">
+                <h3>Select a region.</h3>
+                <p>Use the Brewer Region dropdown to select the region of your favorite beer.</p>
+              </div>
+              <div class="col-md-3" id="steps">
+                <h3>Select a brewer.</h3>
+                <p>In the list of Brewers that appear, find the maker of interest.</p>
+              </div>
+              <div class="col-md-3" id="steps">
+                <h3>Select a beer.</h3>
+                <p>Find the beer in your hand on the list that appears below the selected brewer.</p>
+              </div>
+              <div class="col-md-3" id="steps">
+                <h3>Select a style.</h3>
+                <p>On the right select the style of beer you'd like ImThirsty to recommend.</p>
+              </div>
+              </div>
+
+          </div>
+            
+        </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    
+    <div class="container pull-left" ng-controller="BeerMenu" id="beer_select">
+    <div class="row" id="reg_drop">
+      <!-- BeerMenu Navigation and Selection -->
+      <div class="col-md-4">
+        
+        <!-- Region Split button -->
+        <div id="brewer_reg" class="btn-group" dropdown>
+          <button id="reg_disp" type="button" class="btn btn-primary">Brewer Regions</button>
+          <button type="button" class="btn btn-primary dropdown-toggle">
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <li class="dropdown" ng-repeat="reg in data.regions">
+              <a href="" role="menuitem" class="dropdown-toggle" data-toggle="dropdown" ng-click="setBrewers(reg)">{{reg.name}}</a>
+            </li>
+          </ul>
+        </div>
+    
+        <!-- Brewer/Beer Accordion List -->
+        <div id="brewer_acc">
+          <accordion close-others="oneAtATime">
+            <accordion-group heading="{{brewer.name}}" is-open="isopen" ng-click="setBeers(brewer.brewer_id)" ng-repeat="brewer in data.brewers">
+              <ul class="nav nav-pills nav-stacked" ng-if="isopen">
+                <li ng-click="recsByBeer(beer.beer_id)" ng-repeat="beer in data.beers"><a>{{beer.name}}</a></li>
+              </ul>
+            </accordion-group>
+          </accordion>
+        </div>
+        
+      </div>
+      <!-- End BeerMenu Navigation and Selection -->
+    
+      <!-- Recommendation Column -->
+      <div id="rec_col" class="col-md-8">
+        <div id="sel_beer" class="panel panel-primary">
+          <div class="panel-heading clearfix">
+            <h1 class="panel-title pull-left">Selected Beer: {{data.curr_beer_meta[0].name}}</h1>
+          </div>
+          <div class="panel-body">
+            <ul class="list-group">
+              <li class="list-group-item">Brewer   : {{data.curr_beer_meta[0].brewer_name}}</li>
+              <li class="list-group-item">Location : {{data.curr_beer_meta[0].location_name}}</li>
+              <li class="list-group-item">Style    : {{data.curr_beer_meta[0].style_name}}</li>
+              <li class="list-group-item">ABV      : {{data.curr_beer_meta[0].abv}}</li>
+              <li class="list-group-item">IBU      : {{data.curr_beer_meta[0].ibu}}</li>
+              <li class="list-group-item">Notes    : {{data.curr_beer_meta[0].notes}}</li>
+            </ul>
+          </div>
+            
+        </div>
+      
+        <!-- Style of recommended beers -->
+          <div id="style_rec" class="panel panel-primary">
+            <div class="panel-heading clearfix">
+              <h1 class="panel-title pull-left">Style: {{data.current_style.name}}</h1>
+              <div id="style_drop" class="btn-group pull-right" dropdown>
+                <button id="style_btn" type="button" class="btn btn-default">Beer Style</button>
+                <button id="style_btn" type="button" class="btn btn-default dropdown-toggle">
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                  <li class="dropdown" ng-repeat="style in data.styles">
+                    <a ahref="" role="menuitem" class="dropdown-toggle" data-toggle="dropdown" ng-click="recsByStyle(style)">{{style.name}}</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+        
+            <!-- Recommended beers -->
+            <div id="rec_acc" class="panel-body">
+              <div ng-if="!data.loading_rec && data.recs.length == 0">
+                <h3>Sorry.</h3>
+                <p>The people have spoken. No good recommendations to offer for this beer/style combo.</p>
+              </div>
+              <accordion close-others="oneAtATime">
+                <accordion-group heading="{{beer.name}}" is-open="isopen" ng-click="setBeerMeta(beer.beer_id)" ng-repeat="beer in data.recs">
+                  <div id="beer_meta" ng-if="isopen">
+                    <ul class="list-group">
+                      <li class="list-group-item">Brewer   : {{data.rec_meta[0].brewer_name}}</li>
+                      <li class="list-group-item">Location : {{data.rec_meta[0].location_name}}</li>
+                      <li class="list-group-item">Style    : {{data.rec_meta[0].style_name}}</li>
+                      <li class="list-group-item">ABV      : {{data.rec_meta[0].abv}}</li>
+                      <li class="list-group-item">IBU      : {{data.rec_meta[0].ibu}}</li>
+                      <li class="list-group-item">Notes    : {{data.rec_meta[0].notes}}</li>
+                    </ul>
+                  </div>
+                </accordion-group>
+              </accordion>
+            </div>
+                
+        </div>
+        
+      </div>
+      <!-- End Recommendation Column -->
+    </div>
+    </div>
+
+  </body>
+</html>

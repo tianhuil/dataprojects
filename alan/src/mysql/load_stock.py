@@ -58,6 +58,9 @@ for tabname in settings.to_use:
 
     os.system("""mysql -u {usr} {dba} -e "LOAD DATA INFILE '{datapath}/{stock}.csv' INTO TABLE {stock} FIELDS TERMINATED BY ',' IGNORE 1 LINES;" """.format(datapath=datapath, stock = tabname, usr=settings.user, dba=settings.db))
 
+statusfile = open(settings.stock_sql, 'w')
+statusfile.write('Stock data Successfully loaded to SQL!')
+statusfile.close()
 
 
 

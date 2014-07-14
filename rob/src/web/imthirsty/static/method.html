@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="stylemap">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ImThirsty: Find your new favorite beer</title>
+    
+    <!-- needs to make the main.css -->
+    <link rel="stylesheet" href="meth.css">
+    <link href="http://s3.amazonaws.com/codecademy-content/courses/ltp/css/shift.css" rel="stylesheet">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular.js"></script>
+    <script src="ui-bootstrap-tpls-0.11.0.min.js" type="text/javascript"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular-resource.js"></script>
+    
+    <!--Load the AJAX API-->
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src="gchart.js"></script>
+    
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {inlineMath: [["$","$"],["\\(","\\)"]]}
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!--<script src="iframetoggle.js"></script>-->
+    
+    <!--Load the AJAX API-->
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    
+  </head>
+  
+  <body>
+    <div class="header_row">
+      <nav class="navbar navbar-inverse" role="navigation">
+      <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">ImThirsty</a>
+        </div>
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav">
+            <li id="index"><a href="index.html">Recommendations</a></li>
+            <li id="method" class="active"><a href="#">Methodology</a></li>
+            <li id="stylemap"><a href="stylemap.html">Style Map</a></li>
+            <li id="about"><a href="about.html">About</a></li>
+          </ul>
+        </div>
+      </div>
+      </nav>
+    </div>
+    
+    <div class="container">
+      <div class="row">
+        <h2>The language of beer.</h2><hr>
+        <p>Beer styles are incredibly varied and, as a result, the ways in which each style is described are varied as well. The aromas of roasted malt and barley from a top notch stout wouldn't be the first things you look for in a Double IPA just as floral hops aren't prominent in Porters. So, to understand what makes a beer style you must first understand the vocabulary that people use to describe a beer in that style.</p>
+        <p>
+          If we re-brand style vocabulary as style features, then we have a classical NLP machine learning problem. Using the Tf-Idf approach to feature extraction we can pull out the primary word (stems) that are used when describing a given style. This gives us a picture of what features not only differentiate a beer style, but also which features are shared.
+        </p>
+      </div>
+      <div class="row">
+        <h2>The data.</h2><hr>
+        <p>What we need are a lot of written documents about lots of different beers in a variety of different styles. Luckily, it is fairly easy to scrape the site <a href="www.beeradvocate.com">BeerAdvocate.com</a>. This is one of the longest running, premier sites for beer ratings and reviews with several hundred thousand active users submitting reviews of tens of thousands of beers produced by thousands of breweries. Each review consists of a numeric score as well as a written review usually around two paragraphs in length. This site also has easily obtainable meta data on each of the reviewed beers for categorizing the vocabulary.</p>
+      </div>
+      <div class="row">
+        <h2>Style Classification and Confusion.</h2><hr>
+        <p>A unique master list of features is cronstructed from the style specific vocabularies. This extraction was initially done separately so that words which are very common in an underrepresented style, but not common overall, aren't missed. The complete vocabulary can then be used with Tf-Idf to vectorize all of the reviews for each beer across all styles. These vectors will allow us to determine similarity between beers.</p>
+        <p>Before we make any recommendations, however, we need to know how well the features represent the style. Since we know the style of each beer we can use supervised learning to fit a model that maps a beer's feature vector (loosely, "word weightings") to the beer's style.</p>
+        <p>Consider a Naive Bayes model that takes vectorized reviews and predicts styles trained on beers from the top five styles in the data. This model was cross validated on a hold-out set comprising 20% of the data and the confusion matrix computed. The following plot shows the distribution of predicted styles for beers in a given style. The four styles are listed (roughly) in order of increasing average hop content and highlights what I'm calling <i>good confusion</i>.</p>
+        <div class="row">
+          <div id="topfive_chart"></div>
+          <!--<img id="topfive" src="img/topfive.png" height="380" width="897">-->
+        </div>
+      <p>First observe the column for Russian Imperial Stout. Given a beer in this style, the precision of making the correct style prediction is only 55.5%. In this context, however, pure perfect classification isn't the goal; we simply what to see what our features imply. Of the remaining 44.5% of the predictions, 37.9% of them are for American Porters, the style that is, among those in the set, most similar. The pattern for American IPAs (AIPA) is no different; when an American Pale Ale (APA) or American Double IPA (DIPA) is misclassified, it is most often identified as an AIPA. Since the lines between these particular styles are very fine, the mix-up is understandable.</p>
+      <p>Since our primary goal is identifying similarity, mis-classified beer styles aren't all bad. Many APAs or DIPAs are very similar to AIPAs and the review features capture that. In the context of a recommendation, if you are an APA drinker, there are probably some very similar AIPA gems that you'd like to find out about. So, the conclusion here is that not all confusion is created equal. In the right context it is even preferred.</p>
+      </div>
+      <div class="row">
+        <h2>Recommendation and Similarity Scoring.</h2>
+        <p>Extracting features that give a meaningful characterization of the different beer styles in the data is a fun modeling exercise, but wasn't the goal. To build this item/product based recommender we need to (1) find similar beers and (2) take those of a good quality. It isn't sufficient to find something similar if it isn't popular and something popular that is unrelated isn't relevant content.</p>
+        <p>The first task of finding similar products is relatively straightforward. We already have the review set for a given beer as a vector, so the cosine similarity metric was used to determine how "close" any pair of beers were to each other. The cosine similarity between all beer pairs were computed and, for a given beer, the 100 most similar were kept.</p>
+        <p>Recommending a beer with similar characteristics, but tastes bad isn't helpful so the wisdom of the crowd is used to determine quality. Along with the written reviews, each user provides a numerical score for the beer on a scale of 0-5. The recommender uses a collaborative filtering approach and looks at all reviewers of a beer, finds other beers that they reviewed and leverages the numeric scores as a proxy for quality. To account for the excessive generosity or stinginess of reviewers a user's average score across all beers in the database is subtracted off.</p>
+        <p>Being a little more specific, consider a beer $B_i$ for which you wish to compute a recommendation score another beer $B_j$. Suppose these two beers have a cosine similarity $s_{ij}$ and have both been reviewed by users $U_k$. Let $m_k$ be the average score $U_k$ gave to all beers that he/she reviewed and $r_{kj}$ be the rating that $U_k$ gave beer $B_j$. The recommendation score for this beer pair is $$RecScore(B_i,B_j) = s_{ij} \sum (r_{kj}-m_k)$$ All beers $B_j$ with common reviewers to $B_i$ are sorted on the recommendation score with negative scores being ignored (no recommendation is better than a bad one). This metric is a simple, but effective way to accomplish the dual objectives of recommending similar and high quality beers.</p>
+      </div>
+    </div>
+
+    <script>drawChart("chartdata/topfive.json","topfive_chart", { "height":480, "width":897});</script>
+
+  </body>
+</html>

@@ -1,0 +1,5 @@
+#!/bin/bash
+#Downloader
+
+for i in {1..6}; do for j in {1..3}; do wget "http://www.piano-midi.de/midis/clementi/clementi_opus36_${i}_${j}.mid" -O "Clem_36_${i}_$j.mid"; done; done
+#for i in {1..6}; do for j in {1..3}; do echo "Clem_${i}_$j.mid"; done; done

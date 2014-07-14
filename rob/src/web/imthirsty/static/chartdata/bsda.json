@@ -1,0 +1,24 @@
+{
+  "title": "Belgian Strong Dark Ale Style Confusion: Distribution of Predicted Styles",
+  "hAxis": { "title": "", "slantedText":true, "slantedTextAngle":45 },
+  "vAxis": { "title": "% of Labels", "format":"0%" },
+  "cols": [
+    { "name":"Predicted Style", "type":"string" },
+    { "name":"", "type":"number" }
+  ],
+  "arrayRows": [
+    ["Amer Porter", 0.08270676692],
+    ["Russ Imp Stout", 0.02556390977],
+    ["Amer Imp Stout", 0.03609022556],
+    ["Belgian SDA", 0.6360902256],
+    ["Tripel", 0.06165413534],
+    ["Fruit/Veg Beer", 0.03007518797],
+    ["Amer Red Ale", 0.08421052632],
+    ["Amer Pale Ale", 0.02255639098],
+    ["Amer IPA", 0.01954887218],
+    ["Amer DIPA", 0.001503759398]
+  ],
+  "numFt": { "pattern": ["0.0%", [1]] },
+  "legend": "none"
+}
+  

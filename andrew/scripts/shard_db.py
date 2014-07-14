@@ -1,6 +1,5 @@
 import numpy as np
 import MySQLdb as mdb
-#import sqlalchemy as sql
 import sys
 import time
 
@@ -14,7 +13,6 @@ if __name__ == "__main__":
     min_flights = int(sys.argv[1])
         
     months = {'jan':1,'feb':2,'mar':3,'apr':4,'may':5,'jun':6,'jul':7,'aug':8,'sep':9,'oct':10,'nov':11,'dec':12}
-    #weekdays = {'sun':1,'mon':2,'tue':3,'wed':4,'thu':5,'fri':6,'sat':7]
     hours = {'early':[0,800],'morning':[800,1200],'afternoon':[1200,1500],'evening':[1500,1900],'night':[1900,2400]}
 
     #Connect to the db:

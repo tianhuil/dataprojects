@@ -1,0 +1,24 @@
+{
+  "title": "Fruit / Vegetable Beer Style Confusion: Distribution of Predicted Styles",
+  "hAxis": { "title": "", "slantedText":true, "slantedTextAngle":45 },
+  "vAxis": { "title": "% of Labels", "format":"0%" },
+  "cols": [
+    { "name":"Predicted Style", "type":"string" },
+    { "name":"", "type":"number" }
+  ],
+  "arrayRows": [
+    ["Amer Porter", 0.09032634033],
+    ["Russ Imp Stout", 0.001165501166],
+    ["Amer Imp Stout", 0.004662004662],
+    ["Belgian SDA", 0.02913752914],
+    ["Tripel", 0.007575757576],
+    ["Fruit/Veg Beer", 0.02855477855],
+    ["Amer Red Ale", 0.5297202797],
+    ["Amer Pale Ale", 0.1911421911],
+    ["Amer IPA", 0.1101398601],
+    ["Amer DIPA", 0.007575757576]
+  ],
+  "numFt": { "pattern": ["0.0%", [1]] },
+  "legend": "none"
+}
+  

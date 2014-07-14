@@ -1,0 +1,24 @@
+{
+  "title": "American Porter Style Confusion: Distribution of Predicted Styles",
+  "hAxis": { "title": "", "slantedText":true, "slantedTextAngle":45 },
+  "vAxis": { "title": "% of Labels", "format":"0%" },
+  "cols": [
+    { "name":"Predicted Style", "type":"string" },
+    { "name":"", "type":"number" }
+  ],
+  "arrayRows": [
+    ["Amer Porter", 0.661],
+    ["Russ Imp Stout", 0.036],
+    ["Amer Imp Stout", 0.060],
+    ["Belgian SDA", 0.020],
+    ["Tripel", 0.002],
+    ["Fruit/Veg Beer", 0.032],
+    ["Amer Red Ale", 0.096],
+    ["Amer Pale Ale", 0.025],
+    ["Amer IPA", 0.064],
+    ["Amer DIPA", 0.003]
+  ],
+  "numFt": { "pattern": ["0.0%", [1]] },
+  "legend": "none"
+}
+  

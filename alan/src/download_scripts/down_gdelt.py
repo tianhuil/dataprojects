@@ -81,3 +81,7 @@ for currfile in divs:
          outfile.write(str(line.contents))
     outfile.close()
 
+
+statusfile = open(settings.gdelt_downstatus, 'w')
+statusfile.write('GDelt data Successfully downloaded!')
+statusfile.close()

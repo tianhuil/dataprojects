@@ -1,0 +1,41 @@
+.review-input {
+  max-width: 600px;
+  min-width: 200px;
+  width: 75%;
+  margin: auto;
+  margin-top: 2em;
+  margin-bottom: 5em;
+}
+
+.review-box{
+  width: 100%;
+  resize: none;
+}
+
+.rating {
+  float: right;
+}
+
+.rating input[type=radio] {
+  display: none;
+}
+
+.rating input[type=radio]+label {
+  display: inline-block;
+  width: 25px;
+  height: 25px;
+  margin: -2px;
+}
+
+ul.stars {
+  padding: 0;
+  list-style: none;
+  height: 22px;
+}
+
+.stars li {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background-image: url('../images/stars2.png');
+}

@@ -25,11 +25,11 @@ STATIC_PATH = os.path.join(BASE_DIR,'static')
 #SECRET_KEY = in credentials_nogit.py
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 TEMPLATE_DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['107.170.190.132','127.0.0.1']
 
 TEMPLATE_DIRS = (
     TEMPLATE_PATH,
@@ -97,3 +97,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+#django-lockdown:
+INSTALLED_APPS += ('lockdown', )
+MIDDLEWARE_CLASSES += ('lockdown.middleware.LockdownMiddleware', )
+LOCKDOWN_PASSWORDS = (master_pass, )
+LOCKDOWN_FORM = 'lockdown.forms.LockdownForm'

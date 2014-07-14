@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+<html lang="eng">
+    <head>
+        <title>{% block title %}Rating project{% endblock %}</title>
+        {% block style %}
+        {% endblock %}
+        <link rel="stylesheet" href="{% static 'static_pages/css/base.css' %}"/>
+        {% block style2 %}
+        {% endblock %}
+    </head>
+    <body>
+        <div id="page">
+            <div id="container">
+                <header>
+                    <div id="header-title"></div>
+                    <nav>
+                        <ul id="menu">
+                            <li class="menu-item">
+                                <a href="../rate"><div class="li-content"><span>Demo</span></div></a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="../project"><div class="li-content"><span>Project Info</span></div></a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="../about"><div class="li-content"><span>About...</span></div></a>
+                            </li>
+                        </ul>
+                    </nav>
+                </header>
+                <div id="content">
+                    {% block content %}
+                        <h1>Project's homepage.</h1>
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </body>
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    {% block scripts %}
+    {% endblock %}
+</html>

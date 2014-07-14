@@ -1,0 +1,29 @@
+
+.container .row hr {
+  margin: 8px 0;
+}
+
+.container .row h2 {
+  font-family: 'Shift', sans-serif;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.container .row p {
+  font-family:'Shift', sans-serif;
+  font-size:18px;
+}
+
+.row {
+  padding:20px;
+}
+
+.container .row #topfive_chart {
+  display:block;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+.panel-body {
+  margin:0;
+}

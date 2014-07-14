@@ -1,0 +1,73 @@
+
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+
+
+body {
+  /*background-color : #ffffff;*/
+  color : #000000;
+  /*margin : 10px 10px 10px 10px;*/
+}
+
+.navbar {
+  margin-bottom:0;
+}
+
+.jumbotron .container {
+  /*
+  position:relative;
+  float:left;*/
+  margin-left:0;
+}
+
+.jumbotron .container h1 {
+  font-size: 48px;
+  /*font-weight: bold;*/
+  font-family: 'Shift', sans-serif;
+}
+
+.instructions .container {
+  margin:0;
+  padding:5;
+}
+
+#in_head {
+    font-family: 'Shift', sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+h3 {
+    font-family: 'Shift', sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+p {
+  font-family:'Shift', sans-serif;
+}
+
+.panel-title {
+  padding-top: 7.0px;
+  font-family:'Shift', sans-serif;
+  font-weight:bold;
+}
+
+.panel-heading {
+  overflow: visible;
+}
+
+
+.btn {
+  font-family:'Shift', sans-serif;
+  font-weight:bold;
+}
+
+.label { vertical-align: bottom; }
+
+#steps {
+  padding-left:2;
+  padding-right:0;
+  margin-left:0;
+  margin-right:0;
+}
+

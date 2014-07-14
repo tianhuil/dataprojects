@@ -1,0 +1,11 @@
+{% extends 'delayr/base.html' %}
+
+{% block body_block %}
+<div class="jumbotron">
+<h2>About Delayr</h2>
+<p>Delayr uses advanced machine learning techniques to predict domestic U.S. flight delays based on complex historical patterns. Parsing 10 years of raw on-time arrival data (&gt;75 million flights!) from the <a href="http://www.rita.dot.gov/bts/">Bureau of Transportation Statistics</a> Delayr first builds a model containing the impacts on delays from a variety of sources (e.g. origin airport, destination airport, and carrier, just to name a few). Then whenever you give Delayr an itinerary (even for a brand-new route!) it runs your flight through its model to compute the likelihood that your plane will be on-time, delayed, or cancelled. </p>
+<p>Beyond the probability that your flight will be delayed (and by how long), for a given itinerary Delayr will also predict how delay times change based on the time of day and day of week. Additionally, if Delayr detects that flights similar to the searched itinerary exist, it will predict their delay times as well and return the flights with the best on-time prediction. These features allow you to make intelligent, data-driven choices when booking air travel.</p>
+<p>More details about Delayr, as well as some code snippets, can be found <a href="nitty_gritty">here</a>.</p>
+ </div>
+
+{% endblock %}

@@ -1,0 +1,535 @@
+{% extends 'delayr/base.html' %}
+
+{% block body_block %}
+<div class="col-md-2">
+<div class="bs-docs-sidebar hidden-print hidden-xs hidden-sm" role="complementary">
+  <ul class="nav bs-docs-sidenav">
+    <br>
+    <li class="active">
+    <a href="#nittygritty">The Nitty Gritty</a>
+    <ul class="nav">
+      <li>
+      <a href="#data">Getting the Data</a>
+      </li>
+      <li>
+      <a href="#sharding">Sharding</a>
+      </li>
+      <li>
+      <a href="#selection">Model Selection</a>
+      </li>
+      <li>
+      <a href="#training">Training the Model</a>
+      </li>
+      <li>
+      <a href="#site">The Site</a>
+      </li>
+      <li>
+      <a href="#viz">Visualization</a>
+      </li>
+    </ul>
+    </li>
+  </ul>
+</div>
+</div>
+<div class="col-md-10" role="main">
+<div class="jumbotron">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="nittygritty">The Nitty Gritty</h1>
+<h2 id="data">Getting the Data</h2>
+<p>
+The first step in the Delayr pipeline is to download the data from the BTS. The relevant files are split up by month and year on the BTS website, so I wrote a simple script to grab all the data I wanted:
+</p>
+</div>
+<div class="cell border-box-sizing code_cell vbox">
+<div class="input hbox">
+<div class="input_area box-flex1">
+<div><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="k">def</span> <span class="nf">download_bts</span><span class="p">(</span><span class="n">download_dir</span><span class="p">,</span><span class="n">years</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2003</span><span class="p">,</span><span class="mi">2015</span><span class="p">),</span><span class="n">months</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">13</span><span class="p">)):</span>
+    <span class="sd">&#39;&#39;&#39;Downloads historical flight data from the BTS system. </span>
+<span class="sd">    arguments:</span>
+<span class="sd">    download_dir -- where you want the files to get downloaded to</span>
+<span class="sd">    </span>
+<span class="sd">    keyword arguments:</span>
+<span class="sd">    years -- the range of years to download (default: 2003-2014)</span>
+<span class="sd">    months -- the range of months to download (default: 1-12)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="n">years</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">month</span> <span class="ow">in</span> <span class="n">months</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="s">&quot;http://www.transtats.bts.gov/Download/On_Time_On_Time_Performance_{0:d}_{1:d}.zip&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">year</span><span class="p">,</span><span class="n">month</span><span class="p">)</span>
+            <span class="n">urllib</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url</span><span class="p">,</span><span class="s">&quot;{0:s}/bts_ontime_{1:d}_{2:d}.zip&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">download_dir</span><span class="p">,</span><span class="n">year</span><span class="p">,</span><span class="n">month</span><span class="p">))</span>
+</pre></div>
+
+</div>
+</div>
+
+</div>
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>
+Even going back only 10 years results in ~75 <i>million</i> flights (an average of over 500,000 flights per month), with a fair amount of information for each flight. First I unzipped all the files and sequentially loaded them into a MySQL database. The resulting table is nearly 6 GB in size, and the combination of the number of flights and the raw size of the table make analysis quite challenging.
+</p>
+<h2 id="sharding">Sharding</h2>
+<p>
+To mitigate this issue I sharded my table, splitting the data up by month and time of day to keep things at a manageable size for later analyses. I chose to split the data on these features because it seemed unlikely that including flights at very different times of day or year would significantly improve the quality of my model, although it certainly isn't an ideal solution.
+</p>
+</div>
+<div class="cell border-box-sizing code_cell vbox">
+<div class="input hbox">
+<div class="input_area box-flex1">
+<div><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">MySQLdb</span> <span class="kn">as</span> <span class="nn">mdb</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">import</span> <span class="nn">load_credentials_nogit</span> <span class="kn">as</span> <span class="nn">creds</span>
+
+<span class="c">#Splits the main DB into smaller shards for easier future processing.</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s">&quot;Syntax: [minimum number of flights to be considered]&quot;</span><span class="p">)</span>
+    <span class="n">min_flights</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        
+    <span class="n">months</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;jan&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="s">&#39;feb&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="s">&#39;mar&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span><span class="s">&#39;apr&#39;</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span><span class="s">&#39;may&#39;</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span><span class="s">&#39;jun&#39;</span><span class="p">:</span><span class="mi">6</span><span class="p">,</span><span class="s">&#39;jul&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span><span class="s">&#39;aug&#39;</span><span class="p">:</span><span class="mi">8</span><span class="p">,</span><span class="s">&#39;sep&#39;</span><span class="p">:</span><span class="mi">9</span><span class="p">,</span><span class="s">&#39;oct&#39;</span><span class="p">:</span><span class="mi">10</span><span class="p">,</span><span class="s">&#39;nov&#39;</span><span class="p">:</span><span class="mi">11</span><span class="p">,</span><span class="s">&#39;dec&#39;</span><span class="p">:</span><span class="mi">12</span><span class="p">}</span>
+    <span class="n">hours</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;early&#39;</span><span class="p">:[</span><span class="mi">0</span><span class="p">,</span><span class="mi">800</span><span class="p">],</span><span class="s">&#39;morning&#39;</span><span class="p">:[</span><span class="mi">800</span><span class="p">,</span><span class="mi">1200</span><span class="p">],</span><span class="s">&#39;afternoon&#39;</span><span class="p">:[</span><span class="mi">1200</span><span class="p">,</span><span class="mi">1500</span><span class="p">],</span><span class="s">&#39;evening&#39;</span><span class="p">:[</span><span class="mi">1500</span><span class="p">,</span><span class="mi">1900</span><span class="p">],</span><span class="s">&#39;night&#39;</span><span class="p">:[</span><span class="mi">1900</span><span class="p">,</span><span class="mi">2400</span><span class="p">]}</span>
+
+    <span class="c">#Connect to the db:</span>
+    <span class="n">con</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">mdb</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">creds</span><span class="o">.</span><span class="n">host</span><span class="p">,</span><span class="n">user</span><span class="o">=</span><span class="n">creds</span><span class="o">.</span><span class="n">user</span><span class="p">,</span><span class="n">db</span><span class="o">=</span><span class="n">creds</span><span class="o">.</span><span class="n">database</span><span class="p">,</span><span class="n">passwd</span><span class="o">=</span><span class="n">creds</span><span class="o">.</span><span class="n">password</span><span class="p">,</span><span class="n">local_infile</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+        <span class="c">#Get the airports that have had more than min_flights departures:</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;select origin from flightdelays group by origin having count(origin) &gt; {0:d} order by count(origin);&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">min_flights</span><span class="p">))</span>
+        <span class="n">bestairports</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">bestairports_str</span> <span class="o">=</span> <span class="s">&#39;&quot;&#39;</span><span class="o">+</span><span class="s">&#39;&quot;,&quot;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bestairports</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;&quot;&#39;</span>
+        <span class="n">conditional_str</span> <span class="o">=</span> <span class="s">&#39;origin in ({bestairports}) and dest in ({bestairports})&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bestairports</span><span class="o">=</span><span class="n">bestairports_str</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&quot;Figured out which airports are good in {0:.2f}s&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+        
+        <span class="c">#Iterate through each month and hour combo -it&#39;s actually fastest to downsample the whole dataset each time, because it takes awhile to populate each new database:</span>
+        <span class="k">for</span> <span class="n">monthkey</span> <span class="ow">in</span> <span class="n">months</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">hourkey</span> <span class="ow">in</span> <span class="n">hours</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                <span class="n">shard_table</span> <span class="o">=</span> <span class="s">&#39;flightdelays_{month}_{time}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">month</span><span class="o">=</span><span class="n">monthkey</span><span class="p">,</span><span class="n">time</span><span class="o">=</span><span class="n">hourkey</span><span class="p">)</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;drop table if exists {0:s}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shard_table</span><span class="p">))</span>
+                <span class="c">#Create the shard:</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;create table {shard_table} select * from flightdelays where month(flightdate) = {month} and crsdeptime &gt;= {hourmin} and crsdeptime &lt; {hourmax} and {bestairports_cond};&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shard_table</span><span class="o">=</span><span class="n">shard_table</span><span class="p">,</span><span class="n">month</span><span class="o">=</span><span class="n">months</span><span class="p">[</span><span class="n">monthkey</span><span class="p">],</span><span class="n">hourmin</span><span class="o">=</span><span class="n">hours</span><span class="p">[</span><span class="n">hourkey</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">hourmax</span><span class="o">=</span><span class="n">hours</span><span class="p">[</span><span class="n">hourkey</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">bestairports_cond</span><span class="o">=</span><span class="n">conditional_str</span><span class="p">))</span>
+                <span class="c">#Make sure it knows it can still use the fid as the primary key:</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;alter table {shard_table} add primary key(fid);&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shard_table</span><span class="o">=</span><span class="n">shard_table</span><span class="p">))</span>
+                <span class="k">print</span> <span class="n">monthkey</span><span class="p">,</span><span class="n">hourkey</span><span class="p">,</span> <span class="s">&quot;Took {0:.2f}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+                
+    <span class="k">except</span> <span class="n">mdb</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;Error </span><span class="si">%d</span><span class="s">: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">con</span><span class="p">:</span>
+            <span class="n">con</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        
+</pre></div>
+
+</div>
+</div>
+
+</div>
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>
+One other thing you may have noticed about the above script is that it takes a command line argument of a minimum flight threshold. That's because I realized that, while there are over 300 airports with flights in the data, most of those airports are very small. In fact, 85% of all the flights in my database are between just ~100 airports. Since I use origin and destination airports as features in my model, and scikit-learn uses one-hot coding for categorical features, cutting out all of the podunk little airports (sorry, Yakima Air Terminal and Shenandoah Valley Regional!) reduced my feature dimensionality by two-thirds, dramatically increasing the speed at which I could train my models without sacrificing significant predictive power.
+</p>
+<h2 id="selection">Model Selection and Feature Coding</h2>
+<p>
+With my data properly sharded and my feature list reduced, I could begin training a predictive model. I considered a few different machine learning models, but I ultimately settled on a multiclass logistic regression, both since it's a relatively computationally simple technique (and therefore runs quickly on larger data sets) and because it computes the probability of each class label rather than simply returning the single 'best' class. To convert my problem into one of classification, I binned my delay times into four buckets: delays &lt;15 minutes, between 15 and 45 minutes, &gt;45 minutes, and cancelled. I chose these bins because they broadly correspond to on-time, slightly delayed (but not enough to miss most connecting flights), and delayed enough that connections will start to become an issue – the delay categories that are relevant for most fliers.
+</p>
+
+<p>
+All of my features ended up being categorical, so I had to think a fair amount about how to encode the data to make it compatible with the estimators in scikit-learn. While scikit-learn comes with several methods for <a href="http://scikit-learn.org/stable/modules/feature_extraction.html">vectorizing</a> and <a href="http://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OneHotEncoder.html">coding</a> data, I found them all to be too slow for my application. I therefore wrote my own feature encoding/decoding class, taking advantage of the fact that I knew how my data was structured and formatted to realize large performance gains over the previously mentioned solutions.
+</p>
+</div>
+<div class="cell border-box-sizing code_cell vbox">
+<div class="input hbox">
+<div class="input_area box-flex1">
+<div><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+<span class="k">class</span> <span class="nc">PredictorCoder</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Preps a dataframe of predictors, including doing fast one-hot encoding of categorical variables.</span>
+<span class="sd">    </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Instantiate the class.</span>
+<span class="sd">        </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuous_predictors</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discrete_predictors</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discrete_predictor_mapping</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="c">#Code the training predictors:</span>
+    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">continuous_predictors</span><span class="p">,</span><span class="n">discrete_predictors</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Code the predictors on a training set. This set will then define all the values any categorical variables can take.</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments:</span>
+<span class="sd">        data -- a Pandas dataframe, with column labels corresponding to the names of the predictors.</span>
+<span class="sd">        continuous_predictors -- a list of names for predictors which are continuous.</span>
+<span class="sd">        discrete_predictors -- a list of names for predictors which are discrete.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">        coded_arr -- a 2D numpy array containing the coded predictors</span>
+<span class="sd">        </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c">#Make sure the predictors are in the data:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_predictors</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">continuous_predictors</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_predictors</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">discrete_predictors</span><span class="p">)</span>
+
+        <span class="c">#Assuming that&#39;s all kosher, save the predictors:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuous_predictors</span> <span class="o">=</span> <span class="n">continuous_predictors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discrete_predictors</span> <span class="o">=</span> <span class="n">discrete_predictors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discrete_predictor_mapping</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">discrete_predictors</span><span class="p">)</span>
+
+        <span class="c">#Code up the data:</span>
+        <span class="n">coded_arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">code_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">coded_arr</span>
+
+    <span class="k">def</span> <span class="nf">code_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Do the actual encoding. This is called as part of the train function above, but after the coder has been</span>
+<span class="sd">        trained this function can be called independently.</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments:</span>
+<span class="sd">        data -- a Pandas dataframe, with column labels corresponding to the names of the predictors.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">        coded_arr -- a 2D numpy array containing the coded predictors</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuous_predictors</span> <span class="o">==</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">discrete_predictors</span> <span class="o">==</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">discrete_predictor_mapping</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;Must train predictor before you can code on it!&quot;</span><span class="p">)</span>
+        
+        <span class="c">#Prep the 2D array:</span>
+        <span class="n">coded_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="c">#First do any continuous predictors (easy):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuous_predictors</span><span class="p">:</span>
+            <span class="n">coded_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">coded_arr</span><span class="p">,</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">continuous_predictors</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+
+        <span class="c">#Next, do the discrete predictors (harder):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pred</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">discrete_predictors</span><span class="p">):</span>
+            <span class="n">stacked_codes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">one_hot_code</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">pred</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">coded_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">coded_arr</span><span class="p">,</span><span class="n">stacked_codes</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">coded_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">:,:]</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">def</span> <span class="nf">one_hot_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">values</span><span class="p">,</span><span class="n">prednum</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Does the actual one-hot coding of discrete predictors, and is not designed to be called on its own.</span>
+<span class="sd">        </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">discrete_predictor_mapping</span><span class="p">[</span><span class="n">prednum</span><span class="p">]</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">unique_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">discrete_predictor_mapping</span><span class="p">[</span><span class="n">prednum</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_values</span><span class="p">,</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_values</span><span class="p">))))</span>
+
+        <span class="n">codes</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">discrete_predictor_mapping</span><span class="p">[</span><span class="n">prednum</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">values</span><span class="p">]</span>
+        <span class="n">code_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">discrete_predictor_mapping</span><span class="p">[</span><span class="n">prednum</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)))</span>
+        <span class="n">code_arr</span><span class="p">[</span><span class="n">codes</span><span class="p">,</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">))]</span> <span class="o">=</span> <span class="mf">1.</span>
+
+        <span class="k">return</span> <span class="n">code_arr</span>
+    
+    <span class="k">def</span> <span class="nf">check_predictors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">predictors</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Checks to see if the predictors aren&#39;t in the dataframe, raises an exception in that case.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">datacols</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">predictors</span><span class="p">,</span><span class="n">datacols</span><span class="p">))</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">predictors</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Not all predictors in dataframe!&quot;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+
+</div>
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>
+Unfortunately, in exchange for speed I have to trade efficiency – the coded predictors returned by <code>PredictorCoder</code> are in a full numpy array, and with a large number of categorical predictors like I have this array can take up quite a lot of RAM. Fortunately, my computer is fairly beefy, so this wasn't a huge issue. The predictor not only codes up the initial data (usually the model training, validation, and testing data) it is passed, it also stores the mapping between feature values and their coding so the class instance can be used to code up user-input data when the model is fully trained and in active use.
+</p>
+<h2 id="training">Training the Model</h2>
+<p>
+<p>With all that prep work out of the way, I could train my logistic regression on all of my shards.</p>
+</div>
+<div class="cell border-box-sizing code_cell vbox">
+<div class="input hbox">
+<div class="input_area box-flex1">
+<div><pre><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">MySQLdb</span> <span class="kn">as</span> <span class="nn">mdb</span>
+<span class="kn">import</span> <span class="nn">sklearn.feature_extraction</span>
+<span class="kn">import</span> <span class="nn">sklearn.linear_model</span>
+<span class="kn">import</span> <span class="nn">sklearn.grid_search</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">cPickle</span> <span class="kn">as</span> <span class="nn">pickle</span>
+
+<span class="kn">import</span> <span class="nn">flightfuncs</span> <span class="kn">as</span> <span class="nn">ff</span><span class="c">#Helper functions split out as their own module</span>
+<span class="kn">import</span> <span class="nn">load_credentials_nogit</span> <span class="kn">as</span> <span class="nn">creds</span><span class="c">#Credentials for my database</span>
+
+<span class="k">def</span> <span class="nf">train_log</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span><span class="n">continuous_predictors</span> <span class="o">=</span> <span class="p">[],</span><span class="n">discrete_predictors</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;origin&#39;</span><span class="p">,</span><span class="s">&#39;dest&#39;</span><span class="p">,</span><span class="s">&#39;uniquecarrier&#39;</span><span class="p">,</span><span class="s">&#39;dayofweek(flightdate)&#39;</span><span class="p">],</span><span class="n">targetname</span> <span class="o">=</span> <span class="s">&#39;arrdelay&#39;</span><span class="p">,</span><span class="n">subset</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">timesplit</span> <span class="o">=</span> <span class="p">[</span><span class="mi">15</span><span class="p">,</span><span class="mi">45</span><span class="p">],</span><span class="n">filename</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">C_vals</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">100000</span><span class="p">]):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Train and fit a logarithmic regression classifier.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">    tablename -- the name of the database table to query.</span>
+<span class="sd">    continuous_predictors -- a list of names of continuous predictors to use (default = []).</span>
+<span class="sd">    discrete_predictors -- a list of names of discrete predictors to use (default = [&#39;origin&#39;,&#39;dest&#39;,&#39;uniquecarrier&#39;,&#39;dayofweek(flightdate)&#39;]).</span>
+<span class="sd">    targetname -- the name of the column that will be the target (default = arrdelay).</span>
+<span class="sd">    subset -- take a subset of the data (default = None).</span>
+<span class="sd">    timesplit -- a list of the bin edges the target labels will be split into (default = [15,45]).</span>
+<span class="sd">    filename -- save the model to a file, and if so what should its name be? (default = None).</span>
+<span class="sd">    C_vals -- values of the C parameter to test for when cross-validating (default =  [0.1,10,1000,100000]).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    If filename != None, prints out a pickle file containing the trained model as well as useful supplementary information, </span>
+<span class="sd">    such as how the target and features were coded.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="c">#Connect to the database and download the data:</span>
+    <span class="n">con</span> <span class="o">=</span> <span class="n">mdb</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">creds</span><span class="o">.</span><span class="n">host</span><span class="p">,</span><span class="n">user</span><span class="o">=</span><span class="n">creds</span><span class="o">.</span><span class="n">user</span><span class="p">,</span><span class="n">db</span><span class="o">=</span><span class="n">creds</span><span class="o">.</span><span class="n">database</span><span class="p">,</span><span class="n">passwd</span><span class="o">=</span><span class="n">creds</span><span class="o">.</span><span class="n">password</span><span class="p">,</span><span class="n">local_infile</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">ff</span><span class="o">.</span><span class="n">query_into_pd</span><span class="p">(</span><span class="n">con</span><span class="p">,</span><span class="n">tablename</span><span class="p">,</span><span class="n">continuous_predictors</span><span class="o">+</span><span class="n">discrete_predictors</span><span class="o">+</span><span class="p">[</span><span class="n">targetname</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;cancelled&#39;</span><span class="p">,</span><span class="s">&#39;diverted&#39;</span><span class="p">],</span><span class="n">subset</span><span class="o">=</span><span class="n">subset</span><span class="p">,</span><span class="n">randomize</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&quot;Finished querying data ({0:.2f}s)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+    
+    <span class="c">#Select only flights that weren&#39;t diverted:</span>
+    <span class="n">diverted_bool</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">diverted</span> <span class="o">&gt;</span> <span class="mf">1.e-5</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[(</span><span class="n">diverted_bool</span> <span class="o">==</span> <span class="bp">False</span><span class="p">)]</span>
+
+    <span class="c">#Code up the delay times:</span>
+    <span class="n">tc</span> <span class="o">=</span> <span class="n">ff</span><span class="o">.</span><span class="n">TimeCoder</span><span class="p">(</span><span class="n">timesplit</span><span class="p">)</span>
+    <span class="n">coded_delays</span> <span class="o">=</span> <span class="n">tc</span><span class="o">.</span><span class="n">time_encode</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">targetname</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">data</span><span class="o">.</span><span class="n">cancelled</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&quot;Finished coding the target ({0:.2f}s)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+
+    <span class="c">#Code up the predictors.</span>
+    <span class="n">coder</span> <span class="o">=</span> <span class="n">ff</span><span class="o">.</span><span class="n">PredictorCoder</span><span class="p">()</span>
+    <span class="n">pred_code</span> <span class="o">=</span> <span class="n">coder</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">continuous_predictors</span><span class="p">,</span><span class="n">discrete_predictors</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&quot;Finished coding the predictors ({0:.2f}s)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+
+    <span class="c">#Free up memory by chucking the uncoded data</span>
+    <span class="k">del</span> <span class="n">data</span>
+
+    <span class="c">#Train the logistic regression model:</span>
+    <span class="n">logreg</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">grid_search</span><span class="o">.</span><span class="n">GridSearchCV</span><span class="p">(</span><span class="n">sklearn</span><span class="o">.</span><span class="n">linear_model</span><span class="o">.</span><span class="n">LogisticRegression</span><span class="p">(),</span><span class="n">param_grid</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;C&#39;</span><span class="p">:</span><span class="n">C_vals</span><span class="p">},</span><span class="n">scoring</span><span class="o">=</span><span class="n">ff</span><span class="o">.</span><span class="n">pdf_scoring</span><span class="p">,</span><span class="n">cv</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">logreg</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">pred_code</span><span class="p">,</span><span class="n">coded_delays</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&quot;Best C = {C}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">logreg</span><span class="o">.</span><span class="n">best_params_</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&quot;Finished training the model ({0:.2f}s)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+
+    <span class="c">#Output a pickled file containing the model and the necessary supporting information:</span>
+    <span class="k">if</span> <span class="n">filename</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">pklfile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="s">&#39;wb&#39;</span><span class="p">)</span>
+        <span class="n">regression_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;model&#39;</span><span class="p">:</span><span class="n">logreg</span><span class="p">,</span><span class="s">&#39;target_coder&#39;</span><span class="p">:</span><span class="n">tc</span><span class="p">,</span><span class="s">&#39;predictor_coder&#39;</span><span class="p">:</span><span class="n">coder</span><span class="p">,</span><span class="s">&#39;table_name&#39;</span><span class="p">:</span><span class="n">tablename</span><span class="p">,</span><span class="s">&#39;subset&#39;</span><span class="p">:</span><span class="n">subset</span><span class="p">}</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">regression_dict</span><span class="p">,</span><span class="n">pklfile</span><span class="p">)</span>
+        <span class="n">pklfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+
+</div>
+</div>
+
+</div>
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>
+Because I'm interested in the probability of having a delay or cancellation rather than something based on counting how often the model makes the correct prediction (e.g. accuracy, precision, or recall), I override the scoring function scikit-learn's cross-validator uses for a simple one that just reports back the sum of the squared predicted probability of the actual delay:
+</p>
+</div>
+<div class="cell border-box-sizing code_cell vbox">
+<div class="input hbox">
+<div class="input_area box-flex1">
+<div><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="k">def</span> <span class="nf">pdf_scoring</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A cross-validation estimator based on the sum of squared label probabilities.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">    estimator -- the trained scikit-learn estimator to use.</span>
+<span class="sd">    X -- 2D numpy array of features.</span>
+<span class="sd">    y -- 1D numpy array of class labels.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    The sum of the squared probabilities given to the correct class for each entry in the data.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">integer_y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+    <span class="n">probs</span> <span class="o">=</span> <span class="n">estimator</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X</span><span class="p">)[</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">integer_y</span><span class="p">)),</span><span class="n">integer_y</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">probs</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+
+</div>
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>
+Once all the necessary models have been trained and saved to disk, making a prediction for a given itinerary is simply a matter of picking the correct model to load, coding up the itinerary, and then running it through the classifier. To streamline this process I wrapped that functionality inside a simple website - this website!
+</p>
+<h2 id="site">The Site</h2>
+<p>
+<p>The Delayr site is written using the Django framework, which was probably overkill for this purpose but I'd already had some experience with Django so it wasn't too difficult to code up. The site has a couple of pages, but all the action (for now at least) happens on the index page, which contains both the form to enter an itinerary as well as shows the results of a query. Therefore the index view is (relatively) complex, to handle the logic of what to display (although a fair amount of the heavy lifting is offloaded to helper functions):</p>
+</div>
+<div class="cell border-box-sizing code_cell vbox">
+<div class="input hbox">
+<div class="input_area box-flex1">
+<div><pre><span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="kn">import</span> <span class="n">render_to_response</span>
+<span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">RequestContext</span>
+<span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">cPickle</span> <span class="kn">as</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.backends.backend_agg</span> <span class="kn">import</span> <span class="n">FigureCanvasAgg</span>
+<span class="kn">from</span> <span class="nn">matplotlib.ticker</span> <span class="kn">import</span> <span class="n">ScalarFormatter</span>
+<span class="kn">import</span> <span class="nn">pickle</span> <span class="kn">as</span> <span class="nn">pickle</span>
+
+<span class="kn">from</span> <span class="nn">delayr.models</span> <span class="kn">import</span> <span class="n">Airlinenames</span><span class="p">,</span><span class="n">FlightdelaysAprAfternoon</span><span class="p">,</span><span class="n">Airports</span>
+<span class="kn">from</span> <span class="nn">delayr.forms</span> <span class="kn">import</span> <span class="n">AirportForm</span><span class="p">,</span><span class="n">AirlineForm</span><span class="p">,</span><span class="n">DateTimeForm</span>
+
+<span class="kn">import</span> <span class="nn">delayr_funcs</span> <span class="kn">as</span> <span class="nn">df</span>
+
+<span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    View for the index, which is both the homepage of Delayr and also where prediction outputs are displayed. </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">RequestContext</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="n">context_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c">#Initialize the forms</span>
+    <span class="n">airportform</span> <span class="o">=</span> <span class="n">AirportForm</span><span class="p">()</span>
+    <span class="n">airlineform</span> <span class="o">=</span> <span class="n">AirlineForm</span><span class="p">()</span>
+    <span class="n">datetimeform</span> <span class="o">=</span> <span class="n">DateTimeForm</span><span class="p">()</span>
+
+    <span class="c">#If the user submitted a search, do stuff:</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="c">#return model_output(request)</span>
+        <span class="n">submittedform</span> <span class="o">=</span> <span class="n">AirportForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">submittedform</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+            <span class="c">#Get the data, validate the date field (since somehow the widget I&#39;m using isn&#39;t doing that part):</span>
+            <span class="n">valuedict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">submittedform</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">date_regexp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;^\d\d/\d\d/\d\d\d\d$&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">valuedict</span><span class="p">[</span><span class="s">&#39;origin&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">valuedict</span><span class="p">[</span><span class="s">&#39;dest&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">context_dict</span><span class="p">[</span><span class="s">&#39;welcome_message&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Welcome to Delayr!&quot;</span>
+                <span class="n">context_dict</span><span class="p">[</span><span class="s">&#39;errmessage&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Choose two different airports&quot;</span>
+            <span class="k">elif</span> <span class="n">date_regexp</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">valuedict</span><span class="p">[</span><span class="s">&#39;date&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">context_dict</span><span class="p">[</span><span class="s">&#39;welcome_message&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Welcome to Delayr!&quot;</span>
+                <span class="n">context_dict</span><span class="p">[</span><span class="s">&#39;errmessage&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Incorrect date format&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c">#Display the prediction results:</span>
+                <span class="n">prediction_dict</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">make_predictions</span><span class="p">(</span><span class="n">valuedict</span><span class="p">)</span>
+                <span class="c">#prepare values relating to the requested prediction</span>
+                <span class="k">if</span> <span class="s">&#39;user_prediction&#39;</span> <span class="ow">in</span> <span class="n">prediction_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">prediction_df</span> <span class="o">=</span> <span class="n">prediction_dict</span><span class="p">[</span><span class="s">&#39;user_prediction&#39;</span><span class="p">]</span>
+                    <span class="n">prediction_bins</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">prediction_df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+                    <span class="n">prediction_values</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">prediction_df</span><span class="o">.</span><span class="n">irow</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+                    <span class="n">prediction</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">prediction_bins</span><span class="p">,</span><span class="n">prediction_values</span><span class="p">)</span>
+                    <span class="n">context_dict</span><span class="p">[</span><span class="s">&#39;string_prediction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">prediction</span><span class="p">)</span>
+                <span class="c">#prepare values relating to other times of that day:</span>
+                <span class="k">if</span> <span class="s">&#39;all_time_prediction&#39;</span> <span class="ow">in</span> <span class="n">prediction_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">context_dict</span><span class="p">[</span><span class="s">&#39;all_time_prediction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">prediction_dict</span><span class="p">[</span><span class="s">&#39;all_time_prediction&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_json</span><span class="p">())</span>
+                <span class="c">#prepare values relating to nearby days:</span>
+                <span class="k">if</span> <span class="s">&#39;all_date_prediction&#39;</span> <span class="ow">in</span> <span class="n">prediction_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">context_dict</span><span class="p">[</span><span class="s">&#39;all_date_prediction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">prediction_dict</span><span class="p">[</span><span class="s">&#39;all_date_prediction&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_json</span><span class="p">())</span>
+                <span class="c">#Prepare other similar itineraries</span>
+                <span class="k">if</span> <span class="s">&#39;other_option_prediction&#39;</span> <span class="ow">in</span> <span class="n">prediction_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">context_dict</span><span class="p">[</span><span class="s">&#39;other_option_prediction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prediction_dict</span><span class="p">[</span><span class="s">&#39;other_option_prediction&#39;</span><span class="p">]</span>
+                    <span class="n">context_dict</span><span class="p">[</span><span class="s">&#39;other_option_colorname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prediction_dict</span><span class="p">[</span><span class="s">&#39;other_option_colorname&#39;</span><span class="p">]</span>
+            <span class="c">#Set the form fields to contain the searched-for values, for easier searches of similar itineraries:</span>
+            <span class="n">airlineform</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;uniquecarrier&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="n">valuedict</span><span class="p">[</span><span class="s">&#39;uniquecarrier&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">airportform</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;origin&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="n">valuedict</span><span class="p">[</span><span class="s">&#39;origin&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">airportform</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;dest&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="n">valuedict</span><span class="p">[</span><span class="s">&#39;dest&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">datetimeform</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="n">valuedict</span><span class="p">[</span><span class="s">&#39;date&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">datetimeform</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="n">valuedict</span><span class="p">[</span><span class="s">&#39;time&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="n">submittedform</span><span class="o">.</span><span class="n">errors</span>
+            <span class="n">context_dict</span><span class="p">[</span><span class="s">&#39;errmessage&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;You&#39;ve somehow made an error entering your flight info. Please try again&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">context_dict</span><span class="p">[</span><span class="s">&#39;welcome_message&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Welcome to Delayr!&quot;</span>
+    
+    <span class="n">context_dict</span><span class="p">[</span><span class="s">&#39;airportform&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">airportform</span>
+    <span class="n">context_dict</span><span class="p">[</span><span class="s">&#39;airlineform&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">airlineform</span>
+    <span class="n">context_dict</span><span class="p">[</span><span class="s">&#39;datetimeform&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetimeform</span>
+
+    <span class="k">return</span> <span class="n">render_to_response</span><span class="p">(</span><span class="s">&#39;delayr/index.html&#39;</span><span class="p">,</span><span class="n">context_dict</span><span class="p">,</span><span class="n">context</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+
+</div>
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>
+Producing the delay prediction plots is quite difficult, largely because I construct them using matplotlib. In a perfect world I'd use something like nvd3, which I briefly looked into before deciding that teaching it to myself would take just a little too long given the time constraints of the Incubator.
+</p>
+<h2 id="viz">Visualization</h2>
+<p>
+<p>The plots actually work by converting the necessary python objects (usually a Pandas dataframe) into a string representation, which then gets appended onto the URL of the image. From there I can get access to the object in the view which actually creates the plot, one of which is shown here for illustration:</p>
+</div>
+<div class="cell border-box-sizing code_cell vbox">
+<div class="input hbox">
+<div class="input_area box-flex1">
+<div><pre><span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="kn">import</span> <span class="n">render_to_response</span>
+<span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">RequestContext</span>
+<span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.backends.backend_agg</span> <span class="kn">import</span> <span class="n">FigureCanvasAgg</span>
+<span class="kn">from</span> <span class="nn">matplotlib.ticker</span> <span class="kn">import</span> <span class="n">ScalarFormatter</span>
+
+<span class="k">def</span> <span class="nf">show_all_date_prediction</span><span class="p">(</span><span class="n">request</span><span class="p">,</span><span class="n">prediction</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    View which returns a matplotlib png image displaying the predictions as a function of nearby days.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">    prediction -- a string containing a json-encoded dataframe of prediction results.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">RequestContext</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="n">prediction_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">prep_passed_df</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span><span class="n">row_order_column</span><span class="o">=</span><span class="s">&#39;order&#39;</span><span class="p">,</span><span class="n">column_order_row</span><span class="o">=</span><span class="s">&#39;col_order&#39;</span><span class="p">)</span>
+    <span class="n">column_names</span> <span class="o">=</span> <span class="n">prediction_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="c">#Only plotting delays and cancellations</span>
+    <span class="n">row_names</span> <span class="o">=</span> <span class="n">prediction_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">x_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">row_names</span><span class="p">))</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="s">&#39;none&#39;</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s">&#39;both&#39;</span><span class="p">,</span><span class="n">which</span><span class="o">=</span><span class="s">&#39;major&#39;</span><span class="p">,</span><span class="n">labelsize</span><span class="o">=</span><span class="n">ticklabelsize</span><span class="p">)</span>
+    <span class="n">colorcount</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c">#Do the plotting:</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">column_names</span><span class="p">)):</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_vals</span><span class="p">,</span><span class="n">prediction_df</span><span class="p">[</span><span class="n">column_names</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">*</span><span class="mf">100.</span><span class="p">,</span><span class="n">ls</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span><span class="n">marker</span><span class="o">=</span><span class="s">&#39;o&#39;</span><span class="p">,</span><span class="n">ms</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">colorlist</span><span class="p">[</span><span class="n">colorcount</span><span class="p">],</span><span class="n">mec</span><span class="o">=</span><span class="n">colorlist</span><span class="p">[</span><span class="n">colorcount</span><span class="p">],</span><span class="n">mfc</span><span class="o">=</span><span class="n">colorlist</span><span class="p">[</span><span class="n">colorcount</span><span class="p">],</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="n">column_names</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">lw</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+        <span class="n">colorcount</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">colorcount</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">colorlist</span><span class="p">):</span>
+            <span class="n">colorcount</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c">#Labels, titles, etc:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">&quot;Delays on Nearby Days&quot;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">titlesize</span><span class="p">,</span><span class="n">fontname</span><span class="o">=</span><span class="n">fontname</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">&quot;Delay Probability (%)&quot;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">axlabelsize</span><span class="p">,</span><span class="n">fontname</span><span class="o">=</span><span class="n">fontname</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">&quot;Date&quot;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">axlabelsize</span><span class="p">,</span><span class="n">fontname</span><span class="o">=</span><span class="n">fontname</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">x_vals</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">row_names</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">x_vals</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span><span class="n">x_vals</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span><span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mf">0.01</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s">&#39;best&#39;</span><span class="p">,</span><span class="n">prop</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;size&#39;</span><span class="p">:</span><span class="n">legendsize</span><span class="p">},</span><span class="n">numpoints</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c">#Actually rendering the image:</span>
+    <span class="n">canvas</span> <span class="o">=</span> <span class="n">FigureCanvasAgg</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">content_type</span><span class="o">=</span><span class="s">&#39;image/png&#39;</span><span class="p">)</span>
+    <span class="n">canvas</span><span class="o">.</span><span class="n">print_png</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span>
+</pre></div>
+
+</div>
+</div>
+
+</div>
+</div>
+</div>
+{% endblock %}
