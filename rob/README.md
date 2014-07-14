@@ -9,7 +9,7 @@ This is Rob Howley's project for the Summer 2014 [Data Incubator](http://www.the
   * database filler that uploaded scraped JSON data into MySQL
 2. Analysis
   * Python based NLP
-  * Extract beer style vobalary from written reviews
+  * Extract beer style vocabulary from written reviews
   * Compute and upload similarities to database
   * MySQL implementation of item based filtering
 3. ImThirsty Website
