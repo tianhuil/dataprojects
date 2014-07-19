@@ -23,6 +23,13 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.base import BaseEstimator, ClassifierMixin 
 
 def CVCat(featuresTest, yTest, myClassifier, cats):
+    """
+    PRINT THE CROSS VALIDATION SCORES FOR THE CATEGORY CLASSIFIER
+    featuresTest: TFIDF features for the cross validation
+    yTest: class labels for cross validation set
+    myClassifier: scikit-learn classifier function
+    cats: list of categories for display purposes
+    """
     print "Cross Validating......"
     
     l = len(cats)    
@@ -31,7 +38,7 @@ def CVCat(featuresTest, yTest, myClassifier, cats):
     count = 0
     # countClass = [0]*l
     # classLen   = [0]*l
-    for i in range(len(pred_prob)):
+    for i in xrange(len(pred_prob)):
         if yTest[i] != yPred[i]: 
             count +=1
         # else:
@@ -42,12 +49,19 @@ def CVCat(featuresTest, yTest, myClassifier, cats):
     # print "Total Accuracy =", aveScore
 
     met = metrics.precision_recall_fscore_support(yPred, yTest)
-    pr = [[cats[x],met[0][x],met[1][x]] for x in range(len(met[0]))]
+    pr = [[cats[x],met[0][x],met[1][x]] for x in xrange(len(met[0]))]
     pr = pd.DataFrame(pr, columns=["Category","Precision", "Recall"])
     # print pr
     return pr, aveScore
 
 def CVSent(featuresTest, yTest, myClassifier, cats):
+    """
+    PRINT THE CROSS VALIDATION SCORES FOR THE SENTIMENT CLASSIFIER
+    featuresTest: TFIDF features for the cross validation
+    yTest: class labels for cross validation set
+    myClassifier: scikit-learn classifier function
+    cats: list of categories for display purposes
+    """
     # print "Testing......"
     
     l = len(cats)    
@@ -56,7 +70,7 @@ def CVSent(featuresTest, yTest, myClassifier, cats):
     count = 0
     # countClass = [0]*l
     # classLen   = [0]*l
-    for i in range(len(pred_prob)):
+    for i in xrange(len(pred_prob)):
         if yTest[i] != yPred[i]: 
             count +=1
         # else:
@@ -67,12 +81,17 @@ def CVSent(featuresTest, yTest, myClassifier, cats):
     # print "Total Accuracy =", aveScore
 
     # met = metrics.precision_recall_fscore_support(yPred, yTest)
-    # pr = [[cats[x],met[0][x],met[1][x]] for x in range(len(met[0]))]
+    # pr = [[cats[x],met[0][x],met[1][x]] for x in xrange(len(met[0]))]
     # pr = pd.DataFrame(pr, columns=["Category","Precision", "Recall"])
     # print pr
     return aveScore
 
 def print_best_worst_feat(tfidf, num):
+    """
+    PRINTS THE LIST OF BEST AND WORST FEATURES IN TFIDF SET
+    tfidf: set of TFIDF features
+    num: number of best and worst features to print
+    """
     idf = tfidf._tfidf.idf_
     w_lst = zip(tfidf.get_feature_names(), idf)
     # print len(w_lst), w_lst[0:30]
@@ -90,6 +109,11 @@ def print_best_worst_feat(tfidf, num):
         # print "%s\t%s" % (w_lst[i])
 
 class EnsembleClassifier(BaseEstimator, ClassifierMixin):
+    """
+    CUSTOM CLASSIFIER CLASS. 
+    INPUT IS TUPLE OF CLASSIFIERS. 
+    OUTPUT IS MEAN OF PROBABILITY SCORES OF INDIVIDUAL CLASSIFIERS.
+    """
     def __init__(self, classifiers=None):
         self.classifiers = classifiers
 
@@ -104,6 +128,12 @@ class EnsembleClassifier(BaseEstimator, ClassifierMixin):
         return np.mean(self.predictions_, axis=0)
 
 def vectorize(input, stop_words, max_words):
+    """
+    CREATE FEATURES BASED ON THE STEMMED UNIGRAM AND BIGRAM TFIDF VALUES
+    input: list of text reviews
+    stop_words: additional common words not used as features
+    max_words: total number of features for classifier, typically 10,000
+    """
     token = TfidfVectorizer().build_tokenizer()
     stemmer = stem.SnowballStemmer("english", ignore_stopwords=True)
     stopW = map(stemmer.stem, stopwords.words('english') + stop_words)
@@ -115,6 +145,11 @@ def vectorize(input, stop_words, max_words):
     return tfidf.fit( input )
         
 def train(input, yTrain):
+    """
+    MAIN CLASSIFIER. MAKES FEATURES AND TRAINS CUSTOM ENSEBLE CLASSIFIER CONSISTING OF          MULTINOMIAL NAIVE BAYES, LOGISTIC REGRESSION, AND RANDOM FOREST CLASSIFIER.
+    input: list of review texts
+    yTrain: list of labels for the different classes
+    """
     print "Training....."
     
     max_words = 10000
@@ -136,31 +171,40 @@ def train(input, yTrain):
     classifier.fit(featuresTrain, yTrain)
     return tfidf, classifier, featuresTrain
 
-def getTips(tip, review, bus, reviewsTrainingCat, reviewsTrainingSent, stopCat, stopSent):
+def getTips(tip, review, bus, reviewsTrainingCat):
+    """
+    COLLECT LIST OF TOP USERS AND THEIR TIP HISTORY
+    tip: dataframe of user tips
+    review: dataframe of all reviews
+    bus: dataframe of businesses
+    reviewsTrainingCat: dataframe of reviews used to train the category classifier
+    """
     # get histogram of users by amount of tips they left   
     users = tip['USER_ID'].value_counts()
     # pick top 10 users with highest number of tips, for demo purposes
-    topUsers = [users.index[i] for i in range(100)]
-    ### NOW WE HAVE LIST OF TOP 10 USERS -> "topUsers"
+    topUsers = [users.index[i] for i in xrange(100)]
+    ### NOW WE HAVE LIST OF TOP USERS -> "topUsers"
     outputList = []
 
     busList = []
-    for i in range(len(reviewsTrainingCat)): 
-        busL = reviewsTrainingCat[i]['BUSINESS_ID'].value_counts().index
+    for revs in reviewsTrainingCat: 
+        busL = revs['BUSINESS_ID'].value_counts().index
         for b in busL:
             if b not in busList: busList.append(b)
     print "Number of unique business in training set: ", len(busList)
 
-    for j in range(len(topUsers)):
+    for u in topUsers:
         # get the USER_ID for each user
-        user = topUsers[j]
+        user = u
     
         # get list of businesses "user" has reviewed
-        busRevs = np.array(review['BUSINESS_ID'][review['USER_ID'] == user].value_counts().index)
+        busRevs = np.array(review['BUSINESS_ID'][review['USER_ID'] == \
+                                                 user].value_counts().index)
         ### NOW WE HAVE LIST OF BUSINESSES "user" has reviewed -> "busRevs"
     
         # get list of businesses "userA" has left tips for
-        busTips = np.array(tip['BUSINESS_ID'][tip['USER_ID'] == user].value_counts().index)
+        busTips = np.array(tip['BUSINESS_ID'][tip['USER_ID'] == \
+                                                user].value_counts().index)
     
         busRevsFinal = []
         busTipsFinal = []
@@ -175,26 +219,42 @@ def getTips(tip, review, bus, reviewsTrainingCat, reviewsTrainingSent, stopCat, 
         lenCheck2 = len(busTipsFinal)
         threshold = 10
         if lenCheck1 > threshold and lenCheck2 > threshold:
-            print j, user, "\treviewed =", lenCheck1, "\tcan review =", lenCheck2
+            print user, "\treviewed =", lenCheck1, "\tcan review =", lenCheck2
             outputList.append([user, busRevsFinal, busTipsFinal])
         
     return outputList
 
-def output(reviews, stopCat, userLists, bus, categories, tfidfCat,  myClassifierCat, \
-                                             tfidfSent, myClassifierSent, featuresCat):
+def recommend(reviews, stopCat, userLists, bus, categories, tfidfCat,  \
+                myClassifierCat, tfidfSent, myClassifierSent, featuresCat):
+    """
+    MAKE RECOMMENDATION FOR NEXT BUSINESS TO REVIEW
+    reviews: dataframe with all the unique category reviews
+    stopCat: number of reviews used in each category
+    userLists: list of users and tip history
+    bus: dataframe of businesses
+    categories: list of categories used
+    tfidfCat: TfidfVectorizer function with vocab for the trained category classifier
+    myClassifierCat: scikit-learn classifier function
+    tfidfSent: TfidfVectorizer function with vocab for the trained sentiment classifier
+    myClassifierSent: scikit-learn classifier function
+    featuresCat: feature matrix for the trained category classifier
+    """
     # find the review "TEXT" for each USER_ID/BUSINESS_ID combination in displayLists
     allReviews = []
-    for i in range(len(reviews)): 
+    for i in xrange(len(reviews)): 
         allReviews.append(reviews[i][0:stopCat])
     allReviews = pd.concat(allReviews)
+    
+    # cosine similarity matrix for all of the reviews used in the category classifier
+    cos = np.dot(featuresCat,featuresCat.T)
 
     reviewsTestAll, tipsTestAll = [], []
-    for i in range(range(len(userLists)):
+    for i in xrange(1): #xrange(len(userLists)):
         names, stars, cat, revIndex, reviewsTest = [], [], [], [], []
         user = userLists[i][0]
         userIndex = (allReviews['USER_ID']==user)
-        for j in range(len(userLists[i][1])):
-            business = userLists[i][1][j]
+        for b in userLists[i][1]:
+            business = b
             busIndex = (allReviews['BUSINESS_ID']==business)
             found = allReviews[userIndex & busIndex]
             if len(found) > 0: 
@@ -211,8 +271,8 @@ def output(reviews, stopCat, userLists, bus, categories, tfidfCat,  myClassifier
         # print names[0], revIndex[0], allReviews['BUSINESS_ID'][revIndex[0]]
         
         names, cat, tipBus = [], [], []
-        for j in range(len(userLists[i][2])):
-            business = userLists[i][2][j]
+        for b in userLists[i][2]:
+            business = b
             tipBus.append(business)
             names.append(bus['NAME'][bus['BUSINESS_ID']==business].iloc[0])
             for a in categories:
@@ -227,7 +287,7 @@ def output(reviews, stopCat, userLists, bus, categories, tfidfCat,  myClassifier
         featuresRevSentTest = tfidfSent.transform(reviewsTestAll[i][1]).toarray()
         pred_probRevSentTest = myClassifierSent.predict_proba(featuresRevSentTest)
         
-        for k in range(range(len(pred_probRevCat)):
+        for k in xrange(5):#xrange(len(reviewsTestAll[i][0])):
             print reviewsTestAll[i][0][k], reviewsTestAll[i][2][k], \
                         reviewsTestAll[i][3][k], reviewsTestAll[i][1][k][0:20]
             p = pred_probRevSentTest[k]
@@ -239,54 +299,57 @@ def output(reviews, stopCat, userLists, bus, categories, tfidfCat,  myClassifier
             print "%.2f, %.2f, %.2f, %.2f, %.2f\n" % (p[0], p[1], p[2], p[3], p[4])
         
         disp = []
-        for k in range(len(tipsTestAll[i][0])):
-            disp.append([tipsTestAll[i][0][k], tipsTestAll[i][1][k], tipsTestAll[i][2][k]])
+        for k in xrange(len(tipsTestAll[i][0])):
+            disp.append([tipsTestAll[i][0][k], tipsTestAll[i][1][k], \
+                             tipsTestAll[i][2][k]])
         
         disp1 = pd.DataFrame(disp, columns=['Name','Category','Business ID']) 
         print disp1   
         
-    # featuresRevCatTest = tfidfCat.transform(reviewsTestAll[i][1]).toarray()
-    findSim = allReviews.index.tolist().index(revIndex[0])
-    # print len(featuresCat), findSim
-
-    cos = np.dot(featuresCat,featuresCat.T)
-
-    # print cos.shape, findSim
-    maxC = cos[findSim].argsort()[::-1]
+        for number in xrange(5):#xrange(len(reviewsTestAll[i][0])):
+            findSim = allReviews.index.tolist().index(revIndex[number])
+            # print cos.shape, findSim
+            maxC = cos[findSim].argsort()[::-1]
         
-    cosMax = cos[findSim,maxC]
+            cosMax = cos[findSim,maxC]
     
-    rec = []
-    for i in range(len(maxC)):
-        b = allReviews['BUSINESS_ID'][allReviews.index[maxC[i]]]
-        if b not in rec: rec.append(b)
-        # print maxC[i], cosMax[i], allReviews.index[maxC[i]], "\t", b
+            rec = []
+            for j in xrange(len(maxC)):
+                b = allReviews['BUSINESS_ID'][allReviews.index[maxC[j]]]
+                if b not in rec: 
+                    rec.append(b)
+                    if b in tipBus: print j, cosMax[j], b
+                # print maxC[i], cosMax[i], allReviews.index[maxC[i]], "\t", b
 
-    # print rec
-    #print sorted order
-    # print tipBus
+            # print rec
+            #print sorted order
+            # print tipBus
     
-    ind = sorted(tipBus, key=rec.index)
-    disp = []
-    for k in range(len(ind)):
-        newInd = tipsTestAll[0][2].index(ind[k])
-        disp.append([tipsTestAll[0][0][newInd], tipsTestAll[0][1][newInd], \
-                        tipsTestAll[0][2][newInd]])
+            ind = sorted(tipBus, key=rec.index)
+            disp = []
+            for k in xrange(len(ind)):
+                newInd = tipsTestAll[i][2].index(ind[k])
+                # b = ind[k]
+                disp.append([tipsTestAll[i][0][newInd], tipsTestAll[i][1][newInd], \
+                                tipsTestAll[i][2][newInd]])
     
-    disp1 = pd.DataFrame(disp, columns=['Name','Category','Business ID']) 
-    print disp1
+            display = pd.DataFrame(disp, columns=['Name','Category','Business ID']) 
+            print "++++++++", number, display
     
-    # print ind
-    # plt.plot(np.arange(cos.shape[1]), cosMax)
-    # plt.show()
+            # print ind
+            # plt.plot(np.arange(cos.shape[1]), cosMax)
+            # plt.show()
     
-
-def trainSentCV(reviewsSent):
-    # TRAINING AND CROSS VALIDATING THE SENTIMENT CLASSIFIER
-    kfold = cv.KFold(10000, n_folds=2)
+def trainSentCV(reviewsSent, stopSent):
+    """
+    TRAINING AND CROSS VALIDATING THE SENTIMENT CLASSIFIER
+    reviewsSent: dataframe of reviews used to train the classifiers
+    stopSent: number of reviews to use in each class
+    """
+    kfold = cv.KFold(stopSent, n_folds=3)
     reviewsTrainSent, yTrainSent = [], []
     
-    for i in range(len(reviewsSent)): reviewsSent[i] = reviewsSent[i].reset_index(drop=True)
+    for revs in reviewsSent: revs.reset_index(drop=True, inplace=True)
 
     totalScore = []
     for trainSet, CVSet in kfold:
@@ -295,14 +358,14 @@ def trainSentCV(reviewsSent):
         yTrainSent.extend([0]*len(trainSet))
         reviewsTrainSent.extend(reviewsSent[4]['TEXT'][trainSet])
         yTrainSent.extend([1]*len(trainSet))
-        tfidf, myClassifierSent = train(reviewsTrainSent, yTrainSent)
+        tfidf, myClassifierSent, featuresTrain = train(reviewsTrainSent, yTrainSent)
                         
         # Test on all 5 classes: 
         # 5 = class 1, 4 = class 1
         # 3 = class 0, 2 = class 0, 1 = class 0
         print "Cross Validating......"
         cvScore = []
-        for i in range(len(reviewsSent)):
+        for i in xrange(len(reviewsSent)):
             reviewsCVSent, yCVSent   = [], []
             reviewsCVSent.extend(reviewsSent[i]['TEXT'][CVSet])
             yCVSent.extend([i/3]*len(CVSet))
@@ -318,9 +381,11 @@ def trainSentCV(reviewsSent):
         # print "Mean score = ", sum(totalScore)/len(totalScore)
         totalScore.append(cvScore)
     
-    # score = [[cats[x],met[0][x],met[1][x]] for x in range(len(met[0]))]
+    # score = [[cats[x],met[0][x],met[1][x]] for x in xrange(len(met[0]))]
     score = pd.DataFrame(np.mean(totalScore, axis = 0), columns=["Accuracy"])
     print score
+    
+    # SAMPLE OUTPUT:
     #    Accuracy
     # 1    0.9614
     # 2    0.8305
@@ -330,11 +395,15 @@ def trainSentCV(reviewsSent):
     
     return tfidf, myClassifierSent
 
-def trainSent(reviewsSent):
-    # TRAINING THE SENTIMENT CLASSIFIER
+def trainSent(reviewsSent, stopSent):
+    """
+    TRAINING THE SENTIMENT CLASSIFIER
+    reviewsSent: dataframe of reviews used to train the classifiers
+    stopSent: number of reviews to use in each class
+    """
     reviewsTrainSent, yTrainSent = [], []
     
-    stop = 10000
+    stop = stopSent
     # Train only on 5 stars (Positive) and 1 stars (Negative) classes
     reviewsTrainSent.extend(reviewsSent[0]['TEXT'][0:stop])
     yTrainSent.extend([0]*stop)
@@ -344,19 +413,23 @@ def trainSent(reviewsSent):
                 
     return tfidf, myClassifierSent, featuresTrain
     
-def trainCatCV(reviewsTraining, categories):
-    # TRAINING AND CROSS VALIDATING THE CATEGORY CLASSIFIER
-    kfold = cv.KFold(5000, n_folds=3)
+def trainCatCV(reviewsTraining, categories, stopCat):
+    """
+    TRAINING AND CROSS VALIDATING THE CATEGORY CLASSIFIER
+    reviewsTraining: dataframe of reviews used to train the classifiers
+    categories: list of categories for display purposes
+    stopCat: number of reviews to use in each category
+    """
+    kfold = cv.KFold(stopCat, n_folds=3)
     # scores = [classifier.score(f[test], np.array(y)[test]) for train, test in kfold]
     reviewsTrainCat, yTrainCat = [], []
     reviewsCVCat, yCVCat   = [], []
 
-    for i in range(len(reviewsTraining)): reviewsTraining[i] = \
-                            reviewsTraining[i].reset_index(drop=True)
+    for revs in reviewsTraining: revs.reset_index(drop=True, inplace=True)
 
     totalScore = []
     for trainSet, CVSet in kfold:
-        for i in range(len(reviewsTraining)):
+        for i in xrange(len(reviewsTraining)):
             reviewsTrainCat.extend(reviewsTraining[i]['TEXT'][trainSet])
             yTrainCat.extend([i]*len(trainSet))
             reviewsCVCat.extend(reviewsTraining[i]['TEXT'][CVSet])
@@ -368,6 +441,8 @@ def trainCatCV(reviewsTraining, categories):
         print pr
         totalScore.append(aveScore)
     print "Mean score = ", sum(totalScore)/len(totalScore)
+    
+    # SAMPLE OUTPUT:
     # CV Total Accuracy = 0.9746
     #         Category  Precision    Recall
     # 0    Restaurants      0.990  0.970588
@@ -375,20 +450,29 @@ def trainCatCV(reviewsTraining, categories):
     # 2       Shopping      0.970  0.960396
     # 3  BeautyandSpas      0.988  0.980159
     # 4     ActiveLife      0.984  0.985972
+    
     return tfidf, myClassifierCat    
 
-def trainCat(reviewsTraining, categories, stopCat):
-    # TRAINING THE CATEGORY CLASSIFIER
+def trainCat(reviewsTraining, stopCat):
+    """
+    TRAINING THE CATEGORY CLASSIFIER
+    reviewsTraining: dataframe of reviews used to train the classifiers
+    stopCat: number of reviews to use in each category
+    """
     reviewsTrainCat, yTrainCat = [], []
     
     stop = stopCat
-    for i in range(len(reviewsTraining)):
+    for i in xrange(len(reviewsTraining)):
         reviewsTrainCat.extend(reviewsTraining[i]['TEXT'][0:stop])
         yTrainCat.extend([i]*stop)
     tfidf, myClassifierCat, featuresTrain = train(reviewsTrainCat, yTrainCat)
     return tfidf, myClassifierCat, featuresTrain    
    
 def load():
+    """
+    Loads the data tables from the yelp.db database to pandas dataframes. 
+    Sorts the reviews into categories. Train/Test the category and sentiment                 classifiers. Creates recommendation based on user history and classifier output. 
+    """
     sub_dir = "/Users/yb/data_project/yelp_phoenix_academic_dataset/"
     conn = sqlite3.connect(os.path.join(sub_dir,'yelp.db'))
     cursor = conn.cursor()
@@ -397,7 +481,8 @@ def load():
     main = main[2:]
     
     bus     = pd.read_sql("SELECT * FROM bus;", conn)
-    review  = pd.read_sql("""SELECT BUSINESS_ID, TEXT, STARS, USER_ID FROM review;""", conn)
+    review  = pd.read_sql("""SELECT BUSINESS_ID, TEXT, STARS, USER_ID FROM review;""",\
+                            conn)
     tip     = pd.read_sql("""SELECT * FROM tip;""", conn)
     bus_cat = pd.read_sql("""SELECT * FROM bus_cat;""", conn)
     rev_cat = pd.merge(bus_cat, review, on='BUSINESS_ID')
@@ -419,10 +504,10 @@ def load():
 
     reviewsTrainingCat = []
     stopCat = 5000
-    for i in range(len(reviews)): reviewsTrainingCat.append(reviews[i][0:stopCat])
+    for revs in reviews: reviewsTrainingCat.append(revs[0:stopCat])
     
-    # tfidfCat, myClassifierCat = trainCatCV(reviewsTrainingCat, categories)
-    tfidfCat, myClassifierCat, featuresCat = trainCat(reviewsTrainingCat, categories, stopCat)
+    # tfidfCat, myClassifierCat = trainCatCV(reviewsTrainingCat, categories, stopCat)
+    tfidfCat, myClassifierCat, featuresCat = trainCat(reviewsTrainingCat, stopCat)
     
     #########################
     #########################
@@ -430,31 +515,27 @@ def load():
     # Using "reviews" from above, have 2 classes: 5 stars = positive(1), 1 stars = negative (0)
     # Number of reviews in 1 stars class ~20K
     reviewsSent = []
-    for j in range(5):
+    for j in xrange(5):
         temp = []
-        for i in range(len(reviews)):
-            temp.append(reviews[i][reviews[i]['STARS']==j+1])
+        for revs in reviews: temp.append(revs[revs['STARS']==j+1])
         reviewsSent.append(pd.concat(temp))
         # print j+1, len(reviewsSent[j])
     
     reviewsTrainingSent = []
-    stopSent = 10000
-    for i in range(len(reviewsSent)): reviewsTrainingSent.append(reviews[i][0:stopSent])       
+    stopSent = 5000
+    for revs in reviewsSent: reviewsTrainingSent.append(revs[0:stopSent])       
     
-    # tfidfSent, myClassifierSent = trainSentCV(reviewsTrainingSent)
-    tfidfSent, myClassifierSent, featuresSent = trainSent(reviewsTrainingSent)
+    # tfidfSent, myClassifierSent = trainSentCV(reviewsTrainingSent, stopSent)
+    tfidfSent, myClassifierSent, featuresSent = trainSent(reviewsTrainingSent, stopSent)
     
     #########################
     #########################
     # DISPLAY RESULTS
     # Get list of top users by tip history. Display their review history, tip history, and recommend which reviews they should review next. 
-    
-
-    userLists = getTips(tip, review, bus, reviewsTrainingCat, \
-                            reviewsTrainingSent, stopCat, stopSent)
+    userLists = getTips(tip, review, bus, reviewsTrainingCat)
         
-    output(reviews, stopCat, userLists, bus, categories, tfidfCat, myClassifierCat, \
-                    tfidfSent, myClassifierSent, featuresCat)
+    recommend(reviews, stopCat, userLists, bus, categories, tfidfCat, \
+                myClassifierCat, tfidfSent, myClassifierSent, featuresCat)
 
     # with open('yelp.pickle', 'w') as f: pickle.dump(userLists, f)
     # with open('objs.pickle') as f: userLists = pickle.load(f)

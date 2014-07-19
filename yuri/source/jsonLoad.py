@@ -7,6 +7,11 @@ import sqlite3
 import re
 
 def userDB(user, sub_dir):
+    """
+    CREATE SCHEMA FOR USER DATA. INSERT INTO USER TABLE.
+    user: list of json data for user information
+    sub_dir: directory of database
+    """
     conn = sqlite3.connect(os.path.join(sub_dir,'yelp.db'))
     ################### Store user
     conn.execute("DROP TABLE IF EXISTS user;")
@@ -23,7 +28,7 @@ def userDB(user, sub_dir):
           ELITE         INT  NOT NULL,
           USER_ID       TEXT NOT NULL);''')
     
-    for i in range(len(user)):
+    for i in xrange(len(user)):
         val = "%s,\"%s\",\"%s\",%s,%s,%s,%s,%s,%s,%s,\"%s\"" % \
                 (str(i), user[i]['name'], \
                 user[i]['yelping_since'], str(user[i]['average_stars']), \
@@ -40,6 +45,11 @@ def userDB(user, sub_dir):
     conn.close()
 
 def tipDB(tip, sub_dir):
+    """
+    CREATE SCHEMA FOR TIP DATA. INSERT INTO TIP TABLE.
+    tip: list of json data for tip information
+    sub_dir: directory of database
+    """
     conn = sqlite3.connect(os.path.join(sub_dir,'yelp.db'))
     ################### Store tip
     conn.execute("DROP TABLE IF EXISTS tip;")
@@ -52,19 +62,24 @@ def tipDB(tip, sub_dir):
           USER_ID       TEXT NOT NULL);''')
     
     
-    for i in range(len(tip)):
+    for i in xrange(len(tip)):
         text = tip[i]['text']
         text = text.replace('"','\"\"')
         val = "%s,\"%s\",\"%s\",%s,\"%s\",\"%s\"" % (str(i), tip[i]['business_id'], \
                 tip[i]['date'], str(tip[i]['likes']), text, tip[i]['user_id'] )     
-        insert1 = "INSERT INTO tip (ID,BUSINESS_ID,DATE,LIKES,TEXT,USER_ID) VALUES (%s)" % \
-                    val.encode('ascii','ignore')    
+        insert1 = "INSERT INTO tip (ID,BUSINESS_ID,DATE,LIKES,TEXT,USER_ID) VALUES (%s)"\
+                     % val.encode('ascii','ignore')    
         conn.execute(insert1);
         conn.commit();
     
     conn.close()
 
 def reviewDB(review, sub_dir):
+    """
+    CREATE SCHEMA FOR REVIEW DATA. INSERT INTO REVIEW TABLE.
+    review: list of json data for review information
+    sub_dir: directory of database
+    """
     conn = sqlite3.connect(os.path.join(sub_dir,'yelp.db'))
     ################### Store review
     conn.execute("DROP TABLE IF EXISTS review;")
@@ -79,7 +94,7 @@ def reviewDB(review, sub_dir):
           VOTES_U       INT  NOT NULL,
           USER_ID       TEXT NOT NULL);''')
     
-    for i in range(len(review)):
+    for i in xrange(len(review)):
         text = review[i]['text']
         text = text.replace('"','\"\"')
         val = "%s,\"%s\",\"%s\",%s,\"%s\",%s,%s,%s,\"%s\"" % \
@@ -95,14 +110,20 @@ def reviewDB(review, sub_dir):
     conn.close()
 
 def bus_catDB(bus, sub_dir):
+    """
+    CREATE SCHEMA FOR BUSINESS CATEGORY DATA. INSERT INTO BUS_CAT TABLE.
+    bus: list of json data for business information
+    sub_dir: directory of database
+    """
     conn = sqlite3.connect(os.path.join(sub_dir,'yelp.db'))
 
     categories = {}
-    for i in range(len(bus)):
+    for i in xrange(len(bus)):
        for key in bus[i]['categories']:
            if key not in categories.keys(): categories[key] = 1
 
     categories2 = {}
+    # Keep only text characters in categories
     for key in categories.keys():
        temp = re.sub("[&]", "and", key)
        temp = re.sub("[ -/(),']", "", temp)
@@ -121,7 +142,8 @@ def bus_catDB(bus, sub_dir):
     conn.execute(insert_sql)
     
     tempDict = {}
-    for i in range(len(bus)):
+    # put 1 if business contains category, otherwise 0
+    for i in xrange(len(bus)):
        values = []
        for key in sortKeys: tempDict[key] = 0
        for key in bus[i]['categories']:
@@ -132,7 +154,7 @@ def bus_catDB(bus, sub_dir):
 
        insert_sql = "INSERT INTO bus_cat(ID, BUSINESS_ID, %s) VALUES(%s, \"%s\", %s)"
        cols = ', '.join(sortKeys)
-       vals = ', '.join(["%s" for x in range(l)])
+       vals = ', '.join(["%s" for x in xrange(l)])
        vals = vals % tuple(values)
        insert_sql = insert_sql % (cols, str(i), bus[i]['business_id'], vals)
        conn.execute(insert_sql)
@@ -141,6 +163,11 @@ def bus_catDB(bus, sub_dir):
     conn.close()
         
 def busDB(bus, sub_dir):
+    """
+    CREATE SCHEMA FOR BUSINESS DATA. INSERT INTO BUS TABLE.
+    bus: list of json data for business information
+    sub_dir: directory of database
+    """
     conn = sqlite3.connect(os.path.join(sub_dir,'yelp.db'))
     ################### Store business
     conn.execute("DROP TABLE IF EXISTS bus;")
@@ -156,7 +183,7 @@ def busDB(bus, sub_dir):
           REVIEWS       INT  NOT NULL,
           OPEN          INT  NOT NULL);''')
     
-    for i in range(len(bus)):
+    for i in xrange(len(bus)):
         val = "%s,\"%s\",\"%s\",\"%s\",\"%s\",%s,%s,%s,%s,%s" % \
                 (str(i), bus[i]['business_id'], bus[i]['name'], \
                 bus[i]['full_address'], bus[i]['city'], \
@@ -171,12 +198,17 @@ def busDB(bus, sub_dir):
     conn.close()
     
 def catDB (sub_dir):
+    """
+    SCRAPE THE catList.txt FILE, WHICH IS HTML LIST OF CATEGORIES FROM YELP.COM. CREATE      SCHEMA FOR CATEGORIES DATA. INSERT INTO CAT TABLE.
+    sub_dir: directory of database
+    """
     file = 'catList.txt'
     html = urlopen(os.path.join(sub_dir,file)).read()
     soup = BeautifulSoup(html)
     mains = soup.select("ul.attr-list > li")
 
     # mainCat is list of main categories in Yelp
+    # Keep only text characters in categories
     mainCat = []
     for a in mains:
         cat = re.sub("\(.*\)", "", a.text)
@@ -221,12 +253,12 @@ def catDB (sub_dir):
 
     index = 0
     count = 0
-    for i in range(r):
+    for i in xrange(r):
         p = [0]*l
         p[index] = 1
         insert_sql = "INSERT INTO cat(ID, SUBCATEGORY, %s) VALUES(%s, \"%s\", %s)"
         cols = ', '.join(mainCat)
-        vals = ', '.join(["%s" for x in range(l)])
+        vals = ', '.join(["%s" for x in xrange(l)])
         vals = vals % tuple(p)
         insert_sql = insert_sql % (cols, str(i), catFlat[i], vals)
         conn.execute(insert_sql)
@@ -244,6 +276,10 @@ def catDB (sub_dir):
     # there are 22 main categories
 
 def rev_cat(sub_dir):
+    """
+    PERFORM JOIN ON BUS_CAT TABLE AND REVIEW TABLE. 
+    sub_dir: directory of database
+    """
     conn = sqlite3.connect(os.path.join(sub_dir,'yelp.db'))
     conn.execute("DROP TABLE IF EXISTS rev_cat;")
     conn.execute("VACUUM rev_cat;")
@@ -255,7 +291,10 @@ def rev_cat(sub_dir):
     # conn.execute("VACUUM review;")
     conn.close()
                 
-def load():   
+def load():
+    """
+    LOAD ALL DATA FROM JSON FILES TO SQLITE DB
+    """   
     sub_dir = "/Users/yb/data_project/yelp_phoenix_academic_dataset/" 
     
     # Load all of the data from .json files
